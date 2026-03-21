@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 1. 全体・画面設計 */
+        body { margin: 0; 確定したデザイン・実装ルールおよびソース資料に基づき、**練習45「二分探索」**の解説スライド（`slide45.html`）を作成しました。
+
+このスライドでは、二分探索の核心である「探索範囲を半分に絞り込む論理」と「ポインタ（low, high）の更新ルール」を視覚的に解説しています。
+
+### slide45.html
+
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 1. 全体・画面設計 */
+        body { margin: 0; padding: 0; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+
+        /* 2. タイトル領域：青色バーと25px余白 */
+        h1 { 
+            font-size: 38px; border-left: 14px solid #3b82f6; padding-left: 20px; 
+            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        }
+
+        /* 3. コンテンツ領域（左右分割：左65% vs 右35%） */
+        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; }
+        .text-column { flex: 0 0 65%; padding-right: 25px; box-sizing: border-box; }
+        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
+
+        /* 4. 文字装飾ルール */
+        .explanation { font-size: 31px; line-height: 1.5; color: #000000; margin-bottom: 15px; }
+        .explanation li { margin-bottom: 8px; }
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; }
+        
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
+            font-family: 'Consolas', monospace; font-size: 26px; line-height: 1.3; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 5. フッター領域 */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 60px; display: flex; align-items: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
+        .supplement-color { color: #4b5563; }
+        .answer-color { color: #ea580c; }
+
+        /* 6. SVG共通設定：物理サイズ固定の矢印マーカー（24x18） */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 15px; box-sizing: border-box; }
+        text { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- スライド1：問題提示 -->
+<div class="slide">
+    <h1>練習45：二分探索</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <p class="explanation">昇順に整列された配列 tbl から、目的の data を探す高速なアルゴリズムです。添字は1から開始します。</p>
+            <pre>
+low ← 1, high ← n
+while ((low が high 以下) 
+       and (tbl[mid] が data と等しくない))
+  if (tbl[mid] が data より小さい)
+    low ← <span class="blank">【 1 】</span>
+  else
+    high ← <span class="blank">【 2 】</span>
+  endif
+  mid ← (low + high) ÷ 2
+endwhile</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="40" fill="#3b82f6" font-size="24" text-anchor="middle">探索範囲の絞り込み</text>
+                <!-- 配列の箱 -->
+                <rect x="30" y="130" width="60" height="60" fill="none" stroke="black" stroke-width="2"/>
+                <rect x="90" y="130" width="60" height="60" fill="none" stroke="black" stroke-width="2"/>
+                <rect x="150" y="130" width="100" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+                <rect x="250" y="130" width="60" height="60" fill="none" stroke="black" stroke-width="2"/>
+                <rect x="310" y="130" width="60" height="60" fill="none" stroke="black" stroke-width="2"/>
+                <!-- ポインタラベル -->
+                <text x="60" y="220" text-anchor="middle" font-size="18">low</text>
+                <text x="200" y="220" text-anchor="middle" font-size="20" fill="#ef4444">mid</text>
+                <text x="340" y="220" text-anchor="middle" font-size="18">high</text>
+                <!-- 矢印 -->
+                <path d="M 120 100 L 190 100" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr1)" fill="none"/>
+                <path d="M 280 100 L 210 100" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr1)" fill="none"/>
+                <defs><marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：中央の要素と比較し、不要な半分を捨てることで、爆速でデータを見つけます。</div></div>
+</div>
+
+<!-- スライド2：アルゴリズムの要点 -->
+<div class="slide">
+    <h1>練習45：アルゴリズムの要点</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <ul class="explanation">
+                <li><span class="important">二分割</span>：1回の比較で探索範囲が半分（1/2, 1/4...）になります。</li>
+                <li><span class="important">圧倒的効率</span>：100万件のデータも、わずか20回程度の比較で見つけ出せます。</li>
+                <li><span class="important">前提条件</span>：対象のデータが「昇順」か「降順」に整列済みである必要があります。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 380">
+                <text x="200" y="45" font-size="22" text-anchor="middle" fill="#047857">効率：O(log n)</text>
+                <rect x="50" y="80" width="300" height="40" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                <rect x="50" y="140" width="150" height="40" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                <rect x="50" y="200" width="75" height="40" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                <text x="360" y="105" font-size="18">n件</text>
+                <text x="210" y="165" font-size="18">n/2</text>
+                <text x="135" y="225" font-size="18">n/4</text>
+                <path d="M 320 280 L 80 280" stroke="#ef4444" stroke-width="5" marker-end="url(#arr2)" fill="none"/>
+                <text x="200" y="330" text-anchor="middle" font-size="20" fill="#ef4444">回数が劇的に減少!</text>
+                <defs><marker id="arr2" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ef4444"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：計算量は O(log n) と呼ばれる非常に優れた効率を持ちます。</div></div>
+</div>
+
+<!-- スライド3：解答の導出 -->
+<div class="slide">
+    <h1>練習45：解答の導出</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <pre>if (tbl[mid] &lt; data)
+  low ← <span class="blank">mid + 1</span>
+else
+  high ← <span class="blank">mid - 1</span></pre>
+            <ul class="explanation">
+                <li>中央が data より小さい ＝ data は<span class="important">右側</span>にあるため、low（下限）を更新します。</li>
+                <li>そうでない ＝ data は<span class="important">左側</span>にあるため、high（上限）を更新します。</li>
+                <li>確認済みの mid は含めず、<span class="important">+1 や -1</span> をするのが定石です。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="120 0 350 350">
+                <rect x="150" y="75" width="200" height="70" rx="12" fill="#3b82f6" />
+                <text x="250" y="117" text-anchor="middle" fill="white" font-size="22">tbl[mid] &lt; data ?</text>
+                
+                <text x="275" y="185" font-size="24">Yes</text>
+                <rect x="150" y="225" width="200" height="70" rx="12" fill="#ef4444" />
+                <text x="250" y="267" text-anchor="middle" fill="white" font-size="22">low ← mid + 1</text>
+                
+                <text x="345" y="22" font-size="21" fill="#1e3a8a" text-anchor="middle">No： high ← mid - 1</text>
+
+                <path d="M 250 145 L 250 215" stroke="#1f2937" stroke-width="5" marker-end="url(#arr3)" fill="none"/>
+                <!-- 濃紺のループ矢印：破線 -->
+                <path d="M 350 110 L 440 110 L 440 30 L 250 30 L 250 65" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr4)" fill="none"/>
+                
+                <defs>
+                    <marker id="arr3" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr4" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text answer-color">解答： (1) ウ mid + 1 &nbsp; (2) イ mid - 1</div></div>
+</div>
+
+</body>
+</html>
+```padding: 0; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+
+        /* 2. タイトル領域：青色バーと25pxの余白 */
+        h1 { 
+            font-size: 38px; border-left: 14px solid #3b82f6; padding-left: 20px; 
+            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        }
+
+        /* 3. コンテンツ領域（左右分割：左65% vs 右35%） */
+        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; }
+        .text-column { flex: 0 0 65%; padding-right: 25px; box-sizing: border-box; }
+        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
+
+        /* 4. 文字装飾・フォント設定 */
+        .explanation { font-size: 31px; line-height: 1.5; color: #000000; margin-bottom: 15px; }
+        .explanation li { margin-bottom: 8px; }
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; }
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
+            font-family: 'Consolas', monospace; font-size: 26px; line-height: 1.3; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 5. フッター領域：25px、上線のみ */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 60px; display: flex; align-items: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
+        .supplement-color { color: #4b5563; }
+        .answer-color { color: #ea580c; }
+
+        /* 6. SVG共通設定 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 15px; box-sizing: border-box; }
+        text { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <h1>練習45：二分探索（条件分岐）</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <p class="explanation">昇順の配列 tbl から data を探す際、中央の値 tbl[mid] との比較結果に応じた範囲更新を完成させなさい。</p>
+            <pre>
+while ( (low ≦ high) and (tbl[mid] ≠ data) )
+  if (tbl[mid] < data)
+    low ← <span class="blank">【 1 】</span>
+  else
+    high ← <span class="blank">【 2 】</span>
+  endif
+  mid ← (low + high) ÷ 2 （整数部）
+endwhile</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="40" fill="#3b82f6" font-size="24" text-anchor="middle">比較と分岐</text>
+                <rect x="100" y="100" width="200" height="80" rx="10" fill="white" stroke="#3b82f6" stroke-width="3"/>
+                <text x="200" y="145" text-anchor="middle" font-size="20">tbl[mid] &lt; data ?</text>
+                
+                <path d="M 100 140 L 50 140 L 50 220" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arr1)"/>
+                <text x="35" y="250" text-anchor="middle" font-size="18">No</text>
+                
+                <path d="M 300 140 L 350 140 L 350 220" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arr1)"/>
+                <text x="365" y="250" text-anchor="middle" font-size="18">Yes</text>
+
+                <defs>
+                    <marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#64748b"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：二分探索では、1回の比較で探索対象が半分になります。</div></div>
+</div>
+
+<div class="slide">
+    <h1>練習45：探索範囲の絞り込み</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <ul class="explanation">
+                <li><span class="important">tbl[mid] < data</span> のとき：
+                    <ul>
+                        <li>中央の値よりも目的のデータの方が「大きい」。</li>
+                        <li>つまり、<span class="important">右半分</span>（大きい側）にデータがある。</li>
+                        <li>下限 low を mid の右隣へ移動させる。</li>
+                    </ul>
+                </li>
+                <li><span class="important">それ以外</span> のとき：
+                    <ul>
+                        <li>中央の値よりも目的のデータの方が「小さい」。</li>
+                        <li>つまり、<span class="important">左半分</span>（小さい側）にデータがある。</li>
+                        <li>上限 high を mid の左隣へ移動させる。</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 380">
+                <rect x="40" y="80" width="320" height="50" fill="#f3f4f6" stroke="#94a3b8" stroke-width="2"/>
+                <line x1="200" y1="80" x2="200" y2="130" stroke="#ef4444" stroke-width="4"/>
+                <text x="200" y="70" text-anchor="middle" font-size="20" fill="#ef4444">mid</text>
+                
+                <path d="M 210 160 L 330 160" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr2)"/>
+                <text x="270" y="195" text-anchor="middle" font-size="18" fill="#3b82f6">low = mid + 1</text>
+
+                <path d="M 190 240 L 70 240" stroke="#ea580c" stroke-width="5" marker-end="url(#arr3)"/>
+                <text x="130" y="275" text-anchor="middle" font-size="18" fill="#ea580c">high = mid - 1</text>
+
+                <defs>
+                    <marker id="arr2" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker>
+                    <marker id="arr3" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ea580c"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：mid自身は既に比較済みなので、範囲から除外します。</div></div>
+</div>
+
+<div class="slide">
+    <h1>練習45：解答の導出</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <pre>if (tbl[mid] < data)
+  low ← <span class="blank">mid + 1</span>
+else
+  high ← <span class="blank">mid - 1</span>
+endif</pre>
+            <ul class="explanation">
+                <li>この処理により、`low` または `high` が更新され、次回の `mid` は新しい範囲の中央を指します。</li>
+                <li>「右へずらす＝最小値を増やす」</li>
+                <li>「左へずらす＝最大値を減らす」</li>
+                <li>と覚えると直感的です。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="120 0 350 350">
+                <rect x="150" y="75" width="200" height="70" rx="12" fill="#3b82f6" />
+                <text x="250" y="117" text-anchor="middle" fill="white" font-size="22">lowを更新</text>
+                <text x="275" y="185" font-size="24">mid + 1</text>
+                <rect x="150" y="225" width="200" height="70" rx="12" fill="#ef4444" />
+                <text x="250" y="267" text-anchor="middle" fill="white" font-size="22">highを更新</text>
+                <text x="345" y="22" font-size="21" fill="#1e3a8a" text-anchor="middle">mid - 1</text>
+
+                <path d="M 250 145 L 250 215" stroke="#1f2937" stroke-width="5" marker-end="url(#arr4)" fill="none"/>
+                <path d="M 350 110 L 440 110 L 440 30 L 250 30 L 250 65" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr5)" fill="none"/>
+                
+                <defs>
+                    <marker id="arr4" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr5" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text answer-color">解答： (1) mid + 1, (2) mid - 1</div></div>
+</div>
+
+</body>
+</html>

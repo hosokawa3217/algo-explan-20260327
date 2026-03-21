@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 1. 全体・画面設計: 1280x720px固定、余白40px 80px */
+        body { margin: 0; padding: 0; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+
+        /* 2. タイトル領域: 38px, 青色バー(25px幅) */
+        h1 { 
+            font-size: 38px; border-left: 25px solid #3b82f6; padding-left: 20px; 
+            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        }
+
+        /* 3. コンテンツ領域: 左65% vs 右35%, 間隔25px */
+        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; gap: 25px; }
+        .text-column { flex: 0 0 65%; box-sizing: border-box; }
+        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
+
+        /* 4. 文字・装飾ルール: <b>タグ使用、クォーテーション廃止 */
+        .explanation { font-size: 31px; line-height: 1.5; color: #000000; margin-bottom: 15px; }
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; }
+        b { font-weight: 900; } 
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
+            font-family: 'Consolas', monospace; font-size: 26px; line-height: 1.3; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 5. フッター領域 */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 60px; display: flex; align-items: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
+        .supplement-color { color: #4b5563; } 
+        .answer-color { color: #ea580c; }
+
+        /* 6. SVG実装ルール */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 15px; box-sizing: border-box; }
+        text { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <h1>練習42：先頭への移動法（問題提示）</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <p class="explanation">
+                探索で見つかった <b>i</b> 番目の値を <b>tbl[ 1 ]</b> に持ってくるため、その前の要素を <b>1つずつ右にずらす</b> アルゴリズムを完成させよう。
+            </p>
+            <pre>
+if ( i ≦ n )
+  for ( j を <span class="blank">【 1 】</span> )
+    tbl[ j ] ← tbl[ j - 1 ]
+  endfor
+  tbl[ 1 ] ← data
+endif</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="40" fill="#3b82f6" font-size="22" text-anchor="middle">玉突き移動のイメージ</text>
+                <rect x="50" y="100" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+                <rect x="110" y="100" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+                <rect x="170" y="100" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+                <rect x="230" y="100" width="60" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+                <text x="260" y="90" text-anchor="middle" font-size="16" fill="#ef4444">i 番目</text>
+
+                <path d="M 80 170 Q 110 200 140 170" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
+                <path d="M 140 170 Q 170 200 200 170" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
+                <path d="M 200 170 Q 230 200 260 170" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
+                
+                <text x="200" y="260" text-anchor="middle" font-size="20" fill="#3b82f6">空き地を作るためにずらす</text>
+                <defs><marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#3b82f6"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：見つかったデータを最前列に置くことで、次回の探索を速くする。</div></div>
+</div>
+
+<div class="slide">
+    <h1>練習42：なぜ「後ろから」処理するのか</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <ul class="explanation">
+                <li>代入式 <b>tbl[ j ] ← tbl[ j - 1 ]</b> は、「左の値を右にコピーする」処理です。</li>
+                <li>もし <b>左から順に</b> やると、コピー先のデータが上書きされ、消えてしまいます。</li>
+                <li><b>後ろ（右）から順に</b> 行うことで、元々あった値を安全に隣へ「避難」させることができます。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 400">
+                <text x="200" y="30" fill="#ef4444" font-size="20" text-anchor="middle">【失敗例】前から処理した場合</text>
+                <rect x="100" y="60" width="80" height="60" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+                <rect x="180" y="60" width="80" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+                <text x="140" y="100" font-size="30">A</text>
+                <text x="220" y="100" font-size="30" fill="#ef4444">B</text>
+                
+                <path d="M 140 130 Q 180 180 220 130" stroke="#ef4444" stroke-width="5" marker-end="url(#arrBad)" fill="none"/>
+                <text x="200" y="200" text-anchor="middle" font-size="18" fill="#ef4444">Aをコピーすると B が消える！</text>
+
+                <line x1="50" y1="230" x2="350" y2="230" stroke="#cbd5e1" stroke-width="2"/>
+
+                <text x="200" y="265" fill="#10b981" font-size="20" text-anchor="middle">【正解】後ろから処理した場合</text>
+                <rect x="100" y="280" width="80" height="60" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+                <rect x="180" y="280" width="80" height="60" fill="#d1fae5" stroke="#10b981" stroke-width="3"/>
+                <text x="140" y="320" font-size="30">A</text>
+                <text x="220" y="320" font-size="20" fill="#64748b">空き</text>
+                <path d="M 140 350 Q 180 390 220 350" stroke="#10b981" stroke-width="5" marker-end="url(#arrGood)" fill="none"/>
+                
+                <defs>
+                    <marker id="arrBad" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#ef4444"/></marker>
+                    <marker id="arrGood" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#10b981"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：データの避難順序を間違えないことがアルゴリズムの肝。</div></div>
+</div>
+
+<div class="slide">
+    <h1>練習42：解答の導出</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <pre>for ( j を <b>i</b> から <b>2</b> まで <b>1</b> ずつ減らす )</pre>
+            <ul class="explanation">
+                <li>まず <b>i</b> 番目の場所へ、その左隣（<b>i-1</b> 番目）の値を避難させます（<b>j = i</b>）。</li>
+                <li>これを繰り返し、最後に <b>2</b> 番目の場所へ <b>1</b> 番目の値を移します（<b>j = 2</b>）。</li>
+                <li>これで <b>tbl[ 1 ]</b> が空くので、見つかった値を格納できます。</li>
+                <li>よって、<b>i</b> から <b>2</b> まで減少させる <b>ウ</b> が正解です。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="100 0 400 350">
+                <text x="250" y="50" font-size="22" text-anchor="middle" fill="#1e3a8a">ループの進む向き</text>
+                <rect x="120" y="100" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
+                <rect x="170" y="100" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
+                <rect x="220" y="100" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
+                <rect x="270" y="100" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
+                <rect x="320" y="100" width="50" height="50" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+                
+                <text x="145" y="170" font-size="14">1</text>
+                <text x="195" y="170" font-size="14">2</text>
+                <text x="345" y="170" font-size="14" fill="#ef4444">i</text>
+
+                <path d="M 345 200 C 345 280, 195 280, 195 200" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arrLoop)" fill="none"/>
+                <text x="270" y="290" text-anchor="middle" font-size="24" fill="#1e3a8a">i 番目から 2 番目へ</text>
+                
+                <defs><marker id="arrLoop" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text answer-color">解答： (1) ウ　i から 2 まで 1 ずつ減らす</div></div>
+</div>
+
+</body>
+</html>

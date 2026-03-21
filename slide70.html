@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習70：バブルソート スライド教材</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-weight: 900;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトルエリア */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツエリア */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+
+        /* 疑似言語表示 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 23px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+            font-weight: 900;
+        }
+        b { font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+        .correct { color: #ef4444; font-weight: 900; }
+
+        /* 説明用リスト */
+        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
+        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
+            border-radius: 15px; width: 100%; margin-top: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; }
+
+        /* SVG共通設定 */
+        svg { 
+            width: 100%; height: auto; 
+            border: 2px solid #64748b; border-radius: 12px; 
+            background: #ffffff;
+        }
+        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .box-focus { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
+        .arrow { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        .swap-arrow { stroke: #ef4444; stroke-width: 4; fill: none; }
+        .x-mark { stroke: #ef4444; stroke-width: 6; }
+        svg text { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習70：バブルソート（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">配列 <b>A</b> の要素を昇順に並べ替えるプログラムの空欄を埋めよ。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> ← 0 to <b>n</b> - 2 )
+　　for ( <b>j</b> ← <span class="blank">【　　 1 　　】</span> )
+　　　　if ( <b>A[j]</b> ＞ <b>A[j + 1]</b> )
+　　　　　　<b>tmp</b> ← <b>A[j]</b>
+　　　　　　<b>A[j]</b> ← <b>A[j + 1]</b>
+　　　　　　<b>A[j + 1]</b> ← <b>tmp</b>
+　　　　endif
+　　endfor
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="100" width="70" height="70" class="box" /><text x="75" y="135">8</text>
+                <rect x="125" y="100" width="70" height="70" class="box" /><text x="160" y="135">3</text>
+                <rect x="210" y="100" width="70" height="70" class="box" /><text x="245" y="135">5</text>
+                <rect x="295" y="100" width="70" height="70" class="box" /><text x="330" y="135">1</text>
+                <path d="M 75,185 Q 117,230 160,185" class="swap-arrow" marker-end="url(#head)" />
+                <defs><marker id="head" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/></marker></defs>
+                <text x="200" y="260" font-size="20">隣同士を比べて</text>
+                <text x="200" y="295" font-size="20">大きければ入れ替える</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習70：解説（ループの範囲）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">内側のループ <b>j</b> はどこまで回せばよいか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>確定の仕組み</b>：1回のスキャンで、未確定部分の「最大値」が右端へ移動する。</li>
+                <li><b>無駄を省く</b>：外側ループ <b>i</b> 回目が終わるごとに、右側の <b>i</b> 個が確定済みとなる。</li>
+                <li><b>比較対象</b>：<b>A[j]</b> と <b>A[j+1]</b> を比べるため、<b>j+1</b> が未確定の末尾に届けばよい。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="40" y="50" width="70" height="70" class="box-focus" /><text x="75" y="85">3</text>
+                <rect x="125" y="50" width="70" height="70" class="box-focus" /><text x="160" y="85">5</text>
+                <rect x="210" y="50" width="70" height="70" class="box" /><text x="245" y="85">1</text>
+                <rect x="295" y="50" width="70" height="70" class="box" style="fill:#d1fae5"/><text x="330" y="85">8</text>
+                <text x="330" y="145" font-size="16" fill="#059669">i=0で確定済み</text>
+                
+                <line x1="40" y1="200" x2="280" y2="200" class="arrow" stroke-dasharray="5,5" />
+                <text x="160" y="230" font-size="22">今回のスキャン範囲</text>
+                
+                <rect x="40" y="280" width="320" height="80" rx="10" fill="#f0f9ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="200" y="320" font-size="26">j は 0 to n - i - 2</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習70：解説（入れ替えの瞬間）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">どのようなときに「交換」の処理を行うか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>昇順のルール</b>：小さい順に並べたいため、左側（<b>j</b>）が右側（<b>j+1</b>）より大きければ異常。</li>
+                <li><b>判定の瞬間</b>：<b>A[j] ＞ A[j + 1]</b> が成立したときのみ、中身を入れ替える。</li>
+                <li><b>データの待避</b>：上書きで消えないよう、<b>tmp</b> 変数を使って 3ステップで交換する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="80" y="80" width="100" height="100" class="box-focus" /><text x="130" y="130" font-size="40">8</text>
+                <rect x="220" y="80" width="100" height="100" class="box-focus" /><text x="270" y="130" font-size="40">3</text>
+                
+                <text x="200" y="220" font-size="48" fill="#ef4444">＞</text>
+                
+                <circle cx="200" cy="310" r="50" fill="none" stroke="#ef4444" stroke-width="5" />
+                <text x="200" y="310" fill="#ef4444" font-size="24">交換実行</text>
+                
+                <text x="130" y="60" font-size="18">A[j]</text>
+                <text x="270" y="60" font-size="18">A[j+1]</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習70：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">バブルソート（基本）完成プログラム</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> ← 0 to <b>n</b> - 2 )
+　　for ( <b>j</b> ← <b class="correct">0 to n - i - 2</b> )
+　　　　if ( <b>A[j]</b> ＞ <b>A[j + 1]</b> )
+　　　　　　<b>tmp</b> ← <b>A[j]</b>
+　　　　　　<b>A[j]</b> ← <b>A[j + 1]</b>
+　　　　　　<b>A[j + 1]</b> ← <b>tmp</b>
+　　　　endif
+　　endfor
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-text">
+                    【１】 ウ．0 to n - i - 2
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

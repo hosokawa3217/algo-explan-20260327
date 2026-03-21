@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習74：二分探索教材</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-weight: 900;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツエリア */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+
+        /* 疑似言語表示 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 20px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+            font-weight: 900;
+        }
+        b { font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+        .correct { color: #ef4444; font-weight: 900; }
+
+        /* 説明用リスト */
+        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
+        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
+            border-radius: 15px; width: 100%; margin-top: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
+
+        /* SVG共通設定 */
+        svg { 
+            width: 100%; height: auto; 
+            border: 2px solid #64748b; border-radius: 12px; 
+            background: #ffffff;
+        }
+        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .box-mid { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
+        .arrow-range { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        svg text { font-size: 22px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習74：二分探索（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">整列済みの配列から、中央の値と比較して範囲を狭めるプログラムを完成させよ。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>low</b> ← 0, <b>high</b> ← <b>n</b> - 1
+while ( <b>low</b> ≦ <b>high</b> )
+　　<b>mid</b> ← (<b>low</b> + <b>high</b>) ÷ 2 （整数部分）
+　　if ( <b>A[mid]</b> ＝ <b>key</b> ) return <b>mid</b>
+　　if ( <b>A[mid]</b> ＜ <b>key</b> )
+　　　　<span class="blank">【　　 1 　　】</span>
+　　else
+　　　　<b>high</b> ← <b>mid</b> - 1
+　　endif
+endwhile
+return -1</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="80" width="70" height="70" class="box" /><text x="75" y="115">10</text>
+                <rect x="125" y="80" width="70" height="70" class="box-mid" /><text x="160" y="115">25</text>
+                <rect x="210" y="80" width="70" height="70" class="box" /><text x="245" y="115">40</text>
+                <rect x="295" y="80" width="70" height="70" class="box" /><text x="330" y="115">55</text>
+                <text x="160" y="50" fill="#ca8a04">mid</text>
+                <path d="M 210,180 L 365,180" class="arrow-range" marker-end="url(#ah)" />
+                <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
+                <text x="200" y="240" font-size="22" fill="#3b82f6">keyが中央より大きければ</text>
+                <text x="200" y="280" font-size="22" fill="#3b82f6">「右半分」に絞り込む</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習74：解説（範囲の更新）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">なぜ <b>low</b> を <b>mid + 1</b> に更新するのか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>判定済み</b>：中央の <b>A[mid]</b> はすでに <b>key</b> と比較し、一致しないことがわかっている。</li>
+                <li><b>絞り込み</b>：<b>key</b> の方が大きい場合、<b>mid</b> 以下の範囲に <b>key</b> は存在しない。</li>
+                <li><b>新たな左端</b>：次の探索範囲の左端（<b>low</b>）は、<b>mid</b> のすぐ右隣から始めればよい。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="50" y="100" width="80" height="80" class="box" style="opacity:0.3" /><text x="90" y="140" fill="#94a3b8">25</text>
+                <text x="90" y="195" font-size="18" fill="#94a3b8">mid</text>
+                <rect x="150" y="100" width="80" height="80" class="box-mid" /><text x="190" y="140">40</text>
+                <text x="190" y="195" font-size="20" fill="#ca8a04">ここから！</text>
+                <path d="M 130,140 L 145,140" stroke="#ef4444" stroke-width="4" />
+                <text x="200" y="280" font-size="24">low ← mid + 1</text>
+                <text x="200" y="320" font-size="20" fill="#3b82f6">※ mid自体は含めない</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習74：解説（終了の判断）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">探索が終了するのはどのような時か？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>発見</b>：<b>A[mid] ＝ key</b> となった瞬間、その添字を返して終了する。</li>
+                <li><b>未発見</b>：範囲を絞り込みすぎて <b>low ＞ high</b> となった時、どこにも存在しなかったと判断する。</li>
+                <li><b>前提条件</b>：二分探索は、データが必ず「整列（ソート）」されている必要がある。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <circle cx="200" cy="150" r="60" fill="none" stroke="#ef4444" stroke-width="5" />
+                <text x="200" y="150" font-size="28" fill="#ef4444">一致！</text>
+                
+                <line x1="50" y1="260" x2="350" y2="260" stroke="#334155" stroke-width="2" />
+                <text x="100" y="290">low</text>
+                <text x="300" y="290">high</text>
+                <text x="200" y="340" font-size="22">範囲が逆転したら終了</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習74：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">二分探索（バイナリサーチ）完成プログラム</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>low</b> ← 0, <b>high</b> ← <b>n</b> - 1
+while ( <b>low</b> ≦ <b>high</b> )
+　　<b>mid</b> ← (<b>low</b> + <b>high</b>) ÷ 2
+　　if ( <b>A[mid]</b> ＝ <b>key</b> ) return <b>mid</b>
+　　if ( <b>A[mid]</b> ＜ <b>key</b> )
+　　　　<b class="correct">low ← mid + 1</b>
+　　else
+　　　　<b>high</b> ← <b>mid</b> - 1
+　　endif
+endwhile
+return -1</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-text">
+                    【１】 エ．low ← mid + 1
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

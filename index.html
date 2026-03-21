@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アルゴリズム演習 メニュー</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex; height: 100vh; width: 100vw;
+            background-color: #4b5563; /* 背景色を見栄え良く */
+            overflow: hidden; 
+        }
+
+        /* サイドバー：220px（指示通りの1.25倍サイズ対応） */
+        aside {
+            width: 220px; flex-shrink: 0;
+            background-color: #ffffff; border-right: 2px solid #e5e7eb;
+            display: flex; flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 10;
+        }
+
+        .menu-header { padding: 15px; border-bottom: 2px solid #e5e7eb; }
+        .menu-header h2 { margin: 0; font-size: 18px; color: #1f2937; border-left: 5px solid #3b82f6; padding-left: 10px; }
+
+        .button-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; align-items: center; }
+
+        /* ボタン：1.25倍（フォント25px） */
+        .problem-btn {
+            width: 100%; padding: 16px 5px; margin-bottom: 10px;
+            text-align: center; background-color: #f9fafb;
+            border: 1px solid #e5e7eb; border-radius: 8px;
+            font-size: 25px; line-height: 1.3;
+            font-weight: bold; color: #4b5563;
+            cursor: pointer; transition: all 0.2s ease; box-sizing: border-box;
+        }
+        .problem-btn:hover { background-color: #eff6ff; border-color: #3b82f6; color: #3b82f6; transform: scale(1.03); }
+        .problem-btn.active { background-color: #3b82f6; color: #ffffff; border-color: #2563eb; }
+
+        /* メイン領域：絶対配置の基準にする */
+        main {
+            flex: 1; position: relative;
+            background-color: #4b5563; overflow: hidden;
+        }
+
+        /* スライド本体：起点を top left に固定するのが最重要ポイント */
+        #slide-view {
+            width: 1280px; height: 720px;
+            border: none; background-color: white;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: absolute;
+            transform-origin: top left; /* これを center から top left に変更 */
+        }
+
+        .button-list::-webkit-scrollbar { width: 6px; }
+        .button-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <aside>
+        <div class="menu-header"><h2>演習一覧</h2></div>
+        <div id="menu" class="button-list"></div>
+    </aside>
+    <main id="main-view">
+        <iframe id="slide-view" src="slide40.html"></iframe>
+    </main>
+
+    <script>
+        const menu = document.getElementById('menu');
+        const iframe = document.getElementById('slide-view');
+        const mainView = document.getElementById('main-view');
+
+        // ボタン生成
+        for (let i = 40; i <= 77; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'problem-btn';
+            btn.innerHTML = `練習 ${i}`;
+            if (i === 40) btn.classList.add('active');
+            btn.onclick = () => {
+                document.querySelectorAll('.problem-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                iframe.src = `slide${i}.html`;
+            };
+            menu.appendChild(btn);
+        }
+
+        // リサイズ関数：手動で中央座標を計算して適用する
+        function resizeIframe() {
+            const margin = 40; // 画面端との最低余白
+            const availableWidth = mainView.clientWidth - margin;
+            const availableHeight = mainView.clientHeight - margin;
+            const scale = Math.min(availableWidth / 1280, availableHeight / 720);
+
+            // 1. 縮小率を適用
+            iframe.style.transform = `scale(${scale})`;
+
+            // 2. 左上起点(top left)に対して、中央にくるための移動距離を計算
+            const offsetX = (mainView.clientWidth - (1280 * scale)) / 2;
+            const offsetY = (mainView.clientHeight - (720 * scale)) / 2;
+            
+            // 3. 座標を直接指定
+            iframe.style.left = `${offsetX}px`;
+            iframe.style.top = `${offsetY}px`;
+        }
+
+        window.onresize = resizeIframe;
+        window.onload = resizeIframe;
+        // 初期描画を安定させる
+        setTimeout(resizeIframe, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習68：ハッシュ探索法</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; font-weight: 900; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 60%; }
+        .right-content { flex: 0 0 40%; }
+
+        /* 疑似言語 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: monospace; font-size: 21px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+        .important { color: #ef4444; font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+
+        /* 箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; font-weight: 900; }
+
+        /* 解答ボックス (オレンジ太枠・ベージュ背景) */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 5px solid #ea580c; 
+            border-radius: 15px; width: 100%;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 32px; margin: 0 0 20px 0; font-weight: 900; border-bottom: 3px solid #fed7aa; padding-bottom: 10px; }
+        .ans-text { font-size: 28px; font-weight: 900; color: #000000; line-height: 2.0; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 2px solid #64748b; border-radius: 12px; background: #ffffff; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .box { fill: #ffffff; stroke: #334155; stroke-width: 2; }
+        .hash-func { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
+        .arrow { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習68：ハッシュ探索法（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ関数を用いて、目的の値の格納位置を直接算出する。空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ hash_search(target)
+  idx ← <span class="blank">【　　 1 　　】</span>(target)
+  while ( H[idx] ≠ 0 )
+    if ( H[idx] = target )
+      return idx // 見つかった
+    endif
+    idx ← (idx + 1) mod <span class="blank">【　　 2 　　】</span>
+  endwhile
+  return -1 // 見つからない</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="50" width="100" height="60" rx="5" class="box" />
+                <text x="100" y="80" font-size="18">target</text>
+                <path d="M 150,80 L 220,80" class="arrow" />
+                <rect x="230" y="50" width="120" height="60" rx="10" class="hash-func" />
+                <text x="290" y="80" font-size="16">ハッシュ関数</text>
+                <path d="M 290,110 L 290,160" class="arrow" />
+                <rect x="240" y="170" width="100" height="150" class="box" />
+                <line x1="240" y1="220" x2="340" y2="220" stroke="#334155" />
+                <line x1="240" y1="270" x2="340" y2="270" stroke="#334155" />
+                <text x="210" y="245" font-size="14">idx</text>
+                <text x="290" y="245" font-size="20">値</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習68：解説（ロジック）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ関数によって計算された添字（ハッシュ値）を直接見に行く仕組み。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>ハッシュ関数</b>：<br>「データの値」を「格納場所の番号（idx）」に変換する関数のこと。</li>
+                <li><b>一発で探索</b>：<br>先頭から探す必要がなく、計算一回で場所がわかるため、データ量が増えても速度が変わらない。</li>
+                <li><b>シノニムの処理</b>：<br>もし計算先が既に埋まっていたら、次の空き場所を探す（オープンアドレス法）。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="100" width="300" height="150" rx="15" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="3" />
+                <text x="200" y="150" font-size="22">データの値から</text>
+                <text x="200" y="200" font-size="22">場所を直接計算！</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習68：解説（特性）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>計算量 O(1) という驚異的な速さと、配列サイズ内に収める工夫。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>計算量 O(1)</b>：<br>データ数 n に依存せず、常に一定の時間で探索が完了する理想的な速さ。</li>
+                <li><b>mod（剰余）の役割</b>：<br>ハッシュ値が配列のサイズを超えないよう、サイズ <b>n</b> で割った余りを用いる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="40" width="320" height="270" rx="10" fill="none" stroke="#64748b" stroke-width="2" />
+                <rect x="70" y="100" width="260" height="150" rx="15" fill="#f0fff4" stroke="#16a34a" stroke-width="3" />
+                <text x="200" y="145" font-size="24">計算量：O(1)</text>
+                <text x="200" y="205" font-size="24">理想的な探索速度</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習68：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ探索法（hash_search）完成アルゴリズム</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ hash_search(target)
+  idx ← <b class="important">hash</b>(target)
+  while ( H[idx] ≠ 0 )
+    if ( H[idx] = target )
+      return idx
+    endif
+    idx ← (idx + 1) mod <b class="important">n</b>
+  endwhile
+  return -1</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>解答（選択肢）</h2>
+                <div class="ans-text">
+                    【１】 ア．hash<br>
+                    【２】 エ．n
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 1. 全体・画面設計 */
+        body { margin: 0; padding: 0; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+
+        /* 2. タイトル領域：青色バーと25px余白 */
+        h1 { 
+            font-size: 38px; border-left: 14px solid #3b82f6; padding-left: 20px; 
+            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        }
+
+        /* 3. コンテンツ領域（左65%：解説、右35%：図式、間隔25px） */
+        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; }
+        .text-column { flex: 0 0 65%; padding-right: 25px; box-sizing: border-box; }
+        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
+
+        /* 4. 文字装飾・フォント設定 */
+        .explanation { font-size: 31px; line-height: 1.5; color: #000000; margin-bottom: 15px; }
+        .explanation li { margin-bottom: 8px; }
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; }
+        
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
+            font-family: 'Consolas', monospace; font-size: 26px; line-height: 1.3; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 5. フッター領域：共通デザイン */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 60px; display: flex; align-items: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
+        .supplement-color { color: #4b5563; }
+        .answer-color { color: #ea580c; }
+
+        /* 6. SVG設定：矢印頭の物理サイズを24x18に固定 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 15px; box-sizing: border-box; }
+        text { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- スライド1：問題提示 -->
+<div class="slide">
+    <h1>練習40：順次探索</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <p class="explanation">n個の要素が格納された配列tblに対して、探索データdataと等しい要素を先頭から順に調べるアルゴリズムです。添字は1から開始します。</p>
+            <pre>
+○ search(tbl[ ], n, data)
+  i ← 1
+  while ((i が n 以下) 
+         and ( <span class="blank">【 1 】</span> ))
+    i ← i + 1
+  endwhile</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="40" fill="#3b82f6" font-size="24" text-anchor="middle">探索の進み方</text>
+                <text x="145" y="90" fill="#3b82f6" font-size="20">1つずつ比較</text>
+                <rect x="40" y="130" width="75" height="60" fill="none" stroke="black" stroke-width="3"/>
+                <rect x="115" y="130" width="75" height="60" fill="none" stroke="black" stroke-width="3"/>
+                <rect x="190" y="130" width="75" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="4"/>
+                <rect x="265" y="130" width="75" height="60" fill="none" stroke="black" stroke-width="3"/>
+                <text x="77" y="220" text-anchor="middle" font-size="20">1</text>
+                <text x="152" y="220" text-anchor="middle" font-size="20">2</text>
+                <text x="227" y="220" text-anchor="middle" font-size="20">i</text>
+                <text x="330" y="170" font-size="24" fill="#ef4444">発見!</text>
+                <!-- 矢印マーカーを24x18に固定、最前面配置 -->
+                <path d="M 50 105 L 220 105" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr1)" fill="none"/>
+                <defs><marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：データの並び順に関わらず、端から順に確認する基本的な手法です。</div></div>
+</div>
+
+<!-- スライド2：アルゴリズムの要点 -->
+<div class="slide">
+    <h1>練習40：アルゴリズムの要点</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <ul class="explanation">
+                <li><span class="important">走査</span>：配列の先頭から順番にデータを一つずつ比較する。</li>
+                <li><span class="important">成功（発見）</span>：一致データが見つかった場所 i で停止する（i ≦ n）。</li>
+                <li><span class="important">失敗（なし）</span>：末尾を通り越し n + 1 まで進んで停止する。</li>
+            </ul>
+            <p class="explanation">平均比較回数は約 <span class="important">n / 2 回</span>、計算量は <span class="important">O(n)</span> です。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 380">
+                <text x="200" y="45" font-size="22" text-anchor="middle" fill="#047857">【成功】 範囲内で発見</text>
+                <rect x="50" y="75" width="280" height="55" fill="#d1fae5" stroke="#10b981" stroke-width="3"/>
+                <circle cx="180" cy="102" r="14" fill="#ef4444"/>
+                <text x="180" y="165" text-anchor="middle" font-size="20" fill="#ef4444">停止 (i ≦ n)</text>
+                <text x="200" y="245" font-size="22" text-anchor="middle" fill="#374151">【失敗】 範囲外へ到達</text>
+                <rect x="50" y="275" width="280" height="55" fill="#f3f4f6" stroke="#9ca3af" stroke-width="3"/>
+                <!-- 赤矢印（長さ80%） -->
+                <path d="M 330 302 L 370 302" stroke="#ef4444" stroke-width="5" marker-end="url(#arr2)" fill="none"/>
+                <text x="345" y="355" text-anchor="middle" font-size="20" fill="#ef4444">i = n + 1</text>
+                <defs><marker id="arr2" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ef4444"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">補足：データ数 n に比例して処理時間が増加する特性があります。</div></div>
+</div>
+
+<!-- スライド3：解答の導出 -->
+<div class="slide">
+    <h1>練習40：解答の導出</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <pre>while ((i が n 以下) 
+       and ( <span class="blank">【 1 】</span> ))</pre>
+            <ul class="explanation">
+                <li>while文は条件が<span class="important">「真」</span>の間、探索を継続する [1]。</li>
+                <li>探索を続ける必要があるのは、まだ目的のデータが<span class="important">「未発見」</span>のとき [2]。</li>
+                <li>未発見とは<span class="important">「tbl[ i ] が data と等しくない」</span>状態を指す [1]。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="120 0 350 350">
+                <rect x="150" y="75" width="200" height="70" rx="12" fill="#3b82f6" />
+                <text x="250" y="117" text-anchor="middle" fill="white" font-size="22">データが一致？</text>
+                <text x="275" y="185" font-size="24">Yes</text>
+                <rect x="150" y="225" width="200" height="70" rx="12" fill="#ef4444" />
+                <text x="250" y="267" text-anchor="middle" fill="white" font-size="22">ループ終了</text>
+                <text x="345" y="22" font-size="21" fill="#1e3a8a" text-anchor="middle">No： 継続</text>
+                <!-- 黒矢印と濃紺の破線ループ矢印 -->
+                <path d="M 250 145 L 250 215" stroke="#1f2937" stroke-width="5" marker-end="url(#arr3)" fill="none"/>
+                <path d="M 350 110 L 440 110 L 440 30 L 250 30 L 250 65" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr4)" fill="none"/>
+                <defs>
+                    <marker id="arr3" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr4" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text answer-color">解答： (1) エ tbl[ i ] が data と等しくない</div></div>
+</div>
+
+</body>
+</html>

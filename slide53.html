@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習53：二分探索木からのデータ探索(treesearch)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字・装飾・インデントルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 23px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        .desc-text { font-size: 26px; line-height: 1.6; margin: 0; color: #000000; }
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* ■ 4. 図式（SVG）実装ルール */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .node-circle { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
+        .arrow-loop { stroke: #1e3a8a; stroke-width: 5; stroke-dasharray: 10,10; fill: none; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習53：データの探索（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木から値 <b>num</b> を探す関数 <b>treesearch</b> である。空欄 <b>【 1 】</b> 〜 <b>【 4 】</b> を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ treesearch(整数型: <b>num</b> )
+　　<b>node</b> ← <b>Root</b>
+　　while ( <span class="blank">【　　 1 　　】</span> )
+　　　　if (<b>node.data</b> ＞ <b>num</b> )
+　　　　　　<span class="blank">【　　 2 　　】</span>
+　　　　else
+　　　　　　<span class="blank">【　　 3 　　】</span>
+　　　　endif
+　　endwhile
+　　if ( <span class="blank">【　　 4 　　】</span> )
+　　　　"発見" を表示
+　　else
+　　　　"未登録" を表示
+　　endif</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#3b82f6" />
+                    </marker>
+                </defs>
+                <circle cx="200" cy="100" r="40" class="node-circle" />
+                <text x="200" y="100" font-size="20">15</text>
+                <path d="M 170,130 L 100,200" class="arrow-line" marker-end="url(#head)" />
+                <path d="M 230,130 L 300,200" class="arrow-line" marker-end="url(#head)" />
+                <text x="80" y="230" font-size="16">小さい値</text>
+                <text x="320" y="230" font-size="16">大きい値</text>
+                <text x="200" y="300" font-size="18" fill="#64748b">目的の値まで木を下りる</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習53：解説（探索の仕組み）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木における効率的な探索の仕組みを理解しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>node ← Root</b>：<br>探索は常に根（一番上の節）からスタートする。</li>
+                <li><b>探索を続ける条件</b>：<br>「まだ節が存在する」かつ「目的の値が見つかっていない」状態である。</li>
+                <li><b>終了した後の判定</b>：<br>ループが終わったときに、<b>node</b> が空でなければ「見つかった」と判断できる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="200" cy="80" r="40" class="node-circle" stroke="#ef4444" stroke-width="5" />
+                <text x="200" y="80" font-size="18">Root</text>
+                <path d="M 200,120 L 200,180" class="arrow-loop" marker-end="url(#head)" />
+                <rect x="120" y="200" width="160" height="60" rx="10" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="230" font-size="20">node.data == num?</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習53：解説（探索の継続と移動）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>探索ループを制御する条件と、ポインタの更新ルールを整理しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>探索を続ける条件（while）</b>：<br>「<b>node</b> が行き止まり（未定義）でない」かつ「目的の値が見つかっていない（<b>node.data ≠ num</b>）」間、下への移動を繰り返す。</li>
+                <li><b>ポインタの更新（移動）</b>：<br>「移動する」とは <b>node</b> の中身を書き換えることである。</li>
+                <li><b>(1) 左へ行く場合</b>：<br><b>node ← node.left</b> を実行し、左の子に注目を移す。</li>
+                <li><b>(2) 右へ行く場合</b>：<br><b>node ← node.right</b> を実行し、右の子に注目を移す。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head-red" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#ef4444" />
+                    </marker>
+                </defs>
+                <circle cx="200" cy="100" r="45" fill="#ffffff" stroke="#334155" stroke-width="3" />
+                <text x="200" y="100" font-size="24">node</text>
+                <path d="M 160,135 L 100,200" class="arrow-red" marker-end="url(#head-red)" />
+                <path d="M 240,135 L 300,200" class="arrow-red" marker-end="url(#head-red)" />
+                <text x="80" y="240" font-size="18" fill="#ef4444">1: node.left</text>
+                <text x="320" y="240" font-size="18" fill="#ef4444">2: node.right</text>
+                <text x="200" y="300" font-size="20" fill="#3b82f6">ポインタを書き換えて移動！</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習53：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木からの探索（treesearch）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ treesearch(整数型: <b>num</b> )
+　　<b>node</b> ← <b>Root</b>
+　　while ( <b class="important">(node が 未定義でない ) and
+　　　　　　(node.data ≠ num )</b> )
+　　　　if (<b>node.data</b> ＞ <b>num</b> )
+　　　　　　<b class="important">node ← node.left</b>
+　　　　else
+　　　　　　<b class="important">node ← node.right</b>
+　　　　endif
+　　endwhile
+　　if ( <b class="important">node が 未定義でない</b> )
+　　　　"発見" を表示</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 ア．(node が 未定義でない ) and (node.data ≠ num )</span>
+                    <span class="ans-item">【２】 ウ．node ← node.left</span>
+                    <span class="ans-item">【３】 エ．node ← node.right</span>
+                    <span class="ans-item">【４】 イ．node が 未定義でない</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

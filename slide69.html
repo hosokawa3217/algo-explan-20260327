@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習69：文字列探索（力まかせ法）</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツ領域 */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; font-weight: 900; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; }
+
+        /* 疑似言語 - 全角スペース2個インデント */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+        b { font-weight: 900; }
+        .correct { color: #ef4444; font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+
+        /* 説明リスト */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 26px; margin-bottom: 25px; line-height: 1.5; color: #000000; font-weight: 900; }
+
+        /* 解答ボックス */
+        .ans-box { background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; border-radius: 15px; width: 100%; }
+        .ans-box h2 { color: #ea580c; font-size: 32px; margin: 0 0 20px 0; font-weight: 900; border-bottom: 3px solid #fed7aa; padding-bottom: 10px; }
+        .ans-item { font-size: 26px; line-height: 2.0; color: #000000; }
+
+        /* SVG図式 (枠線あり) */
+        svg { width: 100%; height: auto; border: 2px solid #64748b; border-radius: 12px; background: #ffffff; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .t-box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .p-box { fill: #fef9c3; stroke: #ca8a04; stroke-width: 2; }
+        .p-box-next { fill: #ffffff; stroke: #ca8a04; stroke-width: 2; stroke-dasharray: 4; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 4; fill: none; }
+        .arrow-head { fill: #3b82f6; }
+        .x-mark { stroke: #ef4444; stroke-width: 6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習69：文字列探索（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <p class="problem-text">テキスト <b>T</b> からパターン <b>P</b> を探す「力まかせ法」の空欄を埋めよ。</p>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>i</b> ← 0, <b>j</b> ← 0
+while ( <b>i</b> ＜ <b>t_len</b> and <b>j</b> ＜ <b>p_len</b> )
+　　if ( <b>T[i]</b> = <b>P[j]</b> )
+　　　　<b>i</b> ← <b>i</b> + 1, <b>j</b> ← <b>j</b> + 1
+　　else
+　　　　<b>i</b> ← <span class="blank">【　　 1 　　】</span>
+　　　　<b>j</b> ← 0
+　　endif
+endwhile
+if ( <span class="blank">【　　 2 　　】</span> ) return <b>i</b> - <b>j</b>
+else return -1</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="40" y="80" width="50" height="50" class="t-box" /><text x="65" y="105">A</text>
+                <rect x="90" y="80" width="50" height="50" class="t-box" /><text x="115" y="105">B</text>
+                <rect x="140" y="80" width="50" height="50" class="t-box" /><text x="165" y="105">C</text>
+                <rect x="190" y="80" width="50" height="50" class="t-box" /><text x="215" y="105">A</text>
+                <text x="20" y="105" font-size="14">T</text>
+                <rect x="90" y="150" width="50" height="50" class="p-box" /><text x="115" y="175">A</text>
+                <rect x="140" y="150" width="50" height="50" class="p-box" /><text x="165" y="175">B</text>
+                <text x="20" y="175" font-size="14">P</text>
+                
+                <path d="M 115,260 L 115,220" class="arrow-line" stroke-width="6" marker-end="url(#ah1)" />
+                <defs><marker id="ah1" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" /></marker></defs>
+                <text x="115" y="300" font-size="20" font-weight="900">一致しなければ</text>
+                <text x="115" y="335" font-size="20" font-weight="900">1文字ずらして再試行</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習69：解説（バックトラック）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <p class="problem-text">不一致が起きたとき、比較の開始位置を「1つ右」にずらす。</p>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>開始位置の特定</b>：今回の比較を開始したインデックスは <b>i - j</b> である。</li>
+                <li><b>ずらしの実行</b>：不一致なら、開始位置の「1つ隣」から再スタートさせる。</li>
+                <li><b>計算式</b>：よって、テキストの指針 <b>i</b> を <b class="important">i - j + 1</b> に戻す。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="40" y="60" width="50" height="50" class="t-box" /><text x="65" y="85">A</text>
+                <rect x="90" y="60" width="50" height="50" class="t-box" /><text x="115" y="85">B</text>
+                <rect x="140" y="60" width="50" height="50" class="t-box" /><text x="165" y="85">C</text>
+                <rect x="190" y="60" width="50" height="50" class="t-box" /><text x="215" y="85">A</text>
+                
+                <rect x="90" y="130" width="50" height="50" class="p-box" /><text x="115" y="155">A</text>
+                <line x1="105" y1="145" x2="125" y2="165" class="x-mark" />
+                <line x1="125" y1="145" x2="105" y2="165" class="x-mark" />
+
+                <path d="M 65,230 Q 90,280 90,200" class="arrow-line" marker-end="url(#ah2)" />
+                <defs><marker id="ah2" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" /></marker></defs>
+                <text x="220" y="240" font-size="22" font-weight="900" fill="#3b82f6">i を 1つ右へ</text>
+                
+                <rect x="90" y="300" width="50" height="50" class="p-box-next" />
+                <text x="220" y="330" font-size="28" font-weight="900" fill="#3b82f6">i - j + 1</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習69：解説（探索成功の判断）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <p class="problem-text">ループが終わった後、どうやって「見つかった」と判定するか？</p>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>j の役割</b>：<b>j</b> はパターンの「何文字目まで一致したか」を数えるカウンタ。</li>
+                <li><b>成功の条件</b>：<b>j</b> がパターンの長さ <b>p_len</b> と等しくなれば、全て一致した証拠。</li>
+                <li><b>戻り値</b>：一致した開始位置 <b>i - j</b> を返却する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <circle cx="200" cy="150" r="90" fill="#fff7ed" stroke="#f97316" stroke-width="4" />
+                <text x="200" y="130" font-size="22" font-weight="900">成功判定</text>
+                <text x="200" y="180" font-size="34" font-weight="900" fill="#ea580c">j = p_len</text>
+                
+                <rect x="50" y="280" width="300" height="60" rx="10" fill="#f8fafc" stroke="#334155" />
+                <text x="200" y="315" font-size="18" font-weight="900">全文字一致 ＝ 探索完了</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習69：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <p class="problem-text">文字列探索（力まかせ法）完成アルゴリズム</p>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>i</b> ← 0, <b>j</b> ← 0
+while ( <b>i</b> ＜ <b>t_len</b> and <b>j</b> ＜ <b>p_len</b> )
+　　if ( <b>T[i]</b> = <b>P[j]</b> )
+　　　　<b>i</b> ← <b>i</b> + 1, <b>j</b> ← <b>j</b> + 1
+　　else
+　　　　<b>i</b> ← <b class="correct">i - j + 1</b>
+　　　　<b>j</b> ← 0
+　　endif
+endwhile
+if ( <b class="correct">j = p_len</b> ) return <b>i</b> - <b>j</b>
+else return -1</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-item">
+                    【１】 ウ．i - j + 1<br>
+                    【２】 エ．j = p_len
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

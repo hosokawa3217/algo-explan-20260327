@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習52：二分探索木への追加(treeinsert)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* ■ 3. 文字・装飾・インデントルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
+            line-height: 1.25; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        .desc-text { font-size: 26px; line-height: 1.6; margin: 0; color: #000000; }
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 20px; line-height: 1.4; }
+
+        /* 解答ボックス（画像に基づき改行を徹底） */
+        .ans-box { 
+            background-color: #fffaf4; padding: 25px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; height: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 26px; margin-top: 0; margin-bottom: 20px; font-weight: 900; }
+        .ans-list { font-size: 24px; line-height: 2.2; font-weight: normal; color: #000000; }
+
+        /* ■ 4. 図式（SVG）実装ルール */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .node-circle { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
+        .arrow-loop { stroke: #1e3a8a; stroke-width: 5; stroke-dasharray: 10,10; fill: none; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習52：追加位置の特定（問題）</h1></div>
+        <div class="page-num">1/5</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木へ値 <b>num</b> を追加する。空き場所を探す前半部分のロジックを確認せよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ treeinsert(整数型: <b>num</b> )
+　　Tree: <b>node</b>, <b>parent</b>, <b>tmp</b>
+　　<b>node</b> ← <b>Root</b>
+　　while ( (<b>node</b> が 未定義でない ) and (<b>node.data</b> ≠ <b>num</b> ) )
+　　　　<b>parent</b> ← <b>node</b>　　/* 現在の位置を退避 */
+　　　　if (<b>node.data</b> ＞ <b>num</b> )
+　　　　　　<b>node</b> ← <b>node.left</b>
+　　　　else
+　　　　　　<b>node</b> ← <b>node.right</b>
+　　　　endif
+　　endwhile</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#3b82f6" />
+                    </marker>
+                </defs>
+                <circle cx="200" cy="110" r="40" class="node-circle" />
+                <text x="200" y="110" font-size="20">15</text>
+                <path d="M 170,140 L 100,210" class="arrow-line" marker-end="url(#head)" />
+                <text x="70" y="240" font-size="16">node の移動</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習52：ノードの接続（空欄）</h1></div>
+        <div class="page-num">2/5</div>
+    </div>
+    <div class="problem-text">
+        <p>探索終了後、新しい節 <b>tmp</b> を生成し、適切な場所に接続するための空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+　　if (<b>node</b> が 未定義)
+　　　　<b>tmp</b> ← Tree (<b>num</b> )
+　　　　if (<b>Root</b> が 未定義)
+　　　　　　 <span class="blank">【　　 1 　　】</span>
+　　　　elseif (<b>parent.data</b> ＞ <b>num</b> )
+　　　　　　<span class="blank">【　　 2 　　】</span>
+　　　　else
+　　　　　　<span class="blank">【　　 3 　　】</span>
+　　　　endif
+　　else
+　　　　"エラー" を表示
+　　endif</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="100" width="120" height="60" rx="10" fill="#e2e8f0" stroke="#334155" />
+                <text x="110" y="130" font-size="22">tmp</text>
+                <text x="280" y="130" font-size="18">どこへ繋ぐ？</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習52：解説（処理のポイント）</h1></div>
+        <div class="page-num">3/5</div>
+    </div>
+    <div class="problem-text">
+        <p>画像2の解説内容を整理した。各処理の目的を理解しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>parent ← node</b>：<br><b>node</b> が空（未定義）の場所へ移動する直前に、現在の位置を「親」として保存しておく。</li>
+                <li><b>tmp ← Tree(num)</b>：<br>新しく追加したいデータを持つ「箱」を準備する。</li>
+                <li><b>Root が 未定義 のとき</b>：<br>木が空っぽの状態であるため、生成した <b>tmp</b> をそのまま <span class="important">Root</span> に設定する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="200" cy="80" r="40" class="node-circle" />
+                <text x="200" y="80" font-size="18">parent</text>
+                <path d="M 175,110 L 110,180" class="arrow-line" marker-end="url(#head)" />
+                <circle cx="90" cy="220" r="35" fill="#fef3c7" stroke="#ea580c" stroke-width="3" />
+                <text x="90" y="220" font-size="18">tmp</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習52：最終解答</h1></div>
+        <div class="page-num">5/5</div>
+    </div>
+    <div class="problem-text">
+        <p>treeinsert アルゴリズム完成形</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre style="font-size: 20px;">
+if (<b>node</b> が 未定義)
+　　<b>tmp</b> ← Tree (<b>num</b> )
+　　if (<b>Root</b> が 未定義)
+　　　　<b class="important">Root ← tmp</b>
+　　elseif (<b>parent.data</b> ＞ <b>num</b> )
+　　　　<b class="important">parent.left ← tmp</b>
+　　else
+　　　　<b class="important">parent.right ← tmp</b>
+　　endif
+else
+　　"エラー" を表示
+endif</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    【１】　ア．Root ← tmp<br>
+                    【２】　イ．parent.left ← tmp<br>
+                    【３】　ウ．parent.right ← tmp
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

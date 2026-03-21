@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習71：選択ソート教材</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-weight: 900;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツエリア */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+
+        /* 疑似言語表示 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+            font-weight: 900;
+        }
+        b { font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+        .correct { color: #ef4444; font-weight: 900; }
+
+        /* 説明用リスト */
+        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
+        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
+            border-radius: 15px; width: 100%; margin-top: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
+
+        /* SVG共通設定 */
+        svg { 
+            width: 100%; height: auto; 
+            border: 2px solid #64748b; border-radius: 12px; 
+            background: #ffffff;
+        }
+        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .box-target { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        .swap-curve { stroke: #ef4444; stroke-width: 4; fill: none; stroke-dasharray: 6; }
+        svg text { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習71：選択ソート（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">「最小値を探して左端と入れ替える」を繰り返すプログラムを完成させよ。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> ← 0 to <b>n</b> - 2 )
+　　<b>min_idx</b> ← <b>i</b>
+　　for ( <b>j</b> ← <b>i</b> + 1 to <b>n</b> - 1 )
+　　　　if ( <span class="blank">【　　 1 　　】</span> )
+　　　　　　<b>min_idx</b> ← <b>j</b>
+　　　　endif
+　　endfor
+　　<b>tmp</b> ← <b>A[i]</b>
+　　<b>A[i]</b> ← <b>A[min_idx]</b>
+　　<b>A[min_idx]</b> ← <b>tmp</b>
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="80" width="70" height="70" class="box" /><text x="75" y="115">5</text>
+                <rect x="125" y="80" width="70" height="70" class="box" /><text x="160" y="115">8</text>
+                <rect x="210" y="80" width="70" height="70" class="box-target" /><text x="245" y="115">2</text>
+                <rect x="295" y="80" width="70" height="70" class="box" /><text x="330" y="115">4</text>
+                
+                <path d="M 75,170 Q 160,240 245,170" class="swap-curve" marker-end="url(#arrow)" />
+                <defs><marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/></marker></defs>
+                <text x="200" y="270" font-size="22" fill="#ef4444">一番小さい値を探し出し</text>
+                <text x="200" y="305" font-size="22" fill="#ef4444">未整列の先頭(i)と交換する</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習71：解説（最小値の記録）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">なぜ変数 <b>min_idx</b> を使う必要があるのか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>場所を覚える</b>：値をその都度入れ替えるのではなく、「どこに最小値があったか」という添字を記録する。</li>
+                <li><b>一回きりの交換</b>：内側ループで最後まで探索し終わってから、最後に一度だけ交換を行うため効率的。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="125" y="100" width="70" height="70" class="box-target" /><text x="160" y="135">2</text>
+                <text x="160" y="220" font-size="22" fill="#ca8a04">min_idx = 2</text>
+                
+                <line x1="160" y1="250" x2="160" y2="280" class="arrow-line" marker-end="url(#blue-arrow)"/>
+                <defs><marker id="blue-arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
+                
+                <rect x="50" y="300" width="300" height="60" rx="10" fill="#f0f9ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="200" y="330" font-size="20">「中身」ではなく「場所」を保持</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習71：解説（比較の条件）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">「もっと小さい値」を見つけるための条件式を導く。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>比較</b>：今見ている要素 <b>A[j]</b> と、今までで見つけた最小の要素 <b>A[min_idx]</b> を比べる。</li>
+                <li><b>更新</b>：もし <b>A[j]</b> の方が小さければ、<b>min_idx</b> を <b>j</b> で上書きし、新たな最小値とする。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="80" y="100" width="100" height="100" class="box" /><text x="130" y="150" font-size="36">5</text>
+                <rect x="220" y="100" width="100" height="100" class="box-target" /><text x="270" y="150" font-size="36">2</text>
+                
+                <text x="130" y="70" font-size="18">A[min_idx]</text>
+                <text x="270" y="70" font-size="18">A[j]</text>
+
+                <text x="200" y="240" font-size="50" fill="#ef4444">＜</text>
+                <text x="200" y="320" font-size="22">A[j] の方が小さいか？</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習71：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">選択ソート（昇順）完成プログラム</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> ← 0 to <b>n</b> - 2 )
+　　<b>min_idx</b> ← <b>i</b>
+　　for ( <b>j</b> ← <b>i</b> + 1 to <b>n</b> - 1 )
+　　　　if ( <b class="correct">A[j] ＜ A[min_idx]</b> )
+　　　　　　<b>min_idx</b> ← <b>j</b>
+　　　　endif
+　　endfor
+　　<b>tmp</b> ← <b>A[i]</b>
+　　<b>A[i]</b> ← <b>A[min_idx]</b>
+　　<b>A[min_idx]</b> ← <b>tmp</b>
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-text">
+                    【１】 イ．A[j] ＜ A[min_idx]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

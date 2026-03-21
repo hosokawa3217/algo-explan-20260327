@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習56：キューの基本操作(enqueue/dequeue)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域：青バー(15px間隔)とページ番号 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域：全幅 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域：左右分割(65%:35%) */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾ルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre)：全角スペース2個インデント */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス(Ver.6対応：非太字・縦並び) */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* ■ 4. 図式(SVG)：極太テキストと物理的表現 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .queue-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+        .marker-red { fill: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習56：キューの操作（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>配列 <b>Queue</b> と変数 <b>head</b>, <b>tail</b> を用いてキューを実現する。データを追加する <b>enqueue</b> と、取り出す <b>dequeue</b> を完成させよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ enqueue(整数型: <b>data</b> )
+　　<b>Queue[tail]</b> ← <b>data</b>
+　　<b>tail</b> ← <span class="blank">【　　 1 　　】</span>
+
+○ dequeue()
+　　<b>value</b> ← <b>Queue[head]</b>
+　　<b>head</b> ← <span class="blank">【　　 2 　　】</span>
+　　return <b>value</b></pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head-m" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <rect x="50" y="150" width="80" height="50" class="queue-box" fill="#e2e8f0" />
+                <rect x="130" y="150" width="80" height="50" class="queue-box" />
+                <rect x="210" y="150" width="80" height="50" class="queue-box" />
+                <rect x="290" y="150" width="80" height="50" class="queue-box" />
+                <path d="M 90,100 L 90,140" class="arrow-line" marker-end="url(#head-m)" />
+                <text x="90" y="80" font-size="18" fill="#3b82f6">head</text>
+                <path d="M 170,250 L 170,210" class="arrow-line" marker-end="url(#head-m)" />
+                <text x="170" y="270" font-size="18" fill="#3b82f6">tail</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習56：解説（FIFOの仕組み）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>キューは「先に入れたものが先に出る」という、順番待ちの列のような構造である。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>head と tail の役割</b>：<br><b>head</b> は「次に取り出すデータの位置」、<b>tail</b> は「次に追加するデータの位置」を指す。</li>
+                <li><b>enqueue（追加）の動き</b>：<br>現在 <b>tail</b> が指している場所にデータを入れ、<b>tail</b> を 1 つ進める。</li>
+                <li><b>dequeue（取出）の動き</b>：<br>現在 <b>head</b> が指している場所からデータを出し、<b>head</b> を 1 つ進める。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="120" width="320" height="60" rx="5" fill="none" stroke="#334155" stroke-width="3" />
+                <text x="70" y="150" font-size="20">入</text>
+                <text x="330" y="150" font-size="20">出</text>
+                <path d="M 10,150 L 50,150" class="arrow-line" marker-end="url(#head-m)" stroke="#ef4444" />
+                <path d="M 350,150 L 390,150" class="arrow-line" marker-end="url(#head-m)" stroke="#3b82f6" />
+                <text x="200" y="220" font-size="22">First-In, First-Out</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習56：解説（ポインタの更新）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>スタックとの違いは、追加と取り出しで「別の変数」が動く点にある。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>enqueue：tail を更新</b>：<br>末尾に並ぶイメージ。追加するたびに末尾の位置を後ろへずらす。つまり <b>tail ← tail + 1</b>。</li>
+                <li><b>dequeue：head を更新</b>：<br>先頭がいなくなるイメージ。取り出すたびに先頭の位置を後ろへずらす。つまり <b>head ← head + 1</b>。</li>
+                <li><b>注意点</b>：<br>どちらの操作もポインタは「増加」する方向へ動くのが基本である。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="120" cy="100" r="40" fill="#fef3c7" stroke="#ea580c" stroke-width="3" />
+                <text x="120" y="100" font-size="18">tail+1</text>
+                <circle cx="280" cy="100" r="40" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
+                <text x="280" y="100" font-size="18">head+1</text>
+                <text x="200" y="220" font-size="20" fill="#3b82f6">どちらも「次へ」進む</text>
+                <path d="M 100,250 L 300,250" class="arrow-line" marker-end="url(#head-m)" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習56：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>キューの基本操作完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ enqueue(整数型: <b>data</b> )
+　　<b>Queue[tail]</b> ← <b>data</b>
+　　<b>tail</b> ← <b class="important">tail + 1</b>
+
+○ dequeue()
+　　<b>value</b> ← <b>Queue[head]</b>
+　　<b>head</b> ← <b class="important">head + 1</b>
+　　return <b>value</b></pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 イ．tail + 1</span>
+                    <span class="ans-item">【２】 ア．head + 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

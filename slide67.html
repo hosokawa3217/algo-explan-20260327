@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習67：二分探索法</title>
+    <style>
+        /* ■ 基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツ */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; font-weight: 900; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 60%; }
+        .right-content { flex: 0 0 40%; }
+
+        /* 疑似言語 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: monospace; font-size: 22px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+        .important { color: #ef4444; font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+
+        /* 箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; font-weight: 900; }
+
+        /* 解答ボックス (オレンジ太枠・ベージュ背景) */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 5px solid #ea580c; 
+            border-radius: 15px; width: 100%;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 32px; margin: 0 0 20px 0; font-weight: 900; border-bottom: 3px solid #fed7aa; padding-bottom: 10px; }
+        .ans-text { font-size: 28px; font-weight: 900; color: #000000; line-height: 2.0; }
+
+        /* SVG */
+        svg { width: 100%; height: auto; border: 2px solid #64748b; border-radius: 12px; background: #ffffff; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .box { fill: #ffffff; stroke: #334155; stroke-width: 2; }
+        .arrow { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        .highlight { fill: #f0fff4; stroke: #16a34a; stroke-width: 2; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習67：二分探索法（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text"><p>整列された配列から目的の値を高速に探すアルゴリズム。空欄を埋めよ。</p></div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+low ← 0, high ← n - 1, pos ← -1
+while ( <span class="blank">【　　 1 　　】</span> )
+　　mid ← ( low + high ) / 2
+　　if ( A[mid] = target )
+　　　　pos ← mid; break
+　　else if ( A[mid] ＜ target )
+　　　　low ← <span class="blank">【　　 2 　　】</span>
+　　else
+　　　　high ← mid - 1
+　　endif
+endwhile</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="20" y="150" width="360" height="50" class="box" />
+                <line x1="140" y1="150" x2="140" y2="200" stroke="#334155" />
+                <line x1="260" y1="150" x2="260" y2="200" stroke="#334155" />
+                <path d="M 50,230 L 50,205" class="arrow" />
+                <text x="50" y="250" font-size="16">low</text>
+                <path d="M 200,100 L 200,125" class="arrow" />
+                <text x="200" y="80" font-size="16">mid</text>
+                <path d="M 350,230 L 350,205" class="arrow" />
+                <text x="350" y="250" font-size="16">high</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習67：解説（ロジック）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text"><p>中央の値（mid）と比較し、探索範囲を「半分」に絞り込み続ける仕組み。</p></div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>中央との比較</b>：<br>A[mid]が目的の値より小さければ、それより左側には目的の値は存在しない。</li>
+                <li><b>範囲の更新</b>：<br>次は右側の半分だけを調べればよいため、下限(low)を中央の隣(mid+1)に移動させる。</li>
+                <li><b>繰り返し</b>：<br>これを繰り返すことで、データ数が多くても極めて短時間で探索が完了する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="20" y="150" width="180" height="50" fill="#e2e8f0" stroke="#94a3b8" />
+                <rect x="200" y="150" width="180" height="50" class="highlight" />
+                <text x="110" y="175" font-size="14" fill="#64748b">探索対象外</text>
+                <path d="M 230,230 L 230,205" class="arrow" stroke="#ef4444" fill="#ef4444" />
+                <text x="230" y="260" font-size="16" fill="#ef4444">low = mid + 1</text>
+                <text x="200" y="310" font-size="20">1回で範囲が1/2になる</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習67：解説（特性）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text"><p>二分探索法を適用するための必須条件と、その圧倒的な効率性。</p></div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>必須条件</b>：<br>データが必ず昇順または降順に<b>整列（ソート）</b>されている必要がある。</li>
+                <li><b>計算量</b>：<br>比較回数は最大でも <b>O(log n)</b>。データが2倍になっても、比較回数は1回しか増えない。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="40" width="320" height="270" rx="10" fill="none" stroke="#64748b" stroke-width="2" />
+                <rect x="70" y="100" width="260" height="150" rx="15" class="highlight" stroke-width="3" />
+                <text x="200" y="145" font-size="24">計算量：O(log n)</text>
+                <text x="200" y="205" font-size="24">爆速の探索アルゴリズム</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習67：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text"><p>二分探索法（binary_search）完成アルゴリズム</p></div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+low ← 0, high ← n - 1, pos ← -1
+while ( <b class="important">low ≦ high</b> )
+　　mid ← ( low + high ) / 2
+　　if ( A[mid] = target )
+　　　　pos ← mid; break
+　　else if ( A[mid] ＜ target )
+　　　　low ← <b class="important">mid + 1</b>
+　　else
+　　　　high ← mid - 1
+　　endif
+endwhile</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>解答（選択肢）</h2>
+                <div class="ans-text">
+                    【１】 イ．low ≦ high<br>
+                    【２】 ア．mid + 1
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

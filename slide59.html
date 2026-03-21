@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習59：ハッシュ法（オープンアドレス法）</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾 */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre) */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .cell { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習59：ハッシュ法（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ関数 <b>h(x) = x mod n</b> を用いるハッシュ表（オープンアドレス法）の探索アルゴリズムである。空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ hash_search(整数型: <b>num</b> )
+　　<b>i</b> ← <span class="blank">【　　 1 　　】</span>
+　　while ( <b>H[i]</b> != <b>空</b> )
+　　　　if ( <b>H[i]</b> == <b>num</b> )
+　　　　　　return <b>i</b>
+　　　　endif
+　　　　<b>i</b> ← <span class="blank">【　　 2 　　】</span>
+　　endwhile
+　　return -1</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="150" y="50" width="100" height="40" rx="5" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="70" font-size="18">Key: num</text>
+                <path d="M 200,90 L 200,130" stroke="#334155" stroke-width="3" fill="none" marker-end="url(#head)" />
+                <rect x="130" y="140" width="140" height="50" rx="10" fill="#fef3c7" stroke="#ea580c" stroke-width="2" />
+                <text x="200" y="165" font-size="16">h(num) = num mod n</text>
+                <rect x="50" y="240" width="300" height="60" class="cell" />
+                <line x1="150" y1="240" x2="150" y2="300" stroke="#334155" stroke-width="2" />
+                <line x1="250" y1="240" x2="250" y2="300" stroke="#334155" stroke-width="2" />
+                <text x="100" y="270" font-size="14">...H[i]...</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習59：解説（ハッシュ探索）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ法は、データのキー値から直接「入っているはずの場所」を計算する。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>初期位置の決定</b>：<br>探索を開始する添字 <b>i</b> は、ハッシュ関数によって一意に決まる。</li>
+                <li><b>衝突（コリジョン）の解決</b>：<br>もし計算した場所に別のデータが入っていた場合、オープンアドレス法では「次の場所」を順に調べていく。</li>
+                <li><b>探索の終了</b>：<br>目的の値が見つかるか、あるいは「空」の場所に辿り着いたとき（そこにも無いことが確定）に終了する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="200" cy="100" r="40" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
+                <text x="200" y="100" font-size="20">高速</text>
+                <text x="200" y="160" font-size="18">計算量 O(1)</text>
+                <rect x="100" y="220" width="200" height="80" rx="10" fill="#fff" stroke="#3b82f6" stroke-width="3" />
+                <text x="200" y="250" font-size="16">H[i] == num ?</text>
+                <text x="200" y="275" font-size="14">一致しなければ次へ</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習59：解説（ハッシュ関数と再ハッシュ）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>空欄を埋めるための計算式を整理しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>空欄1（初期添字）</b>：<br>ハッシュ関数 <b>h(num)</b> の戻り値をそのまま <b>i</b> に代入する。今回の関数は <b>num mod n</b> である。</li>
+                <li><b>空欄2（次の添字）</b>：<br>線形探査法では添字を 1 増やすが、配列の末尾を超えないように <b>n</b> で割った余りをとる。</li>
+                <li><b>式の意味</b>：<br><b>(i + 1) mod n</b> とすることで、添字が <b>n-1</b> の次は <b>0</b> に戻る円環構造を実現できる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <path d="M 200,50 A 100,100 0 1,1 199,50" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="8,4" />
+                <text x="200" y="150" font-size="18">添字の循環</text>
+                <text x="200" y="180" font-size="22" fill="#ef4444">(i + 1) mod n</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習59：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ハッシュ法（hash_search）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ hash_search(整数型: <b>num</b> )
+　　<b>i</b> ← <b class="important">num mod n</b>
+　　while ( <b>H[i]</b> != <b>空</b> )
+　　　　if ( <b>H[i]</b> == <b>num</b> )
+　　　　　　return <b>i</b>
+　　　　endif
+　　　　<b>i</b> ← <b class="important">(i + 1) mod n</b>
+　　endwhile
+　　return -1</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 ア．num mod n</span>
+                    <span class="ans-item">【２】 イ．(i + 1) mod n</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

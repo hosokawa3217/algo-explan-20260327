@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .slide {
+            width: 1280px;
+            height: 720px;
+            background-color: #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            padding: 40px 80px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* タイトル領域 */
+        .title-container {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            margin-bottom: 25px;
+        }
+        .title-bar {
+            width: 25px;
+            height: 50px;
+            background-color: #3b82f6;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        h1 {
+            font-size: 36px;
+            margin: 0;
+            color: #000000;
+            font-weight: 900;
+        }
+
+        /* コンテンツ領域（左右分割） */
+        .content-container {
+            display: flex;
+            flex: 1;
+            gap: 25px;
+            height: 480px; /* フッターとの間隔確保 */
+        }
+        .content-left {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-right {
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 図式を上下中央に配置 */
+            align-items: center;
+        }
+
+        /* フッター領域 */
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            left: 80px;
+            width: 1120px;
+            height: 60px;
+            border-top: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            font-size: 25px;
+            box-sizing: border-box;
+        }
+
+        /* ■ 2. 文字・装飾ルール */
+        p { font-size: 30px; line-height: 1.5; margin: 0 0 15px 0; }
+        ul { padding-left: 40px; margin: 0; }
+        li { font-size: 30px; margin-bottom: 8px; line-height: 1.4; }
+        b { font-weight: 900; }
+        pre {
+            font-size: 26px;
+            background-color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0;
+            font-family: "BIZ UDMincho", monospace;
+            line-height: 1.3;
+        }
+
+        /* 配色 */
+        .blank { color: #a52a2a; font-weight: 900; }
+        .important { color: #ef4444; font-weight: 900; }
+        .footer-gray { color: #4b5563; }
+        .footer-answer { color: #ea580c; font-weight: 900; }
+
+        /* ■ 3. 図式（SVG）実装ルール */
+        svg {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            border: 3px solid #64748b;
+            border-radius: 12px;
+            background-color: #f9fafb;
+            box-sizing: border-box;
+        }
+        .cell { fill: #ffffff; stroke: #64748b; stroke-width: 3; }
+        .cell-hl { fill: #fee2e2; stroke: #ef4444; stroke-width: 3; }
+        text { font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .arrow { stroke: #000000; stroke-width: 5; fill: none; }
+        .loop-arrow { stroke: #1e3a8a; stroke-width: 5; fill: none; stroke-dasharray: 10,10; }
+
+        /* 解答エリア（最終ページ用） */
+        .answer-box {
+            width: 100%;
+            margin-top: 15px;
+            font-size: 30px;
+            font-weight: 900;
+            color: #ea580c;
+            text-align: center;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-bar"></div>
+        <h1>練習４４：範囲内データの最小・最大</h1>
+    </div>
+    <div class="content-container">
+        <div class="content-left">
+            <p>指定範囲 <b>lv < tbl[ i ] < hv</b> における最小値と最大値を求める。</p>
+            <pre>
+大域: 整数型: lv ← 1000, hv ← 100000
+○ min_and_max(整数型の配列: tbl, 整数型: n)
+  整数型: i, min, max
+  min ← <b class="blank">[ 1 ]</b>
+  max ← <b class="blank">[ 2 ]</b>
+  for ( i を 1 から n まで 1 ずつ増やす )
+    if ( <b class="blank">[ 3 ]</b> )
+      min ← <b>tbl[ i ]</b>
+    endif
+    if ( <b class="blank">[ 4 ]</b> )
+      max ← <b>tbl[ i ]</b>
+    endif
+  endfor
+  min と max の出力</pre>
+        </div>
+        <div class="content-right">
+            <svg viewBox="0 0 400 400">
+                <text x="200" y="40" font-size="24">初期状態の変数</text>
+                <rect x="50" y="100" width="130" height="80" class="cell" />
+                <text x="115" y="120" font-size="18">min</text>
+                <text x="115" y="155" font-size="26" class="blank">？</text>
+                
+                <rect x="220" y="100" width="130" height="80" class="cell" />
+                <text x="285" y="120" font-size="18">max</text>
+                <text x="285" y="155" font-size="26" class="blank">？</text>
+
+                <text x="200" y="240" font-size="22">探索条件のイメージ</text>
+                <rect x="40" y="270" width="320" height="80" class="cell" fill="#eef2ff" />
+                <text x="200" y="310" font-size="22"><b>lv</b> ＜ <b>tbl[ i ]</b> ＜ <b>hv</b></text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"></div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-bar"></div>
+        <h1>アルゴリズムの核心：初期値の逆転</h1>
+    </div>
+    <div class="content-container">
+        <div class="content-left">
+            <ul>
+                <li>最小値 <b>min</b> には「これより大きい値はない」上限値 <b>hv</b> を最初に入れる。</li>
+                <li>最大値 <b>max</b> には「これより小さい値はない」下限値 <b>lv</b> を最初に入れる。</li>
+                <li>最初の比較で、範囲内のデータが必ず <b>min</b> や <b>max</b> に上書きされる。</li>
+                <li>更新条件は <b>tbl[ i ]</b> が現在の暫定値を更新できるかどうかで判定する。</li>
+            </ul>
+        </div>
+        <div class="content-right">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="ptr" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <polygon points="0 0, 24 9, 0 18" fill="#ef4444" />
+                    </marker>
+                </defs>
+                <text x="200" y="40" font-size="22">最小値の更新（上書き）</text>
+                <rect x="135" y="80" width="130" height="70" class="cell" />
+                <text x="200" y="100" font-size="16">min</text>
+                <text x="200" y="130" font-size="22" style="text-decoration: line-through;">100000</text>
+
+                <rect x="135" y="250" width="130" height="70" class="cell-hl" />
+                <text x="200" y="285" font-size="24">5000</text>
+                <text x="200" y="340" font-size="16" fill="#ef4444">現在のminより小さい</text>
+
+                <path d="M 200 240 L 200 165" class="arrow" stroke="#ef4444" marker-end="url(#ptr)" />
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <span class="footer-gray">補足：最小値を探すときは最大値を、最大値を探すときは最小値を初期値にする。</span>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-bar"></div>
+        <h1>練習４４：解答</h1>
+    </div>
+    <div class="content-container">
+        <div class="content-left">
+            <p>各空欄の正解は以下の通りである。</p>
+            <ul>
+                <li><b>[ 1 ]</b>：最小値の初期値として <b>hv</b> を設定。</li>
+                <li><b>[ 2 ]</b>：最大値の初期値として <b>lv</b> を設定。</li>
+                <li><b>[ 3 ]</b>：<b>tbl[ i ]</b> が <b>min</b> より小さければ更新。</li>
+                <li><b>[ 4 ]</b>：<b>tbl[ i ]</b> が <b>max</b> より大きければ更新。</li>
+            </ul>
+        </div>
+        <div class="content-right">
+            <svg viewBox="0 0 400 320">
+                <defs>
+                    <marker id="loop-ptr" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <polygon points="0 0, 24 9, 0 18" fill="#1e3a8a" />
+                    </marker>
+                </defs>
+                <rect x="80" y="80" width="240" height="120" class="cell" stroke-width="4" />
+                <text x="200" y="120" font-size="22">for 1 to n</text>
+                <text x="200" y="160" font-size="18" fill="#ef4444">IF判定・値の更新</text>
+                
+                <path d="M 320 140 C 380 140, 380 30, 200 30 C 50 30, 50 140, 80 140" class="loop-arrow" marker-end="url(#loop-ptr)" />
+                <text x="360" y="80" font-size="16" fill="#1e3a8a">反復</text>
+            </svg>
+            <div class="answer-box">
+                (1) イ　　(2) ア<br>
+                (3) ウ　　(4) ク
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <span class="footer-answer">(1) hv　(2) lv　(3) tbl[ i ] < min　(4) tbl[ i ] > max</span>
+    </div>
+</div>
+
+</body>
+</html>

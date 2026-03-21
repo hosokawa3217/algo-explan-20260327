@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習60：基本選択法(selection_sort)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾ルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre) */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .array-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習60：基本選択法（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>要素数 <b>n</b> の配列 <b>A</b> を昇順に整列させる基本選択法のアルゴリズムである。空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
+　　<b>min_idx</b> ← <b>i</b>
+　　for ( <b>j</b> を <span class="blank">【　　 1 　　】</span> から <b>n - 1</b> まで 1 ずつ増やす )
+　　　　if ( <b>A[j]</b> ＜ <b>A[min_idx]</b> )
+　　　　　　<b>min_idx</b> ← <b>j</b>
+　　　　endif
+　　endfor
+　　<b>tmp</b> ← <b>A[i]</b>
+　　<b>A[i]</b> ← <span class="blank">【　　 2 　　】</span>
+　　<b>A[min_idx]</b> ← <b>tmp</b>
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <rect x="20" y="100" width="60" height="60" class="array-box" fill="#e2e8f0" />
+                <rect x="80" y="100" width="60" height="60" class="array-box" />
+                <rect x="140" y="100" width="60" height="60" class="array-box" />
+                <rect x="200" y="100" width="60" height="60" class="array-box" stroke="#ef4444" stroke-width="5" />
+                <text x="50" y="130" font-size="14">整列済</text>
+                <text x="50" y="185" font-size="16">i</text>
+                <text x="230" y="185" font-size="16" fill="#ef4444">min_idx</text>
+                <path d="M 230,240 L 50,240 Q 50,240 50,170" class="arrow-line" marker-end="url(#head)" stroke-dasharray="8,4" />
+                <text x="200" y="280" font-size="18">最小値を i 番目と交換</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習60：解説（最小値の選択）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>選択法は、「未整列の部分から一番小さいものを探す」という動作を繰り返す。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>i 番目の役割</b>：<br>外側のループの <b>i</b> は、現在「どの位置に入れる値を決めているか」を表す。</li>
+                <li><b>最小値探し（j のループ）</b>：<br><b>i</b> より後ろの要素を全て調べ、一番小さい値を持っている添字を <b>min_idx</b> に保存する。</li>
+                <li><b>効率性</b>：<br>一回の交換で 1 つの要素の場所が確実に決まる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="50" width="300" height="60" rx="10" fill="#fff" stroke="#334155" stroke-width="3" />
+                <text x="200" y="80" font-size="18">未整列から最小値を SELECT</text>
+                <circle cx="200" cy="200" r="50" fill="#fef3c7" stroke="#ea580c" stroke-width="3" />
+                <text x="200" y="200" font-size="20">min_idx</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習60：解説（探索範囲と交換）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>ループの開始点と、値の入れ替え処理を正確に把握しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>空欄1（探索の開始）</b>：<br><b>i</b> 番目の位置に入れる値を探すとき、比較するのは <b>i</b> の次の要素からである。したがって <b>j</b> は <b>i + 1</b> から始まる。</li>
+                <li><b>空欄2（交換の実行）</b>：<br>退避させておいた <b>tmp</b> を使い、<b>A[i]</b> に見つかった最小値 <b>A[min_idx]</b> を代入する。</li>
+                <li><b>アルゴリズムの終点</b>：<br>最後の 1 つ（<b>n-1</b> 番目）は自動的に決まるため、外側のループは <b>n-2</b> までで良い。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="80" font-size="24">スワップ(Swap)処理</text>
+                <rect x="100" y="120" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="145" font-size="18">tmp = A[i]</text>
+                <rect x="100" y="180" width="200" height="50" fill="#fee2e2" stroke="#ef4444" />
+                <text x="200" y="205" font-size="18">A[i] = A[min_idx]</text>
+                <rect x="100" y="240" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="265" font-size="18">A[min_idx] = tmp</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習60：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>基本選択法（selection_sort）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
+　　<b>min_idx</b> ← <b>i</b>
+　　for ( <b>j</b> を <b class="important">i + 1</b> から <b>n - 1</b> まで 1 ずつ増やす )
+　　　　if ( <b>A[j]</b> ＜ <b>A[min_idx]</b> )
+　　　　　　<b>min_idx</b> ← <b>j</b>
+　　　　endif
+　　endfor
+　　<b>tmp</b> ← <b>A[i]</b>
+　　<b>A[i]</b> ← <b class="important">A[min_idx]</b>
+　　<b>A[min_idx]</b> ← <b>tmp</b>
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 イ．i + 1</span>
+                    <span class="ans-item">【２】 ア．A[min_idx]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

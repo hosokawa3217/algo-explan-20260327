@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習64：マージソート(merge_sort)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾ルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre) */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 19px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .merge-box { fill: #dcfce7; stroke: #16a34a; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習64：マージソート（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>配列 <b>A</b> をマージソートで整列させる。空欄を埋めてアルゴリズムを完成させよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ merge_sort(整数型: <b>left</b>, <b>right</b> )
+　　if ( <b>left</b> ＜ <b>right</b> )
+　　　　<b>mid</b> ← ( <b>left</b> + <b>right</b> ) / 2 （整数部）
+　　　　merge_sort( <span class="blank">【　　 1 　　】</span> ) // 左半分を分割
+　　　　merge_sort( <span class="blank">【　　 2 　　】</span> ) // 右半分を分割
+　　　　merge( <b>left</b>, <b>mid</b>, <b>right</b> ) // 併合処理
+　　endif</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <rect x="50" y="50" width="300" height="40" class="merge-box" fill="#e2e8f0" />
+                <path d="M 150,100 L 100,150" class="arrow-line" marker-end="url(#head)" />
+                <path d="M 250,100 L 300,150" class="arrow-line" marker-end="url(#head)" />
+                <rect x="30" y="160" width="140" height="40" class="merge-box" />
+                <rect x="230" y="160" width="140" height="40" class="merge-box" />
+                <text x="200" y="250" font-size="18">分割から併合（Merge）へ</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習64：解説（分割と併合）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>マージソートは、データを最小単位（1個）まで分けてから、再び戻していく手法である。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>再帰的な分割</b>：<br>中央 <b>mid</b> を基準に、配列をどんどん半分に分けていく。</li>
+                <li><b>併合（Merge）</b>：<br>バラバラになった要素を「2つの整列済み配列を1つにまとめる」手法で合体させる。</li>
+                <li><b>安定性</b>：<br>クイックソートとは異なり、同等な値の順序が崩れない「安定ソート」である。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="240" width="300" height="60" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
+                <text x="200" y="270" font-size="20">整列しながら併合</text>
+                <text x="200" y="120" font-size="18">分割（Divide）</text>
+                <path d="M 200,140 L 200,220" class="arrow-line" marker-end="url(#head)" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習64：解説（分割の境界線）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>中央の添字 <b>mid</b> を使って、左右の範囲を正しく指定しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>左半分の範囲（空欄1）</b>：<br>全体の左端 <b>left</b> から、中央 <b>mid</b> までを一つの範囲として分割する。</li>
+                <li><b>右半分の範囲（空欄2）</b>：<br>中央の次 <b>mid + 1</b> から、全体の右端 <b>right</b> までを範囲とする。</li>
+                <li><b>終了条件</b>：<br><b>left ＜ right</b> が成立しなくなったとき（要素が1つになったとき）、分割は停止する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="30" y="150" width="340" height="50" fill="#ffffff" stroke="#334155" />
+                <line x1="200" y1="150" x2="200" y2="200" stroke="#ef4444" stroke-width="4" />
+                <text x="200" y="130" font-size="18" fill="#ef4444">mid</text>
+                <text x="100" y="240" font-size="16" fill="#3b82f6">left 〜 mid</text>
+                <text x="300" y="240" font-size="16" fill="#3b82f6">mid+1 〜 right</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習64：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>マージソート（merge_sort）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ merge_sort(整数型: <b>left</b>, <b>right</b> )
+　　if ( <b>left</b> ＜ <b>right</b> )
+　　　　<b>mid</b> ← ( <b>left</b> + <b>right</b> ) / 2
+　　　　merge_sort( <b class="important">left, mid</b> )
+　　　　merge_sort( <b class="important">mid + 1, right</b> )
+　　　　merge( <b>left</b>, <b>mid</b>, <b>right</b> )
+　　endif</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 イ．left, mid</span>
+                    <span class="ans-item">【２】 ア．mid + 1, right</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

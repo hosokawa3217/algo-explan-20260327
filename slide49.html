@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習49：単方向リストへの要素の追加</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            display: flex; flex-direction: column;
+        }
+
+        /* タイトル領域：左に太い青色バー */
+        .title-container { display: flex; align-items: center; height: 60px; margin-bottom: 25px; }
+        .title-bar { width: 25px; height: 50px; background-color: #3b82f6; margin-right: 20px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+
+        /* コンテンツ領域：左右分割（65%:35%） */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .text-column { flex: 0 0 65%; }
+        .figure-column { 
+            flex: 0 0 35%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            padding-top: 10px;
+        }
+
+        /* ■ 2. 文字・装飾ルール */
+        p { font-size: 30px; line-height: 1.5; color: #000000; margin: 0 0 20px 0; }
+        b { font-weight: 900; } 
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        
+        pre { 
+            background-color: #f1f5f9; padding: 30px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 26px; line-height: 1.4; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 10px 0;
+        }
+
+        /* フッター領域：高さ63px */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 63px; 
+            border-top: 2px solid #e5e7eb; display: flex; align-items: center;
+        }
+        .choices-text { font-size: 21px; color: #4b5563; font-weight: normal; }
+        .ans-text { color: #ea580c; font-weight: 900; font-size: 25px; }
+
+        /* ■ 3. 図式（SVG）共通仕様 */
+        svg { 
+            width: 100%; height: auto; 
+            border: 3px solid #64748b; border-radius: 12px; 
+            background: #f9fafb; 
+        }
+        .node-rect { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .ptr-area { fill: #e2e8f0; stroke: #334155; stroke-width: 2; }
+        .tmp-node { fill: #fef3c7; stroke: #d97706; stroke-width: 3; }
+        text { font-family: sans-serif; font-weight: 900; fill: #1f2937; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４９：単方向リストへの要素の追加</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>アルファベット順のリストに <b>moji</b> を追加する。単方向リストの <b>prev</b> と <b>cr</b> の間に新要素 <b>tmp</b> を追加する手順を考えよ。</p>
+            <pre>
+// tmp：追加要素, cr：挿入位置, prev：直前要素
+<b>tmp.pointer</b> ← <b>cr</b>
+if ( <b>prev</b> が 未定義 )
+　　<span class="blank">【  1  】</span> // リストの先頭に追加
+else
+　　<span class="blank">【  2  】</span> // 途中または末尾に追加
+endif</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <polygon points="0 0, 24 9, 0 18" fill="#1f2937"/>
+                    </marker>
+                </defs>
+                <text x="200" y="40" font-size="22">追加前のリスト構造</text>
+                <rect x="30" y="100" width="100" height="70" rx="4" class="node-rect"/>
+                <rect x="90" y="100" width="40" height="70" rx="4" class="ptr-area"/>
+                <text x="60" y="135" font-size="18">prev</text>
+                
+                <rect x="270" y="100" width="100" height="70" rx="4" class="node-rect"/>
+                <rect x="330" y="100" width="40" height="70" rx="4" class="ptr-area"/>
+                <text x="300" y="135" font-size="18">cr</text>
+                
+                <rect x="150" y="250" width="100" height="70" rx="4" class="tmp-node"/>
+                <rect x="210" y="250" width="40" height="70" rx="4" style="fill:#fde68a; stroke:#d97706;"/>
+                <text x="180" y="285" font-size="18">tmp</text>
+
+                <path d="M 110 135 L 260 135" stroke="#1f2937" stroke-width="5" marker-end="url(#arr1)" fill="none"/>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="choices-text">
+            選択肢： ア. cr.pointer ← tmp &nbsp; イ. prev ← tmp &nbsp; ウ. tmp ← ListHead &nbsp; エ. ListHead ← tmp &nbsp; オ. tmp.pointer ← prev &nbsp; カ. prev.pointer ← tmp
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４９：解説（繋ぎ替えの論理）</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>要素の挿入では、後続のデータを見失わないよう**「後ろを先に繋ぐ」**のが鉄則である。</p>
+            <p>1. まず <b>tmp.pointer</b> ← <b>cr</b> とし、新要素の後ろを確定させる。<br>
+               2. 次に「前の要素」が <b>tmp</b> を指すように変更する。<br>
+               3. このとき、**prev** が存在しない場合は「リストの起点」自体を書き換える必要がある。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="arr-blue" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker>
+                    <marker id="arr-red" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ef4444"/></marker>
+                </defs>
+                <text x="200" y="40" font-size="20">ポインタ更新の順序</text>
+                <rect x="30" y="100" width="80" height="60" class="node-rect" style="opacity:0.3"/>
+                <rect x="290" y="100" width="80" height="60" class="node-rect"/>
+                <rect x="150" y="240" width="100" height="70" class="tmp-node"/>
+                
+                <path d="M 230 250 Q 330 250 330 170" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr-blue)" fill="none"/>
+                <text x="310" y="270" font-size="16" fill="#3b82f6">① 後ろを繋ぐ</text>
+                
+                <path d="M 70 170 Q 70 320 140 320" stroke="#ef4444" stroke-width="5" marker-end="url(#arr-red)" fill="none" stroke-dasharray="10,5"/>
+                <text x="100" y="350" font-size="16" fill="#ef4444">② 前を繋ぎ替える</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"></div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４９：解答提示</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>完成したアルゴリズムは以下の通りである。</p>
+            <pre>
+<b>tmp.pointer</b> ← <b>cr</b>
+if ( <b>prev</b> が 未定義 )
+　　<b class="important">ListHead ← tmp</b>
+else
+　　<b class="important">prev.pointer ← tmp</b>
+endif</pre>
+            <p>挿入位置が先頭か否かで、書き換えるポインタの対象を切り分けている点に注目せよ。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="100 0 350 400">
+                <defs>
+                    <marker id="arr-std" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr-navy" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+                <rect x="150" y="40" width="200" height="60" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>
+                <text x="250" y="70" font-size="18">tmp.pointer ← cr</text>
+                
+                <path d="M 250 100 L 250 160" stroke="#1f2937" stroke-width="5" marker-end="url(#arr-std)" fill="none"/>
+                
+                <polygon points="250,160 350,210 250,260 150,210" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                <text x="250" y="210" font-size="15">prev == null?</text>
+                
+                <path d="M 200 235 L 140 290" stroke="#1f2937" stroke-width="5" marker-end="url(#arr-std)" fill="none"/>
+                <path d="M 300 235 L 360 290" stroke="#1f2937" stroke-width="5" marker-end="url(#arr-std)" fill="none"/>
+                <text x="160" y="260" font-size="16">No</text>
+                <text x="340" y="260" font-size="16">Yes</text>
+                
+                <rect x="60" y="300" width="140" height="70" rx="12" fill="#d1fae5" stroke="#10b981" stroke-width="3"/>
+                <text x="130" y="335" font-size="14">prev.pointer</text>
+                <text x="130" y="355" font-size="14">← tmp</text>
+                
+                <rect x="300" y="300" width="140" height="70" rx="12" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+                <text x="370" y="335" font-size="14">ListHead</text>
+                <text x="370" y="355" font-size="14">← tmp</text>
+
+                <path d="M 350 210 L 440 210 L 440 20 L 250 20 L 250 35" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr-navy)" fill="none"/>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="ans-text">最終解答： (1)　エ　ListHead ← tmp　　(2)　カ　prev.pointer ← tmp</div>
+    </div>
+</div>
+
+</body>
+</html>

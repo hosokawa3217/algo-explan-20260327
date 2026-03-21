@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習61：基本交換法(bubble_sort)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾ルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre)：全角スペース2個インデント */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇から書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .array-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習61：基本交換法（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>要素数 <b>n</b> の配列 <b>A</b> を昇順に整列させる基本交換法のアルゴリズムである。末尾から順に比較する場合、空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
+　　for ( <b>j</b> を <span class="blank">【　　 1 　　】</span> から <b>i + 1</b> まで 1 ずつ減らす )
+　　　　if ( <b>A[j - 1]</b> ＞ <b>A[j]</b> )
+　　　　　　<b>tmp</b> ← <b>A[j - 1]</b>
+　　　　　　<b>A[j - 1]</b> ← <span class="blank">【　　 2 　　】</span>
+　　　　　　<b>A[j]</b> ← <b>tmp</b>
+　　　　endif
+　　endfor
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <rect x="20" y="120" width="60" height="60" class="array-box" fill="#e2e8f0" />
+                <rect x="80" y="120" width="60" height="60" class="array-box" />
+                <rect x="140" y="120" width="60" height="60" class="array-box" />
+                <rect x="250" y="120" width="60" height="60" class="array-box" stroke="#ef4444" stroke-width="4" />
+                <rect x="310" y="120" width="60" height="60" class="array-box" stroke="#ef4444" stroke-width="4" />
+                <text x="50" y="100" font-size="14">i 番目</text>
+                <text x="280" y="210" font-size="16">A[j-1] と A[j] を比較</text>
+                <path d="M 310,230 Q 280,260 250,230" class="arrow-line" marker-end="url(#head)" stroke="#ef4444" />
+                <text x="200" y="300" font-size="18">末尾から順に比較・交換</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習61：解説（隣り合う比較）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>基本交換法（バブルソート）は、隣り合う要素の大小関係を正していく手法である。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>i の役割</b>：<br>外側のループ <b>i</b> は、整列が完了する位置を示す。<b>i=0</b> のときは、配列全体の最小値を 0 番目に持ってくる。</li>
+                <li><b>j の役割（内側ループ）</b>：<br>末尾から <b>i</b> の位置に向かって、隣り合う <b>A[j-1]</b> と <b>A[j]</b> を比較し、逆順なら入れ替える。</li>
+                <li><b>泡のような動き</b>：<br>この操作により、最小値が先頭（<b>i</b> 番目）に向かって浮き上がってくる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="200" cy="100" r="30" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+                <circle cx="220" cy="180" r="20" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+                <circle cx="180" cy="240" r="15" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+                <text x="200" y="300" font-size="20">最小値が浮上する</text>
+                <path d="M 200,280 L 200,40" class="arrow-line" marker-end="url(#head)" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習61：解説（探索範囲とスワップ）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>末尾から <b>i+1</b> まで戻るループの構成と、値の交換に注目しよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>空欄1（j の開始位置）</b>：<br>末尾から比較を開始するため、配列の最後の添字である <b>n - 1</b> を指定する。</li>
+                <li><b>空欄2（入れ替え）</b>：<br><b>A[j-1]</b> の値を <b>tmp</b> に逃がした後、<b>A[j-1]</b> に <b>A[j]</b> の値を上書きする。</li>
+                <li><b>境界の確認</b>：<br><b>j</b> が <b>i + 1</b> のとき、比較対象は <b>A[i]</b> と <b>A[i+1]</b> になり、正しく <b>i</b> 番目の値が確定する。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="80" font-size="24">スワップ（入れ替え）</text>
+                <rect x="100" y="120" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="145" font-size="18">tmp = A[j - 1]</text>
+                <rect x="100" y="180" width="200" height="50" fill="#fee2e2" stroke="#ef4444" />
+                <text x="200" y="205" font-size="18">A[j - 1] = A[j]</text>
+                <rect x="100" y="240" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
+                <text x="200" y="265" font-size="18">A[j] = tmp</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習61：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>基本交換法（bubble_sort）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
+　　for ( <b>j</b> を <b class="important">n - 1</b> から <b>i + 1</b> まで 1 ずつ減らす )
+　　　　if ( <b>A[j - 1]</b> ＞ <b>A[j]</b> )
+　　　　　　<b>tmp</b> ← <b>A[j - 1]</b>
+　　　　　　<b>A[j - 1]</b> ← <b class="important">A[j]</b>
+　　　　　　<b>A[j]</b> ← <b>tmp</b>
+　　　　endif
+　　endfor
+endfor</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 イ．n - 1</span>
+                    <span class="ans-item">【２】 ア．A[j]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

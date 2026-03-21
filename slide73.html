@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習73：線形探索教材</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-weight: 900;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツエリア */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+
+        /* 疑似言語表示 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+            font-weight: 900;
+        }
+        b { font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+        .correct { color: #ef4444; font-weight: 900; }
+
+        /* 説明用リスト */
+        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
+        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
+            border-radius: 15px; width: 100%; margin-top: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
+
+        /* SVG共通設定 */
+        svg { 
+            width: 100%; height: auto; 
+            border: 2px solid #64748b; border-radius: 12px; 
+            background: #ffffff;
+        }
+        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .box-focus { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
+        .arrow-scan { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        .found-mark { fill: none; stroke: #ef4444; stroke-width: 5; }
+        svg text { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習73：線形探索（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">配列 <b>A</b> の先頭から順に目的の値 <b>key</b> を探すプログラムを完成させよ。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>i</b> ← 0
+while ( <b>i</b> ＜ <b>n</b> and <span class="blank">【　　 1 　　】</span> )
+　　<b>i</b> ← <b>i</b> + 1
+endwhile
+
+if ( <b>i</b> ＜ <b>n</b> )
+　　return <b>i</b>  // 見つかった（添字を返す）
+else
+　　return -1 // 見つからなかった
+endif</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="40" y="100" width="70" height="70" class="box" /><text x="75" y="135">12</text>
+                <rect x="125" y="100" width="70" height="70" class="box" /><text x="160" y="135">45</text>
+                <rect x="210" y="100" width="70" height="70" class="box-focus" /><text x="245" y="135">key</text>
+                <rect x="295" y="100" width="70" height="70" class="box" /><text x="330" y="135">23</text>
+                
+                <path d="M 40,210 L 190,210" class="arrow-scan" marker-end="url(#scan-head)"/>
+                <defs><marker id="scan-head" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
+                <text x="200" y="260" font-size="22" fill="#3b82f6">左から順番に</text>
+                <text x="200" y="300" font-size="22" fill="#3b82f6">1つずつチェックする</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習73：解説（繰り返しの条件）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">while文が「次の要素へ進む」のはどんな時か？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>進む条件</b>：今見ている要素 <b>A[i]</b> が、探している <b>key</b> と「一致しない」間は、次を探さなければならない。</li>
+                <li><b>論理の反転</b>：一致したらループを止めたいので、継続条件は「不一致（<b>≠</b>）」となる。</li>
+                <li><b>番兵なし</b>：このコードでは配列の範囲外（<b>i < n</b>）も同時にチェックし、安全に停止させる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="150" y="80" width="100" height="100" class="box" /><text x="200" y="130" font-size="40">12</text>
+                <text x="200" y="220" font-size="40" fill="#a52a2a">≠</text>
+                <rect x="150" y="260" width="100" height="100" class="box-focus" /><text x="200" y="310" font-size="30">key(45)</text>
+                
+                <text x="330" y="200" font-size="20" fill="#3b82f6">次へ！</text>
+                <path d="M 260,130 Q 320,200 260,270" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="5"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習73：解説（結果の判断）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">ループが終わった後、どうやって成功・失敗を見分けるか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>成功（発見）</b>：配列の最後まで行く前にループが止まったなら、<b>A[i] = key</b> になったということ。</li>
+                <li><b>失敗（未発見）</b>：最後まで見つからず <b>i</b> が <b>n</b>（配列のサイズ）に達してしまったなら、存在しない。</li>
+                <li><b>境界線</b>：<b>i ＜ n</b> かどうかで、発見したか否かを物理的に判定できる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="40" y="100" width="70" height="70" class="box" /><text x="75" y="135">12</text>
+                <rect x="125" y="100" width="70" height="70" class="box-focus" /><text x="160" y="135">45</text>
+                <circle cx="160" cy="135" r="45" class="found-mark" />
+                <text x="160" y="210" font-size="22" fill="#ef4444">i = 1 で停止</text>
+                
+                <line x1="280" y1="50" x2="280" y2="350" stroke="#64748b" stroke-width="4" stroke-dasharray="8"/>
+                <text x="335" y="200" font-size="30" fill="#64748b" writing-mode="tb">末尾 n</text>
+                
+                <text x="160" y="310" font-size="24">i ＜ n なら発見！</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習73：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">線形探索（リニアサーチ）完成プログラム</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+<b>i</b> ← 0
+while ( <b>i</b> ＜ <b>n</b> and <b class="correct">A[i] ≠ key</b> )
+　　<b>i</b> ← <b>i</b> + 1
+endwhile
+
+if ( <b class="correct">i ＜ n</b> )
+　　return <b>i</b>
+else
+　　return -1
+endif</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-text">
+                    【１】 ウ．A[i] ≠ key
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

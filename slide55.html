@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習55：スタックの基本操作(push/pop)</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域 */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾 */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre)：全角スペース2個インデント */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 23px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* SVG図式 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .stack-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習55：スタックの操作（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>配列 <b>Stack</b> と変数 <b>top</b> を用いてスタックを実現する。データを追加する <b>push</b> と、取り出す <b>pop</b> の処理を完成させよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ push(整数型: <b>data</b> )
+　　<b>top</b> ← <span class="blank">【　　 1 　　】</span>
+　　<b>Stack[top]</b> ← <b>data</b>
+
+○ pop()
+　　<b>value</b> ← <b>Stack[top]</b>
+　　<b>top</b> ← <span class="blank">【　　 2 　　】</span>
+　　return <b>value</b></pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <rect x="125" y="50" width="150" height="50" class="stack-box" />
+                <rect x="125" y="100" width="150" height="50" class="stack-box" />
+                <rect x="125" y="150" width="150" height="50" class="stack-box" fill="#e2e8f0" />
+                <text x="200" y="175" font-size="20">Stack[top]</text>
+                <path d="M 300,175 L 350,175" class="arrow-line" marker-end="url(#head)" />
+                <text x="360" y="210" font-size="18" fill="#3b82f6">top</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習55：解説（LIFOの仕組み）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>スタックは「後から入れたものが先に出る」データ構造である。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>変数 top の役割</b>：<br>現在スタックの一番上（最後に追加されたデータ）が配列の何番目にあるかを指し示す。</li>
+                <li><b>push（追加）の順序</b>：<br>新しい場所を確保するために <b>top</b> を 1 増やしてから、そこにデータを書き込む。</li>
+                <li><b>pop（取出し）の順序</b>：<br>現在の <b>top</b> にあるデータを取り出した後、一つ下の位置を指すように <b>top</b> を 1 減らす。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="125" y="200" width="150" height="50" class="stack-box" />
+                <rect x="125" y="250" width="150" height="50" class="stack-box" />
+                <path d="M 200,50 L 200,150" class="arrow-line" marker-end="url(#head)" stroke="#ef4444" />
+                <text x="200" y="30" font-size="22" fill="#ef4444">PUSH!</text>
+                <text x="200" y="310" font-size="18">Last-In, First-Out</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習55：解説（添字の増減）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>配列の添字として <b>top</b> をどう変化させるべきか考えよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>push：積み上げる</b>：<br>データが 1 つ増えるので、ポインタを上に進める必要がある。つまり <b>top ← top + 1</b> となる。</li>
+                <li><b>pop：取り除く</b>：<br>データが 1 つ減るので、ポインタを下に戻す必要がある。つまり <b>top ← top - 1</b> となる。</li>
+                <li><b>初期状態</b>：<br>データが空のとき、<b>top</b> は通常 0 または -1 に設定される（実装による）。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="100" y="100" width="200" height="60" rx="5" fill="#fef3c7" stroke="#ea580c" stroke-width="3" />
+                <text x="200" y="130" font-size="24">top + 1</text>
+                <text x="200" y="180" font-size="18">↑ 次の位置へ</text>
+                <rect x="100" y="220" width="200" height="60" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
+                <text x="200" y="250" font-size="24">top - 1</text>
+                <text x="200" y="300" font-size="18">↓ 下の位置へ</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習55：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>スタックの基本操作完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+○ push(整数型: <b>data</b> )
+　　<b>top</b> ← <b class="important">top + 1</b>
+　　<b>Stack[top]</b> ← <b>data</b>
+
+○ pop()
+　　<b>value</b> ← <b>Stack[top]</b>
+　　<b>top</b> ← <b class="important">top - 1</b>
+　　return <b>value</b></pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 イ．top + 1</span>
+                    <span class="ans-item">【２】 ア．top - 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

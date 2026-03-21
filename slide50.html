@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習50：単方向リストの逆順処理</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        /* 1280x720px固定サイズのスライド設定 */
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            display: flex; flex-direction: column;
+        }
+
+        /* タイトル領域：左側に太い青色バー（#3b82f6） */
+        .title-container { 
+            display: flex; align-items: center; 
+            height: 60px; 
+            margin-bottom: 15px; /* コンテンツ領域との間隔 */
+        }
+        .title-bar { 
+            width: 25px; height: 50px; 
+            background-color: #3b82f6; 
+            margin-right: 20px; flex-shrink: 0; 
+        }
+        h1 { font-size: 38px; margin: 0; color: #1f2937; font-weight: 900; }
+
+        /* コンテンツ領域：左右分割（65%:35%） */
+        .content-area { 
+            display: flex; flex: 1; width: 100%; gap: 25px; 
+        }
+        .text-column { flex: 0 0 65%; }
+        
+        /* 図式をヘッダーの下に上揃え (flex-start) */
+        .figure-column { 
+            flex: 0 0 35%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            padding-top: 10px;
+        }
+
+        /* ■ 2. 文字・装飾ルール */
+        p, li { font-size: 30px; line-height: 1.5; color: #000000; margin: 0 0 20px 0; }
+        b { font-weight: 900; } 
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        
+        /* 疑似言語（pre）：インデント徹底 */
+        pre { 
+            background-color: #f1f5f9; padding: 30px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 26px; line-height: 1.4; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 10px 0;
+        }
+
+        /* フッター領域：高さ63px */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 63px; 
+            border-top: 2px solid #e5e7eb; display: flex; align-items: center;
+        }
+        .choices-text { font-size: 21px; color: #4b5563; font-weight: normal; }
+        .ans-text { color: #ea580c; font-weight: 900; font-size: 25px; }
+
+        /* ■ 3. 図式（SVG）実装ルール */
+        svg { 
+            width: 100%; height: auto; 
+            border: 3px solid #64748b; border-radius: 12px; 
+            background: #f9fafb; 
+        }
+        .node-rect { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .ptr-area { fill: #e2e8f0; stroke: #334155; stroke-width: 2; }
+        text { font-family: sans-serif; font-weight: 900; fill: #1f2937; text-anchor: middle; dominant-baseline: central; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習５０：単方向リストの逆順処理</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>単方向リストのつながりをすべて逆にし、末尾を先頭にするアルゴリズムである。空欄(1)(2)を埋めなさい。</p>
+            <pre>
+<b>a</b> ← 未定義, <b>c</b> ← <b>ListHead</b>
+while ( <b>c</b> が 未定義でない )
+　　<span class="blank">【  1  】</span> // 本来の「次」を退避
+　　<span class="blank">【  2  】</span> // ポインタを逆に向ける
+　　<b>a</b> ← <b>c</b>      // 一歩進む（処理済みへ）
+　　<b>c</b> ← <b>b</b>      // 一歩進む（未処理へ）
+endwhile
+<b>ListHead</b> ← <b>a</b> // 新しい先頭の更新</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="arr-std" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <polygon points="0 0, 24 9, 0 18" fill="#1f2937"/>
+                    </marker>
+                    <marker id="arr-rev" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <polygon points="0 0, 24 9, 0 18" fill="#ef4444"/>
+                    </marker>
+                </defs>
+                <text x="200" y="40" font-size="22">逆順処理のイメージ</text>
+                <rect x="30" y="150" width="80" height="80" rx="4" class="node-rect"/>
+                <text x="70" y="250" font-size="18">a (既)</text>
+                
+                <rect x="160" y="150" width="80" height="80" rx="4" class="node-rect" style="stroke:#ef4444;"/>
+                <text x="200" y="250" font-size="18" fill="#ef4444">c (現)</text>
+                
+                <rect x="290" y="150" width="80" height="80" rx="4" class="node-rect" style="stroke:#3b82f6;"/>
+                <text x="330" y="250" font-size="18" fill="#3b82f6">b (未)</text>
+                
+                <path d="M 160 190 L 124 190" stroke="#ef4444" stroke-width="5" marker-end="url(#arr-rev)" fill="none"/>
+                <text x="135" y="165" font-size="14" fill="#ef4444">反転</text>
+                
+                <path d="M 240 190 L 290 190" stroke="#3b82f6" stroke-width="3" stroke-dasharray="5,5" fill="none"/>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="choices-text">
+            選択肢： ア. b ← c.pointer &nbsp;&nbsp; イ. c ← a.pointer &nbsp;&nbsp; ウ. a.pointer ← c &nbsp;&nbsp; エ. c.pointer ← a
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習５０：解説（ポインタの退避と更新）</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>ポインタの向きを「逆（左）」へ変える前に、本来の「次（右）」を保存する必要がある。</p>
+            <ul style="font-size: 30px; line-height: 1.6;">
+                <li><span class="important">1. 退避</span>：<b>c</b> の次の場所を <b>b</b> に預ける。<br>これを行わないと、次の要素へ進めなくなる。</li>
+                <li><span class="important">2. 反転</span>：<b>c</b> のポインタを <b>a</b>（直前）に向ける。</li>
+                <li><span class="important">3. 移動</span>：<b>a</b> と <b>c</b> を一つずつ右の要素へ進める。</li>
+            </ul>
+            <p>最後に、元の末尾（<b>a</b>）を新たな <b>ListHead</b> とする。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="arr-blue" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker>
+                    <marker id="arr-red" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ef4444"/></marker>
+                </defs>
+                <text x="200" y="40" font-size="20">ポインタ書き換えの順序</text>
+                <rect x="50" y="120" width="80" height="60" class="node-rect"/>
+                <text x="90" y="150" font-size="16">a (直前)</text>
+                <rect x="160" y="240" width="80" height="60" class="node-rect" style="stroke:#ef4444;"/>
+                <text x="200" y="270" font-size="16">c (現在)</text>
+                <rect x="270" y="120" width="80" height="60" class="node-rect" style="stroke:#3b82f6;"/>
+                <text x="310" y="150" font-size="16">b (退避)</text>
+
+                <path d="M 240 270 Q 310 270 310 194" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr-blue)" fill="none"/>
+                <text x="345" y="240" font-size="16" fill="#3b82f6">①退避</text>
+                
+                <path d="M 160 270 Q 90 270 90 194" stroke="#ef4444" stroke-width="5" marker-end="url(#arr-red)" fill="none"/>
+                <text x="55" y="240" font-size="16" fill="#ef4444">②反転</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"></div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習５０：解答提示</h1></div>
+    <div class="content-area">
+        <div class="text-column">
+            <p>完成した逆順処理プログラムは以下の通りである。</p>
+            <pre>
+<b>a</b> ← 未定義, <b>c</b> ← <b>ListHead</b>
+while ( <b>c</b> が 未定義でない )
+　　<b class="important">b ← c.pointer</b>
+　　<b class="important">c.pointer ← a</b>
+　　<b>a</b> ← <b>c</b>
+　　<b>c</b> ← <b>b</b>
+endwhile
+<b>ListHead</b> ← <b>a</b></pre>
+            <p>ループが終了したとき、<b>a</b> は元の末尾要素を指しているため、それが新しい <b>ListHead</b> となる。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 450">
+                <defs>
+                    <marker id="arr-std" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr-navy" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+                <rect x="100" y="20" width="200" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>
+                <text x="200" y="45" font-size="16">b ← c.pointer (退避)</text>
+                <path d="M 200 70 L 200 100" stroke="#1f2937" stroke-width="4" marker-end="url(#arr-std)" fill="none"/>
+                
+                <rect x="100" y="100" width="200" height="50" rx="10" fill="#f8fafc" stroke="#ef4444" stroke-width="3"/>
+                <text x="200" y="125" font-size="16">c.pointer ← a (逆転)</text>
+                <path d="M 200 150 L 200 180" stroke="#1f2937" stroke-width="4" marker-end="url(#arr-std)" fill="none"/>
+
+                <rect x="100" y="180" width="200" height="70" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>
+                <text x="200" y="205" font-size="15">a ← c / c ← b</text>
+                <text x="200" y="230" font-size="15">(一歩進める)</text>
+
+                <path d="M 100 215 L 40 215 L 40 45 L 90 45" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr-navy)" fill="none"/>
+                
+                <path d="M 200 250 L 200 290" stroke="#1f2937" stroke-width="4" marker-end="url(#arr-std)" fill="none"/>
+                <rect x="80" y="290" width="240" height="60" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+                <text x="200" y="320" font-size="18" fill="#ea580c">ListHead ← a</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="ans-text">解答： (1)　ア　b ← c.pointer　　(2)　エ　c.pointer ← a</div>
+    </div>
+</div>
+
+</body>
+</html>

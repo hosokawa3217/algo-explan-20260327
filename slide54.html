@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習54：二分探索木からのデータ削除</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* タイトル領域：青バー(15px間隔)とページ番号 */
+        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
+        .title-left { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* 問題文領域：全幅 */
+        .problem-text { width: 100%; margin-bottom: 25px; }
+        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+
+        /* コンテンツ領域：左右分割(65%:35%) */
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* 文字装飾ルール */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        /* 疑似言語(pre)：全角スペース2個インデント */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 23px; 
+            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        /* 説明文・箇条書き */
+        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
+        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス(Ver.6対応：非太字・縦並び) */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
+        .ans-item { margin-bottom: 20px; display: block; }
+
+        /* ■ 4. 図式(SVG)：極太テキストと物理的表現 */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+        .node-circle { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
+        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
+        .marker-head { fill: #3b82f6; }
+        .marker-red { fill: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習54：データの削除（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木から指定された値を削除する処理の一部である。削除する節に子が2つある場合、右部分木の最小値で置き換える。空欄を埋めよ。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+/* 子が2つの場合の処理 */
+<b>target</b> ← <b>node.right</b>
+<b>parent</b> ← <b>node</b>
+while (<b>target.left</b> が 未定義でない )
+　　<b>parent</b> ← <b>target</b>
+　　<b>target</b> ← <span class="blank">【　　 1 　　】</span>
+endwhile
+<b>node.data</b> ← <b>target.data</b>
+if (<b>parent</b> が <b>node</b> と等しい )
+　　<b>parent.right</b> ← <span class="blank">【　　 2 　　】</span>
+else
+　　<b>parent.left</b> ← <span class="blank">【　　 3 　　】</span>
+endif</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    </marker>
+                </defs>
+                <circle cx="200" cy="80" r="40" class="node-circle" stroke="#ef4444" stroke-width="5" />
+                <text x="200" y="80" font-size="20">node(15)</text>
+                <path d="M 230,110 L 300,180" class="arrow-line" marker-end="url(#head)" />
+                <circle cx="320" cy="220" r="35" class="node-circle" />
+                <text x="320" y="220" font-size="18">target</text>
+                <text x="200" y="310" font-size="18" fill="#64748b">右側の最小値を探す</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習54：解説（置き換えの論理）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">
+        <p>子が2つある節を削除する場合、木の構造を維持するために「身代わり」を探す必要がある。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>身代わりの選定</b>：<br>「右部分木の中で最小の値」は、削除する値の次に大きい値であり、置き換えても二分探索木のルールが崩れない。</li>
+                <li><b>最小値の探し方</b>：<br>右の子（<b>node.right</b>）へ移動した後、左の子がいなくなるまで（<b>target.left</b> が 未定義になるまで）左へ辿り続ける。</li>
+                <li><b>データのコピー</b>：<br>見つかった <b>target.data</b> を元の <b>node.data</b> に上書きすることで、実質的な削除を行う。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <circle cx="200" cy="80" r="35" class="node-circle" />
+                <text x="200" y="80" font-size="18">node</text>
+                <path d="M 220,110 L 280,160" class="arrow-line" />
+                <circle cx="300" cy="180" r="35" class="node-circle" />
+                <text x="300" y="180" font-size="16">node.right</text>
+                <path d="M 280,210 L 220,260" class="arrow-red" marker-end="url(#head)" stroke-dasharray="8,5" />
+                <circle cx="200" cy="280" r="35" class="node-circle" stroke="#ef4444" />
+                <text x="200" y="280" font-size="18">最小値</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習54：解説（ポインタの繋ぎ替え）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">
+        <p>身代わりにした節（target）を、元の場所から切り離す処理を考えよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul class="desc-list">
+                <li><b>ループ内の移動（空欄1）</b>：<br>最小値を探すために、常に「左」へ進むため、<b>target ← target.left</b> となる。</li>
+                <li><b>切り離しの分岐</b>：<br>身代わり節に「右の子」がいる可能性があるため、親のポインタをそこへ繋ぎ替える。</li>
+                <li><b>(1) 右の子が即、最小値だった場合（空欄2）</b>：<br><b>parent.right</b> を <b>target.right</b> に繋ぐ。</li>
+                <li><b>(2) 左へ辿った先に最小値があった場合（空欄3）</b>：<br><b>parent.left</b> を <b>target.right</b> に繋ぐ。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect x="50" y="50" width="120" height="60" rx="10" fill="#e2e8f0" stroke="#334155" stroke-width="3" />
+                <text x="110" y="80" font-size="18">parent</text>
+                <path d="M 110,110 L 110,180" class="arrow-red" marker-end="url(#head)" />
+                <circle cx="110" cy="220" r="35" class="node-circle" stroke-dasharray="5,5" />
+                <text x="110" y="220" font-size="16">target</text>
+                <path d="M 130,245 L 180,280" class="arrow-line" marker-end="url(#head)" />
+                <circle cx="210" cy="300" r="30" class="node-circle" />
+                <text x="210" y="300" font-size="14">target.right</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container">
+        <div class="title-left"><div class="title-bar"></div><h1>練習54：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">
+        <p>二分探索木からの削除（子が2つの場合）完成コード</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+/* 子が2つの場合の処理 */
+<b>target</b> ← <b>node.right</b>
+<b>parent</b> ← <b>node</b>
+while (<b>target.left</b> が 未定義でない )
+　　<b>parent</b> ← <b>target</b>
+　　<b>target</b> ← <b class="important">target.left</b>
+endwhile
+<b>node.data</b> ← <b>target.data</b>
+if (<b>parent</b> が <b>node</b> と等しい )
+　　<b>parent.right</b> ← <b class="important">target.right</b>
+else
+　　<b>parent.left</b> ← <b class="important">target.right</b>
+endif</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-list">
+                    <span class="ans-item">【１】 ア．target.left</span>
+                    <span class="ans-item">【２】 ウ．target.right</span>
+                    <span class="ans-item">【３】 ウ．target.right</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

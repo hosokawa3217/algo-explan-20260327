@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習77：キュー教材</title>
+    <style>
+        /* ■ 1. 画面構成 (1280x720px固定) */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-weight: 900;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; }
+        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+
+        /* コンテンツエリア */
+        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
+        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
+        .left-content { flex: 0 0 62%; }
+        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+
+        /* 疑似言語表示 */
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+            font-weight: 900;
+        }
+        .correct { color: #ef4444; font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+
+        /* 説明用リスト */
+        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
+        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+
+        /* 解答ボックス */
+        .ans-box { 
+            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
+            border-radius: 15px; width: 100%; margin-top: auto;
+        }
+        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; }
+
+        /* SVG共通設定 (背景白を強制) */
+        svg { 
+            width: 100%; height: auto; 
+            border: 2px solid #64748b; border-radius: 12px; 
+            background-color: #ffffff;
+        }
+        .queue-wall { fill: none; stroke: #334155; stroke-width: 4; }
+        .data-rect { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+        .data-highlight { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
+        .arrow-main { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
+        svg text { font-size: 22px; font-weight: 900; text-anchor: middle; dominant-baseline: central; fill: #000000; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習77：キュー（問題）</h1></div>
+        <div class="page-num">1/4</div>
+    </div>
+    <div class="problem-text">データを最後尾に追加する <b>enq</b> 処理を完成させよ。</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+procedure <b>enq</b>(<b>data</b>)
+　　if ( <b>rear</b> ≧ <b>MAX_SIZE</b> )
+　　　　print "Queue Full"
+　　else
+　　　　<b>queue[rear]</b> ← <b>data</b>
+　　　　<span class="blank">【　　 1 　　】</span>
+　　endif
+endproc</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect width="400" height="350" fill="#ffffff" />
+                <path d="M 50,120 L 350,120 M 50,220 L 350,220" class="queue-wall" />
+                <rect x="80" y="130" width="70" height="80" class="data-rect" /><text x="115" y="170">A</text>
+                <rect x="160" y="130" width="70" height="80" class="data-rect" /><text x="195" y="170">B</text>
+                <rect x="240" y="130" width="70" height="80" class="data-highlight" /><text x="275" y="170">New</text>
+                <text x="115" y="250">出口(front)</text>
+                <text x="275" y="250">入口(rear)</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習77：解説（rearの移動）</h1></div>
+        <div class="page-num">2/4</div>
+    </div>
+    <div class="problem-text">データを入れた後、なぜ <b>rear</b> を増やすのか？</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>次の場所を指す</b>：<b>rear</b> は「次にデータを入れるべき空き場所」を常に指しておく必要がある。</li>
+                <li><b>連続した格納</b>：1つ入れたら、ポインタを1つ進めることで、次の <b>enq</b> で上書きされるのを防ぐ。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect width="400" height="350" fill="#ffffff" />
+                <rect x="50" y="150" width="80" height="60" class="data-rect" /><text x="90" y="180">済</text>
+                <rect x="130" y="150" width="80" height="60" class="data-highlight" /><text x="170" y="180">今入れた</text>
+                <rect x="210" y="150" width="80" height="60" class="data-rect" stroke-dasharray="4"/><text x="250" y="180">次</text>
+                
+                <path d="M 170,230 Q 210,270 250,230" class="arrow-main" marker-end="url(#arr2)"/>
+                <defs><marker id="arr2" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
+                <text x="210" y="300" fill="#3b82f6">rear ← rear + 1</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習77：解説（先入れ先出し）</h1></div>
+        <div class="page-num">3/4</div>
+    </div>
+    <div class="problem-text">キューの最大の特徴：First-In, First-Out</div>
+    <div class="content-area">
+        <div class="left-content">
+            <ul>
+                <li><b>行列と同じ</b>：先に並んだ人（データ）が、先にサービスを受ける（取り出される）。</li>
+                <li><b>enq と deq</b>：入れる処理（enq）と出す処理（deq）が、配列の両端で別々に行われる。</li>
+            </ul>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 350">
+                <rect width="400" height="350" fill="#ffffff" />
+                <rect x="50" y="100" width="300" height="150" rx="10" fill="#f0f9ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="200" y="140" font-size="28" fill="#3b82f6">FIFO</text>
+                <text x="200" y="190">先に <b>enq</b> したものが</text>
+                <text x="200" y="230">先に <b>deq</b> される</text>
+                
+                <path d="M 20,175 L 60,175" class="arrow-main" />
+                <path d="M 340,175 L 380,175" class="arrow-main" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="header">
+        <div class="title-group"><div class="title-bar"></div><h1>練習77：最終解答</h1></div>
+        <div class="page-num">4/4</div>
+    </div>
+    <div class="problem-text">キュー（enq処理）完成プログラム</div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+procedure <b>enq</b>(<b>data</b>)
+　　if ( <b>rear</b> ≧ <b>MAX_SIZE</b> )
+　　　　print "Queue Full"
+　　else
+　　　　<b>queue[rear]</b> ← <b>data</b>
+　　　　<b class="correct">rear ← rear + 1</b>
+　　endif
+endproc</pre>
+        </div>
+        <div class="right-content">
+            <div class="ans-box">
+                <h2>最終解答</h2>
+                <div class="ans-text">
+                    【１】 ア．rear ← rear + 1
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

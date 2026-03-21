@@ -1,0 +1,168 @@
+<!-- slide48.html 練習48 単方向リストの要素の削除 -->
+ <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習48：単方向リストの要素の削除</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; position: relative; box-sizing: border-box; 
+            padding: 40px 80px; overflow: hidden; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+
+        /* タイトル領域：青色バー（#3b82f6）と25pxの余白 */
+        h1 { 
+            font-size: 36px; border-left: 25px solid #3b82f6; padding-left: 20px; 
+            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        }
+
+        /* コンテンツ領域：左右分割（65%:35%） */
+        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; }
+        .text-column { flex: 0 0 65%; padding-right: 25px; box-sizing: border-box; }
+        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
+
+        /* ■ 2. 文字・装飾ルール */
+        .explanation { font-size: 30px; line-height: 1.5; color: #000000; margin: 0 0 15px 0; }
+        .explanation li { margin-bottom: 8px; list-style-type: none; position: relative; padding-left: 20px; }
+        .explanation li::before { content: "・"; position: absolute; left: 0; }
+        
+        b { font-weight: 900; } /* 疑似言語参照などの極太強調 */
+        .blank { color: #a52a2a; font-weight: 900; } /* 空欄：赤茶色 */
+        .important { color: #ef4444; font-weight: 900; } /* 重要語句：赤色 */
+        
+        pre { 
+            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 26px; line-height: 1.3; 
+            border: 1px solid #cbd5e1; color: #000000; margin: 0 0 15px 0;
+        }
+
+        /* フッター領域：共通デザイン */
+        .footer { 
+            position: absolute; bottom: 40px; left: 80px; right: 80px; 
+            height: 60px; display: flex; align-items: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
+        .supplement-color { color: #4b5563; } /* 濃灰色 */
+        .answer-color { color: #ea580c; } /* オレンジ系 */
+
+        /* ■ 3. 図式（SVG）実装ルール */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 15px; box-sizing: border-box; }
+        text { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- スライド1：問題提示フェーズ（フッター非表示） -->
+<div class="slide">
+    <h1>練習48：単方向リストの要素の削除</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <p class="explanation">単方向リストから特定の文字 <b>moji</b> を削除する。削除対象を物理的に消すのではなく、ポインタを繋ぎ替えて切り離す論理である。</p>
+            <pre>
+while ( ( cr が 未定義でない ) 
+        and ( cr.data が moji と等しくない ) )
+  prev ← cr  /* 直前の位置を退避 */
+  cr ← cr.pointer  /* 比較位置の更新 */
+endwhile
+if ( cr が 未定義でない )
+  if ( cr が ListHead と等しくない )
+    <span class="blank">【 1 】</span> ← <span class="blank">【 2 】</span>
+  else
+    ListHead ← cr.pointer
+  endif
+endif</pre>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350">
+                <text x="200" y="40" fill="#3b82f6" font-size="24" text-anchor="middle">二つのポインタの役割</text>
+                <!-- Nodes -->
+                <rect x="50" y="120" width="80" height="50" fill="#fff" stroke="#000" stroke-width="2"/>
+                <rect x="230" y="120" width="80" height="50" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+                <text x="90" y="155" text-anchor="middle">prev</text>
+                <text x="270" y="155" text-anchor="middle">cr</text>
+                <path d="M 130 145 L 220 145" stroke="#3b82f6" stroke-width="5" marker-end="url(#arr1)" fill="none"/>
+                <text x="175" y="190" font-size="16" text-anchor="middle">繋がっている状態</text>
+                <defs><marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#3b82f6"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"></div>
+</div>
+
+<!-- スライド2：解説ページ -->
+<div class="slide">
+    <h1>練習48：アルゴリズムの要点</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <ul class="explanation">
+                <li><span class="important">迂回（バイパス）</span>：削除したい要素 <b>cr</b> を「飛び越えて」繋ぎ直すことで、鎖から切り離す [1]。</li>
+                <li><span class="important">直前要素の役割</span>：削除のためには、<b>cr</b> の一つ前の要素 <b>prev</b> のポインタを書き換える必要がある [2]。</li>
+                <li><span class="important">例外処理</span>：先頭（<b>ListHead</b>）を削除する場合は、前の要素がないため特別な処理が必要になる [1]。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 380">
+                <text x="200" y="45" font-size="22" text-anchor="middle" fill="#047857">バイパスのイメージ</text>
+                <rect x="30" y="100" width="80" height="60" rx="8" fill="#d1fae5" stroke="#10b981"/>
+                <rect x="160" y="100" width="80" height="60" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-dasharray="5,5"/>
+                <rect x="290" y="100" width="80" height="60" rx="8" fill="#d1fae5" stroke="#10b981"/>
+                <text x="70" y="185" text-anchor="middle" font-size="18">prev</text>
+                <text x="200" y="185" text-anchor="middle" font-size="18">cr (削除)</text>
+                <text x="330" y="185" text-anchor="middle" font-size="18">次(cr.ptr)</text>
+                <!-- 赤い迂回矢印 -->
+                <path d="M 70 90 Q 200 10 330 90" stroke="#ef4444" stroke-width="5" marker-end="url(#arr2)" fill="none"/>
+                <text x="200" y="60" text-anchor="middle" font-size="20" fill="#ef4444">直通させる</text>
+                <defs><marker id="arr2" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#ef4444"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text supplement-color">ヒント：<b>prev.pointer</b> の行き先を、<b>cr</b> が指していた「次」へ変えます [1, 3]。</div></div>
+</div>
+
+<!-- スライド3：解答ページ -->
+<div class="slide">
+    <h1>練習48：解答の導出</h1>
+    <div class="content-area">
+        <div class="text-column">
+            <pre>if ( cr が ListHead と等しくない )
+  <span class="blank">prev.pointer ← cr.pointer</span></pre>
+            <ul class="explanation">
+                <li>書き換えるべきは「直前の要素」の接続先、すなわち <b>prev.pointer</b> である [3]。</li>
+                <li>新しい接続先は、削除対象 <b>cr</b> がそれまで指していた次の場所（<b>cr.pointer</b>）である [1]。</li>
+                <li>この代入により、<b>prev</b> から <b>cr</b> への道が消え、削除が完了する。</li>
+            </ul>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="120 0 350 350">
+                <rect x="150" y="75" width="200" height="70" rx="12" fill="#3b82f6" />
+                <text x="250" y="117" text-anchor="middle" fill="white" font-size="22">削除対象を発見</text>
+                <text x="275" y="185" font-size="24">代入</text>
+                <rect x="150" y="225" width="200" height="70" rx="12" fill="#ef4444" />
+                <text x="250" y="267" text-anchor="middle" fill="white" font-size="22">prev.ptr ← cr.ptr</text>
+                <text x="345" y="22" font-size="21" fill="#1e3a8a" text-anchor="middle">ループ終了</text>
+                <path d="M 250 145 L 250 215" stroke="#1f2937" stroke-width="5" marker-end="url(#arr3)" fill="none"/>
+                <!-- 濃紺の破線フィードバック矢印 -->
+                <path d="M 350 110 L 440 110 L 440 30 L 250 30 L 250 65" stroke="#1e3a8a" stroke-width="5" stroke-dasharray="10,10" marker-end="url(#arr4)" fill="none"/>
+                <defs>
+                    <marker id="arr3" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1f2937"/></marker>
+                    <marker id="arr4" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto"><polygon points="0 0, 24 9, 0 18" fill="#1e3a8a"/></marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+    <div class="footer"><div class="footer-text answer-color">解答： (1)  オ  prev.pointer    (2)  エ  cr.pointer</div></div>
+</div>
+
+</body>
+</html>
+<!-- slide48.html 練習48 単方向リストの要素の削除 -->

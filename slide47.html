@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0">
+    <title>練習47：単方向リストの探索</title>
+    <style>
+        /* ■ 1. 画面構成と基本レイアウト */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #4b5563; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin-bottom: 40px; position: relative; 
+            padding: 40px 80px; overflow: hidden; 
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .title-container { display: flex; align-items: center; height: 60px; margin-bottom: 15px; }
+        .title-bar { width: 25px; height: 50px; background-color: #3b82f6; margin-right: 20px; flex-shrink: 0; }
+        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
+
+        .problem-text { width: 100%; margin-bottom: 20px; }
+        .problem-text p { font-size: 30px; line-height: 1.4; margin: 0; color: #000000; }
+
+        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
+        .left-content { flex: 0 0 65%; }
+        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+
+        /* ■ 2. 文字・装飾・コード装飾 */
+        .blank { color: #a52a2a; font-weight: 900; } 
+        .important { color: #ef4444; font-weight: 900; } 
+        b { font-weight: 900; }
+
+        pre { 
+            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 26px; 
+            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        }
+
+        .desc-list { font-size: 28px; line-height: 1.6; margin: 0; padding-left: 1.2em; }
+        .ans-area { 
+            background-color: #fff7ed; padding: 30px; border: 3px solid #ea580c; 
+            border-radius: 12px; text-align: center; margin-top: 20px;
+        }
+        .ans-text { color: #ea580c; font-weight: 900; font-size: 40px; }
+
+        /* ■ 3. SVG図式スタイル */
+        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
+        .node-rect { fill: #ffffff; stroke: #334155; stroke-width: 3; }
+        .ptr-rect { fill: #f1f5f9; stroke: #334155; stroke-width: 2; }
+        .node-label { font-size: 18px; font-weight: 900; text-anchor: middle; }
+        .arrow-line { stroke: #334155; stroke-width: 5; fill: none; }
+        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
+        .loop-arrow { stroke: #1e3a8a; stroke-width: 5; stroke-dasharray: 10,10; fill: none; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４７：単方向リストの探索（問題）</h1></div>
+    <div class="problem-text">
+        <p>単方向リスト構造を用いた探索アルゴリズムである。空欄 【 1 】 に入る適切なコードを考えなさい。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+listsearch(文字列型: <b>moji</b>)
+ListTemplate: <b>cr</b>
+<b>cr</b> ← <b>ListHead</b>
+while ( ( <b>cr</b> が 未定義でない )
+　　　and ( <b>cr.data</b> が <b>moji</b> と等しくない ) )
+　　<span class="blank">【  1  】</span>
+endwhile</pre>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#334155" />
+                    </marker>
+                </defs>
+                <text x="200" y="40" text-anchor="middle" font-size="20" font-weight="900">リストの構造（初期状態）</text>
+                
+                <rect x="40" y="120" width="80" height="60" class="node-rect" />
+                <rect x="120" y="120" width="40" height="60" class="ptr-rect" />
+                <text x="80" y="155" class="node-label">data</text>
+                <text x="80" y="110" text-anchor="middle" font-size="14" font-weight="900">cr / ListHead</text>
+                
+                <line x1="140" y1="150" x2="210" y2="150" class="arrow-line" marker-end="url(#head)" />
+                <text x="175" y="195" text-anchor="middle" font-size="14" font-weight="900" fill="#334155">pointerを辿る</text>
+
+                <rect x="230" y="120" width="80" height="60" class="node-rect" />
+                <rect x="310" y="120" width="40" height="60" class="ptr-rect" />
+                <text x="270" y="155" class="node-label">data</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４７：解説（探索の論理）</h1></div>
+    <div class="problem-text">
+        <p>先頭 <b>ListHead</b> から順にポインタという「道しるべ」を辿り、目的の文字を探し出す。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <p style="font-size: 28px; line-height: 1.5;">探索を続ける条件は以下の2点である。</p>
+            <ul class="desc-list">
+                <li>1. <b>cr</b> がリストの末尾（未定義）に達していない。</li>
+                <li>2. 現在のデータ <b>cr.data</b> が探している <b>moji</b> ではない。</li>
+            </ul>
+            <p style="font-size: 28px; margin-top: 20px;">これらを満たす間、<span class="important">「次の要素」へと注目を移す処理</span>を繰り返す。</p>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="head-red" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#ef4444" />
+                    </marker>
+                </defs>
+                <rect x="40" y="120" width="80" height="60" class="node-rect" />
+                <rect x="120" y="120" width="40" height="60" class="ptr-rect" />
+                <text x="80" y="155" class="node-label">data</text>
+                
+                <line x1="140" y1="150" x2="210" y2="150" class="arrow-red" marker-end="url(#head-red)" />
+                <text x="175" y="200" text-anchor="middle" font-size="18" font-weight="900" fill="#ef4444">次に進む</text>
+
+                <rect x="230" y="120" width="80" height="60" class="node-rect" stroke="#ef4444" />
+                <rect x="310" y="120" width="40" height="60" class="ptr-rect" stroke="#ef4444" />
+                <text x="270" y="155" class="node-label">data</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４７：解説（ポインタの更新）</h1></div>
+    <div class="problem-text">
+        <p>「現在の要素」を「次の要素」に更新する具体的な方法を考えよう。</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <p style="font-size: 28px;">
+                単方向リストにおいて、次の要素がどこにあるかは <b>pointer</b> に記録されている。<br><br>
+                現在の <b>cr</b> を、今 <b>cr</b> が持っている <b>pointer</b> の値で上書きすることで、<span class="important">注目する場所を一歩進める</span>ことができる。
+            </p>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <defs>
+                    <marker id="head-navy" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#1e3a8a" />
+                    </marker>
+                </defs>
+                <rect x="100" y="140" width="200" height="80" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="3" />
+                <text x="200" y="185" text-anchor="middle" font-size="24" font-weight="900">変数 cr</text>
+                
+                <path d="M 300,180 Q 380,180 380,80 Q 380,20 200,20 Q 20,20 20,140 L 85,140" class="loop-arrow" marker-end="url(#head-navy)" />
+                <text x="200" y="55" text-anchor="middle" font-size="18" font-weight="900" fill="#1e3a8a">条件を満たす間繰り返す</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="slide">
+    <div class="title-container"><div class="title-bar"></div><h1>練習４７：解答提示</h1></div>
+    <div class="problem-text">
+        <p>完成した探索アルゴリズムのプログラム</p>
+    </div>
+    <div class="content-area">
+        <div class="left-content">
+            <pre>
+listsearch(文字列型: <b>moji</b>)
+ListTemplate: <b>cr</b>
+<b>cr</b> ← <b>ListHead</b>
+while ( ( <b>cr</b> が 未定義でない )
+　　　and ( <b>cr.data</b> が <b>moji</b> と等しくない ) )
+　　<b class="important">cr ← cr.pointer</b>
+endwhile</pre>
+            <div class="ans-area">
+                <p style="font-size: 24px; font-weight: 900; margin: 0 0 10px 0;">最終解答</p>
+                <div class="ans-text">cr ← cr.pointer</div>
+            </div>
+        </div>
+        <div class="right-content">
+            <svg viewBox="0 0 400 400">
+                <rect x="40" y="100" width="320" height="200" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="3" />
+                <text x="200" y="150" text-anchor="middle" font-size="22" font-weight="900" fill="#000000">ポイント</text>
+                <text x="200" y="200" text-anchor="middle" font-size="18" font-weight="900">「ポインタを辿る」とは</text>
+                <text x="200" y="235" text-anchor="middle" font-size="18" font-weight="900">変数の指す場所を</text>
+                <text x="200" y="270" text-anchor="middle" font-size="20" font-weight="900" fill="#ef4444">次へと更新し続けること</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
