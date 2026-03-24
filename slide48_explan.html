@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習48：単方向リストの要素削除</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #ef4444; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .logic-box { font-size: 18px; font-weight: 900; color: #b91c1c; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+        svg { width: 100%; height: 210px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #991b1b; font-size: 17px; text-anchor: middle; }
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-target { fill: #fef2f2; stroke: #ef4444; stroke-width: 3; }
+        .node-dim { opacity: 0.2; }
+        .val-text { font-size: 16px; fill: #111827; }
+        .ptr-label { font-size: 12px; font-weight: 900; text-anchor: middle; }
+        .formula-text { font-size: 15px; font-weight: 900; fill: #ef4444; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習48：単方向リストの要素削除（'B' を削除）</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="logic-box">削除の核心： prev.pointer = cr.pointer</div>
+        <span style="font-weight: 700; color: #374151;">「一つ前(prev)」の行き先を、「自分(cr)の次」に繋ぎ変えて迂回させます。</span>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">① 探索：cr と prev が前後で並んで進む</text>
+                <g transform="translate(40, 70)">
+                    <rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" />
+                    <text x="25" y="46" class="val-text" text-anchor="middle">A</text>
+                    <path d="M 55 40 L 95 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                    
+                    <rect class="node-target" x="110" y="20" width="70" height="40" rx="4" />
+                    <text x="135" y="46" class="val-text" text-anchor="middle">B</text>
+                    <path d="M 165 40 L 205 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+                    <rect class="node-rect" x="220" y="20" width="70" height="40" rx="4" />
+                    <text x="245" y="46" class="val-text" text-anchor="middle">C</text>
+
+                    <polygon points="25,15 17,0 33,0" fill="#64748b" /><text x="25" y="-5" class="ptr-label" fill="#64748b">prev</text>
+                    <polygon points="135,15 127,0 143,0" fill="#ef4444" /><text x="135" y="-5" class="ptr-label" fill="#ef4444">cr</text>
+                </g>
+                <text x="250" y="185" font-size="14" text-anchor="middle" fill="#374151">cr が削除対象 'B' に到達。手前に prev が待機中。</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">② 実行：prev.pointer = cr.pointer</text>
+                <g transform="translate(40, 70)">
+                    <rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" />
+                    <text x="25" y="46" class="val-text" text-anchor="middle">A</text>
+                    
+                    <g class="node-dim">
+                        <rect class="node-target" x="110" y="20" width="70" height="40" rx="4" />
+                        <text x="135" y="46" class="val-text" text-anchor="middle">B</text>
+                    </g>
+
+                    <rect class="node-rect" x="220" y="20" width="70" height="40" rx="4" />
+                    <text x="245" y="46" class="val-text" text-anchor="middle">C</text>
+
+                    <path d="M 55 35 Q 135 -10 220 35" stroke="#ef4444" fill="none" stroke-width="3" stroke-dasharray="4" marker-end="url(#arrow-red)" />
+                    <text x="135" y="-15" class="formula-text" text-anchor="middle">prev.pointer = cr.pointer</text>
+                </g>
+                <text x="250" y="185" font-size="14" text-anchor="middle" fill="#ef4444">Aの繋ぎ先を、Bを飛ばしてCへ直接向ける</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">③ 結果：B はリストから切り離された</text>
+                <g transform="translate(40, 70)">
+                    <rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" />
+                    <text x="25" y="46" class="val-text" text-anchor="middle">A</text>
+                    
+                    <g opacity="0.1">
+                        <rect class="node-target" x="110" y="60" width="70" height="40" rx="4" />
+                        <text x="145" y="86" class="val-text" text-anchor="middle">B</text>
+                    </g>
+
+                    <rect class="node-rect" x="220" y="20" width="70" height="40" rx="4" />
+                    <text x="245" y="46" class="val-text" text-anchor="middle">C</text>
+
+                    <path d="M 70 40 L 220 40" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)" />
+                </g>
+                <text x="250" y="185" font-size="14" text-anchor="middle" fill="#10b981">探索時、B は二度と辿られることはない</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">④ 特殊：先頭 A を削除する場合</text>
+                <g transform="translate(40, 70)">
+                    <rect class="node-target" x="0" y="20" width="70" height="40" rx="4" />
+                    <text x="35" y="46" class="val-text" text-anchor="middle">A</text>
+                    
+                    <rect class="node-rect" x="110" y="20" width="70" height="40" rx="4" />
+                    <text x="145" y="46" class="val-text" text-anchor="middle">B</text>
+
+                    <text x="-10" y="-10" font-size="12" fill="#ef4444" font-weight="900">ListHead</text>
+                    <path d="M -10 5 Q 50 -30 110 15" stroke="#ef4444" fill="none" stroke-width="2" marker-end="url(#arrow-red)" />
+                    <text x="50" y="-25" class="formula-text" text-anchor="middle" font-size="11">ListHead = cr.pointer</text>
+                </g>
+                <text x="250" y="185" font-size="14" text-anchor="middle" fill="#374151">手前に prev がないため、起点(Head)を書き換える</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        結論：削除とは「消去」ではなく、ポインタを繋ぎ変えて「存在しないものとして扱う」こと。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+            <marker id="arrow-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

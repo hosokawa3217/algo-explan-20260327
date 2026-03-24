@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習51：二分探索木の探索</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #3b82f6; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #eff6ff; border: 2px dashed #3b82f6; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .info-label { font-size: 18px; font-weight: 900; color: #1e40af; }
+        .info-desc { font-weight: 700; color: #374151; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 10px; }
+
+        svg { width: 100%; height: 210px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #1e3a8a; font-size: 17px; text-anchor: middle; }
+        .title-underline { stroke: #3b82f6; stroke-width: 2; }
+        
+        .node-circle { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-active { fill: #f0f9ff; stroke: #3b82f6; stroke-width: 3; }
+        .val-text { font-size: 14px; fill: #111827; text-anchor: middle; }
+        .ptr-label { font-size: 13px; font-weight: 900; text-anchor: middle; fill: #3b82f6; }
+        
+        .formula-text { font-size: 18px; font-weight: 900; fill: #2563eb; text-anchor: middle; }
+        .result-text { font-size: 15px; font-weight: 900; fill: #374151; text-anchor: middle; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #1e40af; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習51：二分探索木の探索</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="info-label">探索対象：num = 90</div>
+        <div class="info-desc">Root(80)から開始し、大小比較を繰り返して目的の値(90)へ辿り着きます。</div>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 210">
+                <text x="250" y="25" class="grid-title-text">① 開始点：node ← Root</text>
+                <line x1="150" y1="32" x2="350" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">根ノード 80 から探索を開始する</text>
+                
+                <g transform="translate(250, 75)">
+                    <line x1="0" y1="20" x2="-50" y2="60" stroke="#e5e7eb" stroke-width="1.5" />
+                    <line x1="0" y1="20" x2="50" y2="60" stroke="#e5e7eb" stroke-width="1.5" />
+                    <circle class="node-active" cx="0" cy="20" r="18" />
+                    <text x="0" y="25" class="val-text">80</text>
+                    <text x="35" y="15" class="ptr-label">node</text>
+                    
+                    <circle class="node-circle" cx="-50" cy="60" r="15" /><text x="-50" y="64" class="val-text" style="font-size:10px">60</text>
+                    <circle class="node-circle" cx="50" cy="60" r="15" /><text x="50" y="64" class="val-text" style="font-size:10px">100</text>
+                </g>
+                <text x="250" y="195" class="formula-text">node ← Root</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 210">
+                <text x="250" y="25" class="grid-title-text">② 比較：80 ＜ 90 (numが大きい)</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">num は 80 より大きいため右の子へ進む</text>
+                
+                <g transform="translate(250, 75)">
+                    <circle class="node-circle" cx="0" cy="20" r="18" opacity="0.3"/>
+                    <line x1="12" y1="32" x2="38" y2="48" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-blue)" />
+                    <circle class="node-active" cx="50" cy="60" r="18" />
+                    <text x="50" y="65" class="val-text">100</text>
+                    <text x="85" y="55" class="ptr-label">node</text>
+                    <line x1="50" y1="60" x2="30" y2="90" stroke="#e5e7eb" stroke-width="1.5" />
+                    <circle class="node-circle" cx="30" cy="95" r="12" /><text x="30" y="99" class="val-text" style="font-size:9px">90</text>
+                </g>
+                <text x="250" y="195" class="formula-text">node ← node.right</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 210">
+                <text x="250" y="25" class="grid-title-text">③ 比較：100 ＞ 90 (numが小さい)</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">num は 100 より小さいため左の子へ進む</text>
+                
+                <g transform="translate(250, 75)">
+                    <circle class="node-circle" cx="50" cy="60" r="18" opacity="0.3"/>
+                    <line x1="38" y1="72" x2="32" y2="83" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-blue)" />
+                    <circle class="node-active" cx="30" cy="95" r="18" />
+                    <text x="30" y="100" class="val-text">90</text>
+                    <text x="65" y="95" class="ptr-label">node</text>
+                </g>
+                <text x="250" y="195" class="formula-text">node ← node.left</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 210">
+                <text x="250" y="25" class="grid-title-text">④ 完了：node.data ＝ num</text>
+                <line x1="150" y1="32" x2="350" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">目的の値 90 に到達。探索を終了する</text>
+                
+                <g transform="translate(250, 80)">
+                    <circle class="node-active" cx="0" cy="20" r="25" stroke="#059669" />
+                    <text x="0" y="26" class="val-text" fill="#059669" style="font-size:18px">90</text>
+                    <text x="0" y="70" class="result-text" fill="#059669">Found!</text>
+                </g>
+                <text x="250" y="195" class="formula-text" fill="#059669">探索成功</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        二分探索木：根からの大小比較により、目的のデータ(90)へ効率的に到達。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習47：単方向リスト探索（'C' を探索）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #f59e0b; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        /* 構造説明エリア */
+        .structure-info { 
+            background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .node-example { display: flex; border: 1.5px solid #64748b; font-size: 14px; font-weight: 900; }
+        .part-d { padding: 4px 8px; background: #fff; border-right: 1.5px solid #64748b; }
+        .part-p { padding: 4px 8px; background: #f8fafc; color: #64748b; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; justify-content: center; align-items: center; }
+
+        svg { width: 100%; height: 210px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #92400e; font-size: 17px; text-anchor: middle; }
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-focus { fill: #fff7ed; stroke: #f59e0b; stroke-width: 3; }
+        .node-dim { opacity: 0.25; }
+        .val-text { font-size: 16px; fill: #111827; }
+        .cr-label { font-size: 13px; font-weight: 900; text-anchor: middle; }
+        .formula-text { font-size: 14px; font-weight: 900; }
+        .result-text { font-size: 15px; text-anchor: middle; font-weight: 900; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #92400e; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習47：単方向リスト探索（'C' を探索）</h1>
+    </div>
+
+    <div class="structure-info">
+        <span style="font-weight: 900;">要素の基本構造:</span>
+        <div class="node-example">
+            <div class="part-d">cr.data (比較対象)</div>
+            <div class="part-p">cr.pointer (次の行き先)</div>
+        </div>
+        <span style="font-size: 18px;">➡</span>
+        <span style="font-weight: 700; color: #374151;">不一致なら pointer を辿って次へ、一致すればその場で終了します。</span>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">① 開始：ListHead が指す 'A' から調査</text>
+                <g transform="translate(30, 65)">
+                    <rect class="node-focus" x="0" y="20" width="70" height="40" rx="4" />
+                    <line x1="45" y1="20" x2="45" y2="60" stroke="#f59e0b" stroke-width="1.5" />
+                    <text x="22.5" y="46" class="val-text" text-anchor="middle">A</text>
+                    <path d="M 60 40 L 95 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                    
+                    <rect class="node-rect" x="105" y="20" width="70" height="40" rx="4" />
+                    <text x="127.5" y="46" class="val-text" text-anchor="middle">B</text>
+                    <path d="M 165 40 L 200 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+                    <rect class="node-rect" x="210" y="20" width="70" height="40" rx="4" />
+                    <text x="232.5" y="46" class="val-text" text-anchor="middle">C</text>
+                    <path d="M 270 40 L 305 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+                    <rect class="node-rect" x="315" y="20" width="70" height="40" rx="4" />
+                    <text x="337.5" y="46" class="val-text" text-anchor="middle">D</text>
+
+                    <polygon points="22.5,15 12.5,0 32.5,0" fill="#f59e0b" />
+                    <text x="22.5" y="-5" class="cr-label" fill="#f59e0b">cr</text>
+                </g>
+                <text x="250" y="185" class="result-text" fill="#374151">'A' ≠ 'C' なのでループ継続</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">② 更新：pointer を辿って B へ移動</text>
+                <g transform="translate(30, 65)">
+                    <g class="node-dim"><rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" /><text x="22.5" y="46" class="val-text" text-anchor="middle">A</text></g>
+                    
+                    <rect class="node-focus" x="105" y="20" width="70" height="40" rx="4" />
+                    <line x1="150" y1="20" x2="150" y2="60" stroke="#f59e0b" stroke-width="1.5" />
+                    <text x="127.5" y="46" class="val-text" text-anchor="middle">B</text>
+                    <path d="M 165 40 L 200 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+                    <rect class="node-rect" x="210" y="20" width="70" height="40" rx="4" />
+                    <rect class="node-rect" x="315" y="20" width="70" height="40" rx="4" />
+
+                    <path d="M 22.5 -10 Q 75 -40 127.5 -10" stroke="#f59e0b" fill="none" stroke-width="2" marker-end="url(#arrow-f)" />
+                    <text x="145" y="-30" class="formula-text" text-anchor="start" fill="#d97706">cr = cr.pointer</text>
+                    
+                    <polygon points="127.5,15 117.5,0 137.5,0" fill="#f59e0b" /><text x="127.5" y="-5" class="cr-label" fill="#f59e0b">cr</text>
+                </g>
+                <text x="250" y="185" class="result-text" fill="#d97706">'B' ≠ 'C' なので再度移動が必要</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">③ 到着：ついに目的の 'C' に到達</text>
+                <g transform="translate(30, 65)">
+                    <g class="node-dim">
+                        <rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" />
+                        <rect class="node-rect" x="105" y="20" width="70" height="40" rx="4" />
+                    </g>
+                    
+                    <rect class="node-focus" x="210" y="20" width="70" height="40" rx="4" fill="#fffbeb" stroke="#f59e0b" />
+                    <line x1="255" y1="20" x2="255" y2="60" stroke="#f59e0b" stroke-width="1.5" />
+                    <text x="232.5" y="46" class="val-text" text-anchor="middle">C</text>
+                    
+                    <rect class="node-rect" x="315" y="20" width="70" height="40" rx="4" />
+
+                    <path d="M 127.5 -10 Q 180 -40 232.5 -10" stroke="#f59e0b" fill="none" stroke-width="2" marker-end="url(#arrow-f)" />
+                    <polygon points="232.5,15 222.5,0 242.5,0" fill="#f59e0b" /><text x="232.5" y="-5" class="cr-label" fill="#f59e0b">cr</text>
+                </g>
+                <text x="250" y="185" class="result-text" fill="#374151">'C' == 'C' となり、ループ継続条件が偽になる</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">④ 終了：発見成功（D は調べない）</text>
+                <g transform="translate(30, 65)">
+                    <g class="node-dim">
+                        <rect class="node-rect" x="0" y="20" width="180" height="40" rx="4" />
+                        <rect class="node-rect" x="315" y="20" width="70" height="40" rx="4" />
+                        <text x="337.5" y="46" class="val-text" text-anchor="middle" opacity="0.2">D</text>
+                    </g>
+                    
+                    <rect class="node-focus" x="210" y="20" width="70" height="40" rx="4" fill="#f0fdf4" stroke="#16a34a" />
+                    <text x="232.5" y="46" class="val-text" text-anchor="middle" font-weight="900">C</text>
+                    <text x="290" y="46" text-anchor="start" font-size="20" fill="#16a34a">← Found!</text>
+
+                    <polygon points="232.5,15 222.5,0 242.5,0" fill="#16a34a" />
+                    <text x="232.5" y="-5" class="cr-label" fill="#16a34a">cr</text>
+                </g>
+                <text x="250" y="185" class="result-text" fill="#16a34a">cr は未定義ではないため「探索成功」と判定</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        結論：'C' が見つかった瞬間に探索は終了し、それ以降（Dなど）のポインタは辿らない。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+            <marker id="arrow-f" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

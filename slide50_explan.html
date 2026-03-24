@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習50：単方向リスト反転（データ値を「ひらがな」に変更）</title>
+    <style>
+        body { 
+            margin: 0; padding: 10px; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1200px; background-color: #ffffff; 
+            padding: 30px 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column; border-radius: 8px;
+        }
+        .header-area { height: 60px; display: flex; align-items: center; margin-bottom: 15px; }
+        .theme-bar { width: 12px; height: 35px; background-color: #3b82f6; margin-right: 15px; }
+        h1 { font-size: 28px; margin: 0; font-weight: 900; color: #111827; }
+        
+        .infographic-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr;
+            gap: 15px; 
+        }
+        .grid-item { 
+            border: 2px solid #e5e7eb; border-radius: 10px; background-color: #f9fafb; 
+            display: flex; flex-direction: column; align-items: center; padding: 10px;
+        }
+        .grid-item-final { background-color: #f0fdf4; border: 2px solid #22c55e; }
+
+        svg { width: 100%; height: 190px; }
+        svg text { font-weight: 900; }
+        
+        .grid-title-text { fill: #1e3a8a; font-size: 16px; text-anchor: middle; }
+        .title-underline { stroke: #3b82f6; stroke-width: 2; }
+        
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-active { fill: #f0f9ff; stroke: #3b82f6; stroke-width: 2.5; }
+        .val-text { font-size: 18px; fill: #111827; text-anchor: middle; }
+        .ptr-label { font-size: 15px; font-weight: 900; text-anchor: middle; }
+        .null-text { font-size: 12px; fill: #94a3b8; font-style: italic; text-anchor: middle; }
+        
+        .formula-text { font-size: 18px; font-weight: 900; fill: #2563eb; text-anchor: middle; }
+        .formula-final { fill: #15803d; }
+        
+        .footer { height: 50px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: 20px; font-weight: 900; color: #1e40af; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習50：単方向リスト反転の全プロセス（データ値：い・ろ・は）</h1>
+    </div>
+
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text">① 初期状態 (開始前)</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(50, 75)">
+                    <rect class="node-active" x="120" y="20" width="70" height="40" rx="4" />
+                    <text x="155" y="46" class="val-text">い</text>
+                    <path d="M 190 40 L 230 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)" />
+                    <rect class="node-rect" x="240" y="20" width="70" height="40" rx="4" />
+                    <text x="275" y="46" class="val-text">ろ</text>
+                    <text x="0" y="0" class="null-text">a: 未定義</text>
+                    <text x="155" y="-5" class="ptr-label" fill="#3b82f6">c (Head)</text>
+                    <text x="360" y="0" class="null-text">b: 未定義</text>
+                </g>
+                <text x="250" y="175" class="formula-text">a=null, b=null, c=ListHead</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text">② 次要素の保護</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(50, 75)">
+                    <rect class="node-active" x="120" y="20" width="70" height="40" rx="4" />
+                    <text x="155" y="46" class="val-text">い</text>
+                    <path d="M 190 40 L 230 40" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)" />
+                    <rect class="node-rect" x="240" y="20" width="70" height="40" rx="4" />
+                    <text x="275" y="46" class="val-text">ろ</text>
+                    <text x="155" y="-5" class="ptr-label" fill="#3b82f6">c</text>
+                    <text x="275" y="-5" class="ptr-label" fill="#10b981">b</text>
+                </g>
+                <text x="250" y="175" class="formula-text">b ← c.pointer</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text">③ ポインタの逆転</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(50, 75)">
+                    <text x="35" y="46" class="null-text">null</text>
+                    <rect class="node-active" x="120" y="20" width="70" height="40" rx="4" />
+                    <text x="155" y="46" class="val-text">い</text>
+                    <path d="M 120 40 L 80 40" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)" />
+                    <text x="35" y="-5" class="ptr-label" fill="#64748b">a</text>
+                    <text x="155" y="-5" class="ptr-label" fill="#3b82f6">c</text>
+                    <text x="275" y="-5" class="ptr-label" fill="#10b981">b</text>
+                </g>
+                <text x="250" y="175" class="formula-text">c.pointer ← a</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text">④ 既処理リストの更新</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(50, 75)">
+                    <rect class="node-rect" x="120" y="20" width="70" height="40" rx="4" />
+                    <text x="155" y="46" class="val-text">い</text>
+                    <text x="155" y="-5" class="ptr-label" fill="#64748b">a, c</text>
+                    <text x="275" y="-5" class="ptr-label" fill="#10b981">b</text>
+                </g>
+                <text x="250" y="175" class="formula-text">a ← c</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text">⑤ 処理対象の移動</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(50, 75)">
+                    <rect class="node-rect" x="120" y="20" width="70" height="40" rx="4" />
+                    <rect class="node-active" x="240" y="20" width="70" height="40" rx="4" />
+                    <text x="275" y="46" class="val-text">ろ</text>
+                    <text x="155" y="-5" class="ptr-label" fill="#64748b">a</text>
+                    <text x="275" y="-5" class="ptr-label" fill="#3b82f6">b, c</text>
+                </g>
+                <text x="250" y="175" class="formula-text">c ← b</text>
+            </svg>
+        </div>
+
+        <div class="grid-item grid-item-final">
+            <svg viewBox="0 0 500 190">
+                <text x="250" y="20" class="grid-title-text" fill="#15803d">⑥ 最終状態：反転完了</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" style="stroke: #22c55e;" />
+                <g transform="translate(40, 80)">
+                    <rect class="node-rect" x="0" y="20" width="60" height="35" rx="4" />
+                    <text x="30" y="42" class="val-text" style="font-size:16px">い</text>
+                    <rect class="node-rect" x="120" y="20" width="60" height="35" rx="4" />
+                    <text x="150" y="42" class="val-text" style="font-size:16px">ろ</text>
+                    <path d="M 120 37 L 70 37" stroke="#15803d" stroke-width="2" marker-end="url(#arrow-green)" />
+                    <rect class="node-rect" x="240" y="20" width="60" height="35" rx="4" />
+                    <text x="270" y="42" class="val-text" style="font-size:16px">は</text>
+                    <path d="M 240 37 L 190 37" stroke="#15803d" stroke-width="2" marker-end="url(#arrow-green)" />
+                    
+                    <text x="360" y="10" class="ptr-label" fill="#15803d">Head</text>
+                    <path d="M 360 15 Q 330 37 310 37" stroke="#15803d" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+                </g>
+                <text x="250" y="175" class="formula-text formula-final">ListHead ← a</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        データ値を「ひらがな」にすることで、ポインタ変数名(a, b, c)との混同を防いでいます。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-gray" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+            <marker id="arrow-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

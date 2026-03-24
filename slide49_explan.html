@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習49：単方向リストへの要素追加（中央揃え完全版）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #3b82f6; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #eff6ff; border: 2px dashed #3b82f6; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .info-label { font-size: 18px; font-weight: 900; color: #1e40af; }
+        .info-desc { font-weight: 700; color: #374151; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 10px; }
+
+        svg { width: 100%; height: 200px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #1e3a8a; font-size: 17px; text-anchor: middle; }
+        .title-underline { stroke: #3b82f6; stroke-width: 2; }
+        
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-new { fill: #f0f9ff; stroke: #3b82f6; stroke-width: 3; }
+        .node-dim { opacity: 0.2; }
+        .val-text { font-size: 16px; fill: #111827; }
+        .ptr-label { font-size: 13px; font-weight: 900; text-anchor: middle; }
+        .formula-text { font-size: 14px; font-weight: 900; fill: #2563eb; }
+        
+        /* 説明文（黒文字）：全パネル共通で中央揃え */
+        .result-text { font-size: 15px; font-weight: 900; fill: #374151; text-anchor: middle; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #1e3a8a; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習49：単方向リストへの要素追加（'C' を挿入）</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="info-label">追加の要点：ポインタの二段階更新</div>
+        <div class="info-desc">①tmp.pointer = cr（後ろを繋ぐ） ➡ ②prev.pointer = tmp（前を繋ぐ）</div>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">① 探索：挿入ポイントの確定</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">'B' < 'C' < 'D' のため、この間が挿入位置</text>
+                
+                <g transform="translate(40, 90)">
+                    <rect class="node-rect" x="0" y="20" width="70" height="40" rx="4" /><text x="35" y="46" class="val-text" text-anchor="middle">A</text>
+                    <path d="M 70 40 L 110 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                    <rect class="node-rect" x="120" y="20" width="70" height="40" rx="4" /><text x="155" y="46" class="val-text" text-anchor="middle">B</text>
+                    <path d="M 190 40 L 230 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                    <rect class="node-rect" x="240" y="20" width="70" height="40" rx="4" /><text x="275" y="46" class="val-text" text-anchor="middle">D</text>
+                    <polygon points="155,15 145,0 165,0" fill="#64748b" /><text x="155" y="-5" class="ptr-label" fill="#64748b">prev</text>
+                    <polygon points="275,15 265,0 285,0" fill="#3b82f6" /><text x="275" y="-5" class="ptr-label" fill="#3b82f6">cr</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">② 接続：tmp.pointer = cr</text>
+                <line x1="130" y1="32" x2="370" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">まず新要素から後ろの鎖を繋ぎ止める</text>
+
+                <g transform="translate(40, 70)">
+                    <g class="node-dim"><rect class="node-rect" x="120" y="20" width="70" height="40" rx="4" /><text x="155" y="46" class="val-text" text-anchor="middle">B</text></g>
+                    <rect class="node-rect" x="240" y="20" width="70" height="40" rx="4" /><text x="275" y="46" class="val-text" text-anchor="middle">D</text>
+                    <rect class="node-new" x="150" y="80" width="70" height="40" rx="4" /><text x="185" y="106" class="val-text" text-anchor="middle">C</text>
+                    <path d="M 220 100 Q 285 100 285 65" stroke="#3b82f6" fill="none" stroke-width="3" stroke-dasharray="4" marker-end="url(#arrow-blue)" />
+                    <text x="300" y="110" class="formula-text" text-anchor="start">tmp.pointer = cr(D)</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">③ 接続：prev.pointer = tmp</text>
+                <line x1="130" y1="32" x2="370" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">B の行き先を C に書き換えて割り込み完了</text>
+
+                <g transform="translate(40, 70)">
+                    <rect class="node-rect" x="120" y="20" width="70" height="40" rx="4" /><text x="155" y="46" class="val-text" text-anchor="middle">B</text>
+                    <rect class="node-new" x="150" y="80" width="70" height="40" rx="4" /><text x="185" y="106" class="val-text" text-anchor="middle">C</text>
+                    <g class="node-dim"><rect class="node-rect" x="240" y="20" width="70" height="40" rx="4" /><text x="275" y="46" class="val-text" text-anchor="middle">D</text></g>
+                    <path d="M 155 60 L 155 80" stroke="#3b82f6" fill="none" stroke-width="3" stroke-dasharray="4" marker-end="url(#arrow-blue)" />
+                    <text x="140" y="110" class="formula-text" text-anchor="end">prev.pointer = tmp(C)</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">④ 完了：追加後のリスト構造</text>
+                <line x1="130" y1="32" x2="370" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text" fill="#059669">ポインタの繋ぎ替えだけで要素が挿入された</text>
+
+                <g transform="translate(25, 90)">
+                    <rect class="node-rect" x="0" y="20" width="65" height="40" rx="4" /><text x="32.5" y="46" class="val-text" text-anchor="middle">A</text>
+                    <path d="M 65 40 L 95 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                    <rect class="node-rect" x="105" y="20" width="65" height="40" rx="4" /><text x="137.5" y="46" class="val-text" text-anchor="middle">B</text>
+                    <path d="M 170 40 L 200 40" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)" />
+                    <rect class="node-new" x="210" y="20" width="65" height="40" rx="4" /><text x="242.5" y="46" class="val-text" text-anchor="middle" font-weight="900">C</text>
+                    <path d="M 275 40 L 305 40" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)" />
+                    <rect class="node-rect" x="315" y="20" width="65" height="40" rx="4" /><text x="347.5" y="46" class="val-text" text-anchor="middle">D</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        結論：順序（後ろ ➡ 前）を守ることで、既存のデータを失わずに割り込める。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

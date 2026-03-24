@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習46：外部境界型二分探索（全要素定点観測版）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #10b981; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        .sub-info { height: 60px; font-size: 22px; font-weight: 700; color: #374151; display: flex; align-items: center; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; justify-content: center; align-items: center; }
+
+        svg { width: 100%; height: 200px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #064e3b; font-size: 17px; text-anchor: middle; }
+        .cell { fill: #ffffff; stroke: #64748b; stroke-width: 1.2; }
+        .cell-boundary { fill: #f8fafc; stroke: #94a3b8; stroke-dasharray: 3; }
+        .cell-dim { fill: #e5e7eb; stroke: #cbd5e1; opacity: 0.3; }
+        .cell-focus { fill: #ecfdf5; stroke: #10b981; stroke-width: 3; }
+        
+        .idx-text { font-size: 9px; fill: #64748b; }
+        .val-text { font-size: 12px; fill: #111827; }
+        .label-text { font-size: 11px; text-anchor: middle; }
+        .formula-text { font-size: 14px; font-weight: 900; }
+        .result-text { font-size: 15px; text-anchor: middle; font-weight: 900; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #064e3b; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習46：外部境界型二分探索（70を探索）</h1>
+    </div>
+
+    <div class="sub-info">
+        tbl = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] (n=10)
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="18" class="grid-title-text">① 開始：境界 low:0, high:11</text>
+                <g transform="translate(15, 65)">
+                    <rect class="cell-boundary" x="0" y="20" width="38" height="40" /><text x="19" y="75" class="idx-text" text-anchor="middle">[0]</text>
+                    <rect class="cell" x="38" y="20" width="38" height="40" /><text x="57" y="45" class="val-text" text-anchor="middle">10</text>
+                    <rect class="cell" x="76" y="20" width="38" height="40" /><text x="95" y="45" class="val-text" text-anchor="middle">20</text>
+                    <rect class="cell" x="114" y="20" width="38" height="40" /><text x="133" y="45" class="val-text" text-anchor="middle">30</text>
+                    <rect class="cell" x="152" y="20" width="38" height="40" /><text x="171" y="45" class="val-text" text-anchor="middle">40</text>
+                    <rect class="cell" x="190" y="20" width="38" height="40" /><text x="209" y="45" class="val-text" text-anchor="middle">50</text>
+                    <rect class="cell" x="228" y="20" width="38" height="40" /><text x="247" y="45" class="val-text" text-anchor="middle">60</text>
+                    <rect class="cell" x="266" y="20" width="38" height="40" /><text x="285" y="45" class="val-text" text-anchor="middle">70</text>
+                    <rect class="cell" x="304" y="20" width="38" height="40" /><text x="323" y="45" class="val-text" text-anchor="middle">80</text>
+                    <rect class="cell" x="342" y="20" width="38" height="40" /><text x="361" y="45" class="val-text" text-anchor="middle">90</text>
+                    <rect class="cell" x="380" y="20" width="38" height="40" /><text x="399" y="45" class="val-text" text-anchor="middle">100</text>
+                    <rect class="cell-boundary" x="418" y="20" width="38" height="40" /><text x="437" y="75" class="idx-text" text-anchor="middle">[11]</text>
+
+                    <polygon points="19,15 9,0 29,0" fill="#ef4444" /><text x="19" y="-5" class="label-text" fill="#ef4444">low</text>
+                    <polygon points="437,15 427,0 447,0" fill="#10b981" /><text x="437" y="-5" class="label-text" fill="#10b981">high</text>
+                </g>
+                <text x="250" y="175" class="result-text" fill="#374151">mid = (0+11)//2 = 5 | tbl[5]=50 を確認</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="18" class="grid-title-text">② 更新：50 < 70 なので low = mid</text>
+                <g transform="translate(15, 65)">
+                    <rect class="cell-dim" x="0" y="20" width="38" height="40" />
+                    <rect class="cell-dim" x="38" y="20" width="38" height="40" /><text x="57" y="45" class="val-text" text-anchor="middle" opacity="0.3">10</text>
+                    <rect class="cell-dim" x="76" y="20" width="38" height="40" /><text x="95" y="45" class="val-text" text-anchor="middle" opacity="0.3">20</text>
+                    <rect class="cell-dim" x="114" y="20" width="38" height="40" /><text x="133" y="45" class="val-text" text-anchor="middle" opacity="0.3">30</text>
+                    <rect class="cell-dim" x="152" y="20" width="38" height="40" /><text x="171" y="45" class="val-text" text-anchor="middle" opacity="0.3">40</text>
+                    <rect class="cell-dim" x="190" y="20" width="38" height="40" /><text x="209" y="45" class="val-text" text-anchor="middle" opacity="0.5">50</text>
+                    
+                    <rect class="cell" x="228" y="20" width="38" height="40" /><text x="247" y="45" class="val-text" text-anchor="middle">60</text>
+                    <rect class="cell" x="266" y="20" width="38" height="40" /><text x="285" y="45" class="val-text" text-anchor="middle">70</text>
+                    <rect class="cell" x="304" y="20" width="38" height="40" /><text x="323" y="45" class="val-text" text-anchor="middle">80</text>
+                    <rect class="cell" x="342" y="20" width="38" height="40" /><text x="361" y="45" class="val-text" text-anchor="middle">90</text>
+                    <rect class="cell" x="380" y="20" width="38" height="40" /><text x="399" y="45" class="val-text" text-anchor="middle">100</text>
+                    <rect class="cell-boundary" x="418" y="20" width="38" height="40" />
+
+                    <path d="M 19 -10 Q 110 -30 209 -10" stroke="#ef4444" fill="none" stroke-width="2" marker-end="url(#arr2)"/>
+                    <polygon points="209,15 199,0 219,0" fill="#ef4444" /> 
+                    <text x="215" y="-12" text-anchor="start" class="formula-text" fill="#ef4444">low = mid(5)</text>
+                    <polygon points="437,15 427,0 447,0" fill="#10b981" /><text x="437" y="-5" class="label-text" fill="#10b981">high(11)</text>
+                </g>
+                <text x="250" y="175" class="result-text" fill="#ef4444">境界をmidに重ねる。+1は不要。</text>
+                <defs><marker id="arr2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/></marker></defs>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="18" class="grid-title-text">③ 収束：mid=8 (80 > 70) → high = mid</text>
+                <g transform="translate(15, 65)">
+                    <rect class="cell-dim" x="0" y="20" width="228" height="40" />
+                    <rect class="cell" x="228" y="20" width="38" height="40" /><text x="247" y="45" class="val-text" text-anchor="middle">60</text>
+                    <rect class="cell" x="266" y="20" width="38" height="40" /><text x="285" y="45" class="val-text" text-anchor="middle">70</text>
+                    <rect class="cell-focus" x="304" y="20" width="38" height="40" /><text x="323" y="45" class="val-text" text-anchor="middle">80</text>
+                    <rect class="cell-dim" x="342" y="20" width="114" height="40" />
+                    <text x="399" y="45" class="val-text" text-anchor="middle" opacity="0.3">100</text>
+
+                    <polygon points="209,15 199,0 219,0" fill="#ef4444" /><text x="209" y="-5" class="label-text" fill="#ef4444">low(5)</text>
+                    <polygon points="323,15 313,0 333,0" fill="#10b981" /><text x="323" y="-5" class="label-text" fill="#10b981">high(8)</text>
+                </g>
+                <text x="250" y="175" class="result-text" fill="#374151">mid = (5+8)//2 = 6 | tbl[6]=70 を確認</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="18" class="grid-title-text">④ 終了：high - low = 1 でループ停止</text>
+                <g transform="translate(15, 65)">
+                    <rect class="cell-dim" x="0" y="20" width="228" height="40" />
+                    <rect class="cell" x="228" y="20" width="38" height="40" /><text x="247" y="45" class="val-text" text-anchor="middle" opacity="0.3">60</text>
+                    <rect class="cell-focus" x="266" y="20" width="38" height="40" />
+                    <text x="285" y="45" class="val-text" text-anchor="middle" font-weight="900">70</text>
+                    <text x="310" y="45" text-anchor="start" font-size="18" fill="#059669">← Found!</text>
+                    <rect class="cell-dim" x="304" y="20" width="152" height="40" />
+
+                    <polygon points="247,15 237,0 257,0" fill="#ef4444" /><text x="235" y="-3" text-anchor="end" class="label-text" fill="#ef4444">low(6)</text>
+                    <polygon points="285,15 275,0 295,0" fill="#10b981" /><text x="310" y="-3" text-anchor="start" class="label-text" fill="#10b981">high(7)</text>
+                </g>
+                <text x="250" y="175" class="result-text" fill="#059669">midの位置(6)とターゲットが一致！成功。</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        結論：lowとhighは「不一致が確定した壁」。その隙間が1になった時、探索は完了する。
+    </div>
+</div>
+
+</body>
+</html>

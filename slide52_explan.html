@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習52：二分探索木へのノード挿入（完全版）</title>
+    <style>
+        body { 
+            margin: 0; padding: 10px; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1200px; background-color: #ffffff; 
+            padding: 30px 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column; border-radius: 8px;
+        }
+        .header-area { height: 60px; display: flex; align-items: center; margin-bottom: 15px; }
+        .theme-bar { width: 12px; height: 35px; background-color: #3b82f6; margin-right: 15px; }
+        h1 { font-size: 28px; margin: 0; font-weight: 900; color: #111827; }
+        
+        .infographic-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr;
+            gap: 15px; 
+        }
+        .grid-item { 
+            border: 2px solid #e5e7eb; border-radius: 10px; background-color: #f9fafb; 
+            display: flex; flex-direction: column; align-items: center; padding: 15px;
+            height: 220px;
+        }
+        .grid-item-final { background-color: #f0fdf4; border: 2px solid #22c55e; }
+
+        svg { width: 100%; height: 100%; }
+        svg text { font-weight: 900; }
+        
+        .grid-title-text { fill: #1e3a8a; font-size: 16px; text-anchor: middle; }
+        .title-underline { stroke: #3b82f6; stroke-width: 2; }
+        
+        .node-circle { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-active { fill: #f0f9ff; stroke: #3b82f6; stroke-width: 2.5; }
+        .node-tmp { fill: #ecfdf5; stroke: #10b981; stroke-width: 2.5; }
+        
+        .val-text { font-size: 16px; fill: #111827; text-anchor: middle; }
+        .ptr-label { font-size: 13px; font-weight: 900; text-anchor: middle; }
+        .null-text { font-size: 14px; fill: #ef4444; font-weight: 900; text-anchor: middle; }
+        .result-text { font-size: 13px; fill: #374151; text-anchor: middle; }
+        
+        .formula-text { font-size: 18px; font-weight: 900; fill: #2563eb; text-anchor: start; }
+        .formula-centered { font-size: 18px; font-weight: 900; fill: #2563eb; text-anchor: middle; }
+        .formula-final { fill: #15803d; text-anchor: middle; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習52：二分探索木へのノード挿入（挿入位置の特定と接続）</h1>
+    </div>
+
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">① 探索開始：Rootからスタート</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(250, 75)">
+                    <circle class="node-active" cx="0" cy="15" r="22" />
+                    <text x="0" y="21" class="val-text">80</text>
+                    <text x="45" y="10" class="ptr-label" fill="#3b82f6">node</text>
+                    <line x1="-15" y1="33" x2="-40" y2="60" stroke="#e5e7eb" stroke-width="1.5" />
+                    <circle class="node-circle" cx="-55" cy="80" r="18" /><text x="-55" y="85" class="val-text" style="font-size:12px">60</text>
+                </g>
+                <text x="250" y="185" class="formula-centered">node ← Root</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">② 節の移動：parentを更新</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(250, 75)">
+                    <circle class="node-circle" cx="0" cy="15" r="22" opacity="0.5" />
+                    <text x="45" y="10" class="ptr-label" fill="#64748b">parent</text>
+                    <line x1="-15" y1="33" x2="-40" y2="60" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)" />
+                    <circle class="node-active" cx="-55" cy="80" r="22" />
+                    <text x="-55" y="86" class="val-text">60</text>
+                    <text x="-95" y="75" class="ptr-label" fill="#3b82f6">node</text>
+                </g>
+                <text x="250" y="185" class="formula-centered">parent ← node, node ← node.left</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">③ 停止：挿入ポイントの特定</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(250, 60)">
+                    <circle class="node-circle" cx="0" cy="20" r="22" />
+                    <text x="0" y="26" class="val-text">60</text>
+                    <text x="45" y="15" class="ptr-label" fill="#64748b">parent</text>
+                    
+                    <line x1="-15" y1="38" x2="-40" y2="70" stroke="#3b82f6" stroke-width="2" />
+                    <text x="-60" y="95" class="null-text">node: 未定義</text>
+                </g>
+                <text x="250" y="185" class="formula-centered">while (node ≠ 未定義) ループ終了</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">④ 生成：新しい節(55)の作成</text>
+                <line x1="160" y1="32" x2="340" y2="32" class="title-underline" />
+                <g transform="translate(180, 70)">
+                    <circle class="node-tmp" cx="0" cy="35" r="25" />
+                    <text x="0" y="42" class="val-text" style="font-size:20px">55</text>
+                    <text x="0" y="85" class="result-text" style="font-size:14px">left:null &nbsp;&nbsp;&nbsp; right:null</text>
+                    <text x="45" y="42" class="formula-text">tmp ← 新しい節(55)</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text">⑤ 判定：親との大小比較</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" />
+                <g transform="translate(250, 70)">
+                    <circle class="node-circle" cx="0" cy="20" r="22" />
+                    <text x="0" y="26" class="val-text">60</text>
+                    <text x="45" y="15" class="ptr-label" fill="#64748b">parent</text>
+                    
+                    <text x="0" y="75" class="result-text" style="font-size:16px">parent.data(60) ＞ num(55)</text>
+                    <text x="0" y="98" class="result-text" fill="#ef4444" style="font-weight:900">→ 左側に接続を決定</text>
+                </g>
+                <text x="250" y="185" class="formula-centered">if (parent.data ＞ num)</text>
+            </svg>
+        </div>
+
+        <div class="grid-item grid-item-final">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="20" class="grid-title-text" fill="#15803d">⑥ 接続：挿入の完了</text>
+                <line x1="180" y1="26" x2="320" y2="26" class="title-underline" style="stroke: #22c55e;" />
+                <g transform="translate(250, 60)">
+                    <circle class="node-circle" cx="0" cy="20" r="20" />
+                    <text x="0" y="26" class="val-text">60</text>
+                    <line x1="-12" y1="35" x2="-35" y2="65" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)" />
+                    <circle class="node-tmp" cx="-55" cy="85" r="20" />
+                    <text x="-55" y="91" class="val-text">55</text>
+                    <text x="45" y="15" class="ptr-label" fill="#64748b">parent</text>
+                </g>
+                <text x="250" y="185" class="formula-final">parent.left ← tmp</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        探索の「行き止まり」とその手前の「親(parent)」を特定することで、正しい位置への挿入が可能になります。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>
