@@ -9,51 +9,83 @@
             margin: 0; padding: 0;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             display: flex; height: 100vh; width: 100vw;
-            background-color: #4b5563; /* 背景色を見栄え良く */
+            background-color: #4b5563;
             overflow: hidden; 
         }
 
-        /* サイドバー：220px（指示通りの1.25倍サイズ対応） */
+        /* サイドバー：幅170px */
         aside {
-            width: 220px; flex-shrink: 0;
+            width: 170px; flex-shrink: 0;
             background-color: #ffffff; border-right: 2px solid #e5e7eb;
             display: flex; flex-direction: column;
             box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 10;
         }
 
-        .menu-header { padding: 15px; border-bottom: 2px solid #e5e7eb; }
-        .menu-header h2 { margin: 0; font-size: 18px; color: #1f2937; border-left: 5px solid #3b82f6; padding-left: 10px; }
+        .menu-header { padding: 10px; border-bottom: 2px solid #e5e7eb; }
+        .menu-header h2 { margin: 0; font-size: 14px; color: #1f2937; border-left: 4px solid #3b82f6; padding-left: 8px; }
 
-        .button-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; align-items: center; }
+        .button-list { flex: 1; overflow-y: auto; padding: 5px; }
 
-        /* ボタン：1.25倍（フォント25px） */
-        .problem-btn {
-            width: 100%; padding: 16px 5px; margin-bottom: 10px;
-            text-align: center; background-color: #f9fafb;
-            border: 1px solid #e5e7eb; border-radius: 8px;
-            font-size: 25px; line-height: 1.3;
-            font-weight: bold; color: #4b5563;
-            cursor: pointer; transition: all 0.2s ease; box-sizing: border-box;
-        }
-        .problem-btn:hover { background-color: #eff6ff; border-color: #3b82f6; color: #3b82f6; transform: scale(1.03); }
-        .problem-btn.active { background-color: #3b82f6; color: #ffffff; border-color: #2563eb; }
-
-        /* メイン領域：絶対配置の基準にする */
-        main {
-            flex: 1; position: relative;
-            background-color: #4b5563; overflow: hidden;
+        .problem-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f3f4f6;
+            white-space: nowrap;
         }
 
-        /* スライド本体：起点を top left に固定するのが最重要ポイント */
+        .problem-label {
+            font-size: 12px; font-weight: bold; color: #374151;
+            width: 50px; flex-shrink: 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 3px;
+            flex-shrink: 0;
+            width: 105px;
+        }
+
+        .action-btn {
+            flex: 1;
+            height: 28px;
+            line-height: 1;
+            padding: 0;
+            text-align: center;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        /* [処理] ボタン：オレンジ */
+        .btn-process { border-left: 4px solid #f97316 !important; } 
+        .btn-process:hover { background-color: #fff7ed; border-color: #fb923c !important; color: #ea580c; }
+        .btn-process.active { background-color: #f97316 !important; color: #ffffff !important; border-color: #ea580c !important; }
+
+        /* [解説] ボタン：緑 */
+        .btn-explan { border-left: 4px solid #10b981 !important; }
+        .btn-explan:hover { background-color: #f0fdf4; border-color: #34d399 !important; color: #059669; }
+        .btn-explan.active { background-color: #10b981 !important; color: #ffffff !important; border-color: #059669 !important; }
+
+        main { flex: 1; position: relative; background-color: #4b5563; overflow: hidden; }
+
         #slide-view {
             width: 1280px; height: 720px;
             border: none; background-color: white;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             position: absolute;
-            transform-origin: top left; /* これを center から top left に変更 */
+            transform-origin: top left;
         }
 
-        .button-list::-webkit-scrollbar { width: 6px; }
+        .button-list::-webkit-scrollbar { width: 4px; }
         .button-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
     </style>
 </head>
@@ -63,7 +95,7 @@
         <div id="menu" class="button-list"></div>
     </aside>
     <main id="main-view">
-        <iframe id="slide-view" src="slide40.html"></iframe>
+        <iframe id="slide-view" src="slide40_explan.html"></iframe>
     </main>
 
     <script>
@@ -71,42 +103,57 @@
         const iframe = document.getElementById('slide-view');
         const mainView = document.getElementById('main-view');
 
-        // ボタン生成
         for (let i = 40; i <= 77; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'problem-btn';
-            btn.innerHTML = `練習 ${i}`;
-            if (i === 40) btn.classList.add('active');
-            btn.onclick = () => {
-                document.querySelectorAll('.problem-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                iframe.src = `slide${i}.html`;
-            };
-            menu.appendChild(btn);
+            const row = document.createElement('div');
+            row.className = 'problem-row';
+
+            const label = document.createElement('div');
+            label.className = 'problem-label';
+            label.innerText = `練 ${i}`;
+            row.appendChild(label);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group';
+
+            // [処理] ボタン -> slideX_explan.html を表示
+            const btnProcess = document.createElement('button');
+            btnProcess.className = 'action-btn btn-process';
+            btnProcess.innerHTML = `処`;
+            if (i === 40) btnProcess.classList.add('active'); // 初期状態
+            btnProcess.onclick = () => loadSlide(btnProcess, `slide${i}_explan.html`);
+
+            // [解説] ボタン -> slideX.html を表示
+            const btnExplan = document.createElement('button');
+            btnExplan.className = 'action-btn btn-explan';
+            btnExplan.innerHTML = `解`;
+            btnExplan.onclick = () => loadSlide(btnExplan, `slide${i}.html`);
+
+            btnGroup.appendChild(btnProcess);
+            btnGroup.appendChild(btnExplan);
+            row.appendChild(btnGroup);
+            menu.appendChild(row);
         }
 
-        // リサイズ関数：手動で中央座標を計算して適用する
+        function loadSlide(clickedBtn, url) {
+            document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+            clickedBtn.classList.add('active');
+            iframe.src = url;
+        }
+
         function resizeIframe() {
-            const margin = 40; // 画面端との最低余白
+            const margin = 20;
             const availableWidth = mainView.clientWidth - margin;
             const availableHeight = mainView.clientHeight - margin;
             const scale = Math.min(availableWidth / 1280, availableHeight / 720);
-
-            // 1. 縮小率を適用
             iframe.style.transform = `scale(${scale})`;
-
-            // 2. 左上起点(top left)に対して、中央にくるための移動距離を計算
             const offsetX = (mainView.clientWidth - (1280 * scale)) / 2;
             const offsetY = (mainView.clientHeight - (720 * scale)) / 2;
-            
-            // 3. 座標を直接指定
             iframe.style.left = `${offsetX}px`;
             iframe.style.top = `${offsetY}px`;
         }
 
         window.onresize = resizeIframe;
         window.onload = resizeIframe;
-        // 初期描画を安定させる
         setTimeout(resizeIframe, 100);
     </script>
 </body>

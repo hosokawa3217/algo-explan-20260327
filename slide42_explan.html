@@ -1,0 +1,29 @@
+<div class="grid-item">
+    <svg viewBox="0 0 500 220">
+        <text x="250" y="25" class="grid-title-text">④ 生成：新しい節(55)の作成</text>
+        <line x1="160" y1="32" x2="340" y2="32" class="title-underline" />
+        
+        <g transform="translate(250, 75)">
+            <circle class="node-tmp" cx="0" cy="50" r="28" style="fill: #ecfdf5; stroke: #10b981; stroke-width: 3;" />
+            <text x="0" y="58" class="val-text" style="font-size: 22px; fill: #111827; text-anchor: middle;">55</text>
+            
+            <text x="45" y="55" class="ptr-label" style="fill: #10b981; text-anchor: start;">tmp</text>
+            <path d="M 38 50 L 32 50" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-green-small)" />
+
+            <rect x="-85" y="90" width="70" height="30" rx="4" style="fill: #f9fafb; stroke: #d1d5db; stroke-width: 1;" />
+            <text x="-50" y="110" class="result-text" style="font-size: 13px; text-anchor: middle;">data: 55</text>
+
+            <rect x="-5" y="90" width="70" height="30" rx="4" style="fill: #f9fafb; stroke: #d1d5db; stroke-width: 1;" />
+            <text x="30" y="110" class="null-text" style="fill: #94a3b8; font-size: 13px; font-weight: bold; text-anchor: middle;">left:null</text>
+            
+            <rect x="75" y="90" width="70" height="30" rx="4" style="fill: #f9fafb; stroke: #d1d5db; stroke-width: 1;" />
+            <text x="110" y="110" class="null-text" style="fill: #94a3b8; font-size: 13px; font-weight: bold; text-anchor: middle;">right:null</text>
+        </g>
+        
+        <text x="250" y="205" class="formula-centered" style="font-size: 18px; fill: #10b981;">tmp ← 新しい節(55)</text>
+    </svg>
+</div>
+
+<marker id="arrow-green-small" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+</marker>
