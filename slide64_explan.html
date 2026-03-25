@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習64：クイックソート完全図解</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --pivot: #1e293b;
+            --accent: #ef4444;
+            --muted: #f1f5f9;
+            --muted-txt: #cbd5e1;
+            --done-bg: #ecfdf5;
+            --done-border: #10b981;
+        }
+        body { 
+            margin: 0; background: #64748b; font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 20px;
+        }
+        .page { 
+            width: 1200px; height: 900px; background: #fff; border-radius: 12px;
+            padding: 30px; display: flex; flex-direction: column; box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            page-break-after: always; position: relative;
+        }
+        header { border-left: 10px solid var(--primary); padding-left: 20px; margin-bottom: 20px; flex-shrink: 0; }
+        h1 { font-size: 28px; margin: 0; color: #1e293b; }
+
+        /* 1-2ページ：4分割レイアウト */
+        .grid-4 { 
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
+            gap: 20px; flex-grow: 1; min-height: 0;
+        }
+        /* 3ページ：上下2分割レイアウト */
+        .grid-v2 {
+            display: grid; grid-template-rows: 1fr 1fr; 
+            gap: 20px; flex-grow: 1; min-height: 0;
+        }
+
+        .pane { 
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; 
+            padding: 15px; display: flex; flex-direction: column;
+        }
+        .step-label { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 8px; }
+        
+        .svg-container { flex-grow: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+        svg { width: 100%; height: 100%; max-height: 250px; }
+
+        .caption { 
+            font-size: 15px; line-height: 1.6; color: #000; font-weight: 600;
+            margin-top: 10px; padding: 10px; background: #fff; border-radius: 6px;
+            border-left: 4px solid #475569;
+        }
+
+        /* ヒントボックス（下側用） */
+        .hint-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+            padding: 20px; background: #fff; border-radius: 10px; border: 2px dashed #cbd5e1;
+        }
+        .hint-item { font-size: 18px; color: #334155; line-height: 1.8; }
+        .blank { display: inline-block; width: 100px; border-bottom: 2px solid var(--accent); margin: 0 5px; text-align: center; color: transparent; }
+        
+        /* パーツ定義 */
+        .cell { fill: #fff; stroke: #334155; stroke-width: 2; }
+        .cell-p { fill: var(--pivot); stroke: var(--pivot); }
+        .cell-m { fill: var(--muted); stroke: #e2e8f0; }
+        .cell-d { fill: var(--done-bg); stroke: var(--done-border); stroke-width: 3; }
+        .val { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+        .val-m { fill: var(--muted-txt); }
+        .idx { font-size: 12px; fill: #64748b; text-anchor: middle; }
+
+        footer { 
+            margin-top: 15px; border-top: 2px solid #f1f5f9; padding-top: 10px;
+            text-align: center; font-weight: 800; color: var(--primary); flex-shrink: 0; font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <header><h1>① 最初の分割：ピボット「5」による仕分け</h1></header>
+    <div class="grid-4">
+        <div class="pane">
+            <div class="step-label">Step 1: 初期配置と探索開始</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="0" y="0" width="60" height="60" class="cell-p"/><text x="30" y="30" class="val" fill="#fff">5</text><text x="30" y="80" class="idx">a[1]</text>
+                        <rect x="65" y="0" width="60" height="60" class="cell"/><text x="95" y="30" class="val">9</text><text x="95" y="80" class="idx">a[2]</text>
+                        <rect x="130" y="0" width="60" height="60" class="cell"/><text x="160" y="30" class="val">2</text><text x="160" y="80" class="idx">a[3]</text>
+                        <rect x="195" y="0" width="60" height="60" class="cell"/><text x="225" y="30" class="val">8</text><text x="225" y="80" class="idx">a[4]</text>
+                        <rect x="260" y="0" width="60" height="60" class="cell"/><text x="290" y="30" class="val">1</text><text x="290" y="80" class="idx">a[5]</text>
+                        <rect x="325" y="0" width="60" height="60" class="cell"/><text x="355" y="30" class="val">4</text><text x="355" y="80" class="idx">a[6]</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">a[1]の「5」をピボットに設定。iは左から、jは右から探索を開始します。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 2: 最初の要素交換</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="0" y="0" width="60" height="60" class="cell-p"/><text x="30" y="30" class="val" fill="#fff">5</text>
+                        <rect x="65" y="0" width="60" height="60" class="cell" stroke="var(--accent)" stroke-width="4"/><text x="95" y="30" class="val">4</text>
+                        <rect x="130" y="0" width="60" height="60" class="cell"/><text x="160" y="30" class="val">2</text>
+                        <rect x="195" y="0" width="60" height="60" class="cell"/><text x="225" y="30" class="val">8</text>
+                        <rect x="260" y="0" width="60" height="60" class="cell"/><text x="290" y="30" class="val">1</text>
+                        <rect x="325" y="0" width="60" height="60" class="cell" stroke="var(--accent)" stroke-width="4"/><text x="355" y="30" class="val">9</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">iが9(5以上)、jが4(5以下)で停止し、交換しました。小さい値が左へ移動します。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 3: ポインタの交差</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="0" y="0" width="60" height="60" class="cell-m"/><text x="30" y="30" class="val val-m">5</text>
+                        <rect x="65" y="0" width="60" height="60" class="cell-m"/><text x="95" y="30" class="val val-m">4</text>
+                        <rect x="130" y="0" width="60" height="60" class="cell-m"/><text x="160" y="30" class="val val-m">2</text>
+                        <rect x="195" y="0" width="60" height="60" class="cell" stroke="var(--primary)" stroke-width="4"/><text x="225" y="30" class="val">8</text>
+                        <rect x="260" y="0" width="60" height="60" class="cell" stroke="var(--primary)" stroke-width="4"/><text x="290" y="30" class="val">1</text>
+                        <rect x="325" y="0" width="60" height="60" class="cell-m"/><text x="355" y="30" class="val val-m">9</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">さらに探索を進めるとiとjが交差（i≧j）。ここで分割の第1段階が終了です。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 4: 分割の確定</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <rect x="50" y="40" width="180" height="60" rx="10" fill="#d1fae5" stroke="#10b981"/><text x="140" y="75" class="val" style="font-size:16px">a[1]〜a[3]</text>
+                    <rect x="270" y="40" width="180" height="60" rx="10" fill="#fef3c7" stroke="#f59e0b"/><text x="360" y="75" class="val" style="font-size:16px">a[4]〜a[6]</text>
+                </svg>
+            </div>
+            <div class="caption">ピボット5を境に、左グループと右グループに分かれました。</div>
+        </div>
+    </div>
+    <footer>ポインタが交差した場所が、次回の処理範囲の境界になります。</footer>
+</div>
+
+<div class="page">
+    <header><h1>② 再帰処理：部分配列の絞り込み</h1></header>
+    <div class="grid-4">
+        <div class="pane">
+            <div class="step-label">Step 5: 左側 [5,4,2] の処理</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="0" y="0" width="60" height="60" class="cell-p"/><text x="30" y="30" class="val" fill="#fff">5</text>
+                        <rect x="65" y="0" width="60" height="60" class="cell"/><text x="95" y="30" class="val">4</text>
+                        <rect x="130" y="0" width="60" height="60" class="cell"/><text x="160" y="30" class="val">2</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">左グループで再実行。5が右端の2と交換され、5の位置が確定します。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 6: 左側 完了</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="0" y="0" width="60" height="60" class="cell-d"/><text x="30" y="30" class="val">2</text>
+                        <rect x="65" y="0" width="60" height="60" class="cell-d"/><text x="95" y="30" class="val">4</text>
+                        <rect x="130" y="0" width="60" height="60" class="cell-d"/><text x="160" y="30" class="val">5</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">残った[2,4]も比較され、a[1]〜a[3]が整列済み（緑）になります。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 7: 右側 [8,1,9] の処理</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="195" y="0" width="60" height="60" class="cell-p"/><text x="225" y="30" class="val" fill="#fff">8</text>
+                        <rect x="260" y="0" width="60" height="60" class="cell"/><text x="290" y="30" class="val">1</text>
+                        <rect x="325" y="0" width="60" height="60" class="cell"/><text x="355" y="30" class="val">9</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">右グループも同様に8をピボットとして1と交換し、分割します。</div>
+        </div>
+        <div class="pane">
+            <div class="step-label">Step 8: 右側 完了</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 500 150">
+                    <g transform="translate(50,30)">
+                        <rect x="195" y="0" width="60" height="60" class="cell-d"/><text x="225" y="30" class="val">1</text>
+                        <rect x="260" y="0" width="60" height="60" class="cell-d"/><text x="290" y="30" class="val">8</text>
+                        <rect x="325" y="0" width="60" height="60" class="cell-d"/><text x="355" y="30" class="val">9</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption">全ての要素が最小単位まで分割され、位置が確定しました。</div>
+        </div>
+    </div>
+    <footer>小さな単位へ分割を繰り返す「分割統治法」の仕組みです。</footer>
+</div>
+
+<div class="page">
+    <header><h1>③ まとめ：最終結果と重要ロジック</h1></header>
+    <div class="grid-v2">
+        <div class="pane">
+            <div class="step-label">最終的な整列結果（a[1] 〜 a[6]）</div>
+            <div class="svg-container">
+                <svg viewBox="0 0 1000 200">
+                    <g transform="translate(100,50)">
+                        <rect x="0" y="0" width="120" height="100" class="cell-d"/><text x="60" y="50" class="val">1</text><text x="60" y="130" class="idx">a[1]</text>
+                        <rect x="130" y="0" width="120" height="100" class="cell-d"/><text x="190" y="50" class="val">2</text><text x="190" y="130" class="idx">a[2]</text>
+                        <rect x="260" y="0" width="120" height="100" class="cell-d"/><text x="320" y="50" class="val">4</text><text x="320" y="130" class="idx">a[3]</text>
+                        <rect x="390" y="0" width="120" height="100" class="cell-d"/><text x="450" y="50" class="val">5</text><text x="450" y="130" class="idx">a[4]</text>
+                        <rect x="520" y="0" width="120" height="100" class="cell-d"/><text x="580" y="50" class="val">8</text><text x="580" y="130" class="idx">a[5]</text>
+                        <rect x="650" y="0" width="120" height="100" class="cell-d"/><text x="710" y="50" class="val">9</text><text x="710" y="130" class="idx">a[6]</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="caption" style="text-align: center;">
+                全ての再帰呼び出しが終了し、配列全体が昇順に並びました。
+            </div>
+        </div>
+
+        <div class="pane">
+            <div class="step-label">アルゴリズムの急所（空欄補充ヒント）</div>
+            <div class="hint-container">
+                <div class="hint-item">
+                    <b>探索の継続条件:</b><br>
+                    左(i)を、a[i] ＜ <span class="blank"></span> の間進める。<br>
+                    右(j)を、a[j] ＞ <span class="blank"></span> の間戻す。
+                </div>
+                <div class="hint-item">
+                    <b>分割の再帰呼び出し:</b><br>
+                    左側: quicksort(a, left, <span class="blank"></span>)<br>
+                    右側: quicksort(a, <span class="blank"></span>, right)
+                </div>
+                <div class="hint-item" style="grid-column: span 2; border-top: 1px solid #eee; padding-top: 10px; font-size: 16px;">
+                    <b>💡 正解のヒント:</b> ピボット、j、i、交差判定(i ≧ j)
+                </div>
+            </div>
+            <div class="caption">
+                プログラムの実装では、iとjの交差後の「j」と「i」を次の境界として渡すのがポイントです。
+            </div>
+        </div>
+    </div>
+    <footer>お疲れ様でした。</footer>
+</div>
+
+</body>
+</html>

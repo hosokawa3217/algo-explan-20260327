@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習71：文字列照合のアルゴリズム（バックトラックと重複なし）</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --accent: #f59e0b;
+            --bg-gray: #f1f5f9;
+            --border: #cbd5e1;
+            --text-main: #1e293b;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-gray);
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .viewport {
+            width: 100vw; height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport::-webkit-scrollbar { display: none; }
+
+        .slide-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; scroll-snap-align: start;
+        }
+
+        .slide { 
+            width: 1280px; height: 850px; 
+            background-color: #ffffff; padding: 40px 60px; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid var(--primary); padding-bottom: 15px; }
+        .title-num { background: var(--primary); color: white; padding: 6px 16px; border-radius: 4px; font-weight: 900; margin-right: 15px; font-size: 18px; }
+        h1 { font-size: 28px; margin: 0; color: var(--text-main); }
+
+        /* レイアウト */
+        .content-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 30px; flex-grow: 1; align-items: stretch; margin-top: 10px; }
+        .visual-panel { background: #f8fafc; border: 2px solid var(--border); border-radius: 16px; padding: 25px; position: relative; }
+        .info-panel { display: flex; flex-direction: column; gap: 20px; }
+
+        /* SVGスタイル */
+        svg { width: 100%; height: 100%; }
+        .cell { fill: #ffffff; stroke: #475569; stroke-width: 2; }
+        .cell-hl { fill: #dbeafe; stroke: var(--primary); stroke-width: 3; }
+        .cell-err { fill: #fee2e2; stroke: var(--danger); stroke-width: 3; }
+        .cell-dim { fill: #e2e8f0; stroke: #94a3b8; }
+        .val-text { font-size: 22px; text-anchor: middle; font-weight: 900; fill: var(--text-main); }
+        .idx-text { font-size: 14px; fill: #64748b; text-anchor: middle; font-weight: bold; }
+        .label { font-size: 18px; font-weight: bold; fill: #334155; }
+
+        /* カード・数式 */
+        .card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 10px 0; font-size: 18px; color: var(--primary); border-left: 5px solid var(--primary); padding-left: 10px; }
+        .card p { margin: 0; font-size: 15px; line-height: 1.6; color: #475569; }
+        .formula-box { background: #1e293b; color: white; padding: 15px; border-radius: 10px; text-align: center; }
+        .formula { font-family: 'Courier New', monospace; font-size: 32px; font-weight: bold; color: #fbbf24; margin-top: 5px; }
+        .code-block { background: #f1f5f9; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.5; color: #334155; border: 1px solid var(--border); }
+        .code-hl { background: #fef08a; font-weight: bold; }
+
+        .footer { margin-top: auto; padding: 15px; background: #f0fdf4; border-left: 8px solid var(--success); border-radius: 8px; font-weight: bold; color: #065f46; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num">概要</span>
+                <h1>練習71：全体像と「重複なし」の自然な実現</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 550 450">
+                        <text x="10" y="30" class="label">照合が全て一致した直後の状態</text>
+                        
+                        <g transform="translate(20, 70)">
+                            <text x="0" y="-20" class="label" font-size="14">moji</text>
+                            <rect x="0" y="0" width="50" height="50" class="cell-dim"/><text x="25" y="32" class="val-text" fill="#94a3b8">b</text><text x="25" y="70" class="idx-text">1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell-hl"/><text x="75" y="32" class="val-text">a</text><text x="75" y="70" class="idx-text">2</text>
+                            <rect x="100" y="0" width="50" height="50" class="cell-hl"/><text x="125" y="32" class="val-text">b</text><text x="125" y="70" class="idx-text">3</text>
+                            <rect x="150" y="0" width="50" height="50" class="cell-hl"/><text x="175" y="32" class="val-text">a</text><text x="175" y="70" class="idx-text">4</text>
+                            <rect x="200" y="0" width="50" height="50" class="cell"/><text x="225" y="32" class="val-text">b</text><text x="225" y="70" class="idx-text">5</text>
+                            <rect x="250" y="0" width="50" height="50" class="cell"/><text x="275" y="32" class="val-text">a</text><text x="275" y="70" class="idx-text">6</text>
+                            
+                            <path d="M 225 105 V 85" stroke="var(--success)" stroke-width="3" marker-end="url(#arrowG)"/>
+                            <text x="225" y="125" class="idx-text" fill="var(--success)" font-weight="900" font-size="16">ループ終了時 i=5</text>
+                            <text x="225" y="145" class="idx-text" fill="#334155" font-size="12">（次の探索開始位置）</text>
+                        </g>
+
+                        <g transform="translate(70, 270)">
+                            <text x="0" y="-20" class="label" font-size="14">ptn</text>
+                            <rect x="0" y="0" width="50" height="50" class="cell-hl"/><text x="25" y="32" class="val-text">a</text><text x="25" y="70" class="idx-text">1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell-hl"/><text x="75" y="32" class="val-text">b</text><text x="75" y="70" class="idx-text">2</text>
+                            <rect x="100" y="0" width="50" height="50" class="cell-hl"/><text x="125" y="32" class="val-text">a</text><text x="125" y="70" class="idx-text">3</text>
+                            <text x="75" y="110" text-anchor="middle" font-weight="bold" fill="var(--success)" font-size="18">一致！ (cnt ← cnt + 1)</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="code-block">
+                        while ( j が n 以下 )<br>
+                        　if ( moji[ i ] が ptn[ j ] と等しくない )<br>
+                        　　// 不一致の処理...<br>
+                        　endif<br>
+                        　<span class="code-hl">i ← i + 1</span><br>
+                        　j ← j + 1<br>
+                        endwhile
+                    </div>
+                    <div class="card">
+                        <h3>添字 i の直接操作</h3>
+                        <p>通常は開始位置を固定してオフセットを加算しますが、このアルゴリズムでは<b>moji側の添字 i をループ内で直接進めて</b>比較を行います。</p>
+                    </div>
+                    <div class="card" style="border-left: 5px solid var(--success);">
+                        <h3>「重複なし」の自然な実現</h3>
+                        <p>全て一致して内側のループを抜けたとき、<b>i は既に「一致した部分の次」まで進んでいます</b>（図の i=5 の位置）。そのため、特別なジャンプ処理を書かなくても、そのまま外側ループを続けるだけで自動的に「重複なし」が実現されます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">ポインタ i と j が「同時に進んでいく」のがこのアルゴリズムの最大の特徴です。</div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num" style="background:var(--danger)">核心</span>
+                <h1>練習71：不一致時の位置補正（バックトラック）</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 550 450">
+                        <text x="10" y="30" class="label">途中で不一致が発生した場合（j=3のとき）</text>
+                        
+                        <g transform="translate(20, 80)">
+                            <text x="0" y="-20" class="label" font-size="14">moji</text>
+                            <rect x="0" y="0" width="50" height="50" class="cell-dim"/><text x="25" y="32" class="val-text" fill="#94a3b8">b</text><text x="25" y="-10" class="idx-text">1</text>
+                            
+                            <rect x="50" y="0" width="50" height="50" class="cell-hl"/><text x="75" y="32" class="val-text">a</text><text x="75" y="-10" class="idx-text">2</text>
+                            <rect x="100" y="0" width="50" height="50" class="cell-hl"/><text x="125" y="32" class="val-text">b</text><text x="125" y="-10" class="idx-text">3</text>
+                            <rect x="150" y="0" width="50" height="50" class="cell-err"/><text x="175" y="32" class="val-text">b</text><text x="175" y="-10" class="idx-text">4</text>
+                            <rect x="200" y="0" width="50" height="50" class="cell"/><text x="225" y="32" class="val-text">a</text><text x="225" y="-10" class="idx-text">5</text>
+
+                            <text x="50" y="100" class="label" font-size="14">ptn</text>
+                            <rect x="50" y="120" width="50" height="50" class="cell-hl"/><text x="75" y="152" class="val-text">a</text><text x="75" y="190" class="idx-text">j=1</text>
+                            <rect x="100" y="120" width="50" height="50" class="cell-hl"/><text x="125" y="152" class="val-text">b</text><text x="125" y="190" class="idx-text">j=2</text>
+                            <rect x="150" y="120" width="50" height="50" class="cell-err"/><text x="175" y="152" class="val-text">a</text><text x="175" y="190" class="idx-text" fill="var(--danger)">j=3</text>
+
+                            <text x="175" y="215" text-anchor="middle" font-weight="bold" fill="var(--danger)">ここで不一致</text>
+                            <text x="175" y="235" text-anchor="middle" font-weight="bold" fill="var(--danger)">(現在の i=4)</text>
+
+                            <path d="M 175 255 Q 150 320 125 255" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="6" marker-end="url(#arrowO)"/>
+                            <text x="150" y="315" text-anchor="middle" font-weight="900" fill="var(--accent)" font-size="16">次回の開始位置 (i=3) へ戻る</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="card">
+                        <h3>なぜ「戻る」必要があるのか？</h3>
+                        <p>図のように、途中で不一致になったとき、i は一緒に進んでしまっているため（現在i=4）、そのまま進めると探索漏れが発生します。次回の探索は<b>「今回の開始位置の1つ右」</b>（つまりi=3）から再開しなければなりません。</p>
+                    </div>
+                    <div class="formula-box">
+                        <div style="font-size: 14px; margin-bottom: 5px;">空欄(1) の位置補正（バックトラック）</div>
+                        <div class="formula">i ← i - j + 2</div>
+                    </div>
+                    <div class="card" style="background: #fffbeb; border-color: #f59e0b;">
+                        <h3>計算式の導出</h3>
+                        <p>1. 今回進みすぎた分 <b>(j - 1)</b> を引いて開始位置に戻す。<br>2. 次の探索のために <b>1</b> を加える。<br>式： <code>i - (j - 1) + 1</code> を整理して <code>i - j + 2</code> となります。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer" style="background:#fef2f2; border-left-color:var(--danger); color:#991b1b;">不一致のときは「進みすぎたポインタを計算で引き戻す」。これが空欄(1)の論理です。</div>
+        </div>
+    </div>
+</div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--success)"/></marker>
+        <marker id="arrowO" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+    </defs>
+</svg>
+
+</body>
+</html>

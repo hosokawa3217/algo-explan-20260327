@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習66：数値から文字への型変換 解説</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 900px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 60px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column; box-sizing: border-box;
+        }
+        
+        .header-area { height: 90px; display: flex; align-items: center; padding-top: 15px; box-sizing: border-box; }
+        .theme-bar { width: 15px; height: 45px; background-color: #3b82f6; margin-right: 20px; }
+        h1 { font-size: 34px; margin: 0; font-weight: 900; color: #111827; }
+        
+        .sub-info { height: 50px; font-size: 22px; font-weight: 700; color: #4b5563; display: flex; align-items: center; }
+
+        .infographic-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: 310px 310px; 
+            gap: 20px; 
+            margin-top: 5px;
+        }
+        .grid-item { 
+            border: 2px solid #e5e7eb; 
+            border-radius: 12px; 
+            background-color: #f9fafb; 
+            display: flex; 
+            flex-direction: column;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        svg { width: 100%; height: 250px; }
+        svg text { font-weight: 900; }
+        
+        .grid-title-text { fill: #1e3a8a; font-size: 19px; }
+        .val-text { font-size: 26px; fill: #1f2937; }
+        .label-text { font-size: 14px; fill: #6b7280; text-anchor: middle; }
+        .label-small { font-size: 11px; fill: #94a3b8; }
+        .code-text { font-family: monospace; font-size: 14px; fill: #ef4444; }
+
+        .footer {
+            margin-top: auto;
+            margin-bottom: 35px;
+            padding: 18px 25px;
+            background-color: #eff6ff;
+            border-radius: 10px;
+            border-left: 8px solid #3b82f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer-text { font-size: 17px; font-weight: 700; color: #1f2937; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習66：数値から文字への型変換</h1>
+    </div>
+
+    <div class="sub-info">
+        アルゴリズムの進化：条件分岐の羅列から「テーブル参照」への転換
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 240">
+                <text x="250" y="25" class="grid-title-text" text-anchor="middle">① 複雑な条件分岐（if文の連打）</text>
+                
+                <rect x="50" y="50" width="400" height="130" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="1" stroke-dasharray="4"/>
+                <text x="70" y="80" class="code-text">if (d == 1) return "1";</text>
+                <text x="70" y="105" class="code-text">if (d == 2) return "2";</text>
+                <text x="70" y="130" class="code-text">if (d == 3) return "3";</text>
+                <text x="70" y="155" class="code-text">...</text>
+                
+                <text x="250" y="210" class="label-text" fill="#ef4444" font-size="16">判定の回数が増えるほど処理が遅くなる</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 240">
+                <text x="250" y="25" class="grid-title-text" text-anchor="middle">② 数値(int) と 文字(char) の性質</text>
+                
+                <rect x="70" y="70" width="110" height="70" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="3"/>
+                <text x="125" y="105" class="val-text" text-anchor="middle">5</text>
+                <text x="125" y="170" class="label-text">数値：計算用</text>
+                
+                <path d="M 200 105 H 300" stroke="#94a3b8" stroke-width="4" marker-end="url(#arrB)"/>
+                
+                <rect x="320" y="70" width="110" height="70" rx="10" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
+                <text x="375" y="105" class="val-text" text-anchor="middle" fill="#ef4444">"5"</text>
+                <text x="375" y="170" class="label-text" fill="#ef4444">文字：表示用</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 240">
+                <text x="250" y="25" class="grid-title-text" text-anchor="middle">③ 解決策：テーブル（配列）の準備</text>
+                <text x="40" y="65" class="label-text" text-anchor="start" fill="#1e3a8a">配列 : char[ ]</text>
+                <g transform="translate(40, 80)">
+                    <rect x="0" y="0" width="55" height="55" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+                    <rect x="55" y="0" width="55" height="55" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+                    <rect x="110" y="0" width="55" height="55" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+                    <rect x="165" y="0" width="180" height="55" fill="#f3f4f6" stroke="#cbd5e1" stroke-dasharray="4"/>
+                    
+                    <text x="27.5" y="32" class="val-text" font-size="20" text-anchor="middle">"1"</text>
+                    <text x="82.5" y="32" class="val-text" font-size="20" text-anchor="middle">"2"</text>
+                    <text x="137.5" y="32" class="val-text" font-size="20" text-anchor="middle">"3"</text>
+                    <text x="255" y="32" class="label-text" fill="#94a3b8" font-size="13">... あらかじめ並べておく</text>
+                    
+                    <text x="27.5" y="75" class="label-text" fill="#3b82f6" font-size="16">1</text>
+                    <text x="82.5" y="75" class="label-text" fill="#3b82f6" font-size="16">2</text>
+                    <text x="137.5" y="75" class="label-text" fill="#3b82f6" font-size="16">3</text>
+                    <text x="27.5" y="92" class="label-small">添字</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 240">
+                <text x="250" y="25" class="grid-title-text" text-anchor="middle">④ 数値を「住所」にして直接アクセス</text>
+                
+                <rect x="60" y="70" width="70" height="50" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="95" y="95" class="val-text" font-size="22" text-anchor="middle">d</text>
+                <text x="95" y="145" class="label-text" fill="#3b82f6">入力を...</text>
+
+                <path d="M 130 95 C 180 95, 180 160, 240 160" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#arrB)"/>
+                
+                <g transform="translate(250, 140)">
+                    <rect x="0" y="0" width="100" height="40" fill="#3b82f6" rx="5"/>
+                    <text x="50" y="26" class="val-text" fill="#ffffff" font-size="18" text-anchor="middle">添字[ d ]</text>
+                </g>
+                
+                <text x="430" y="100" class="val-text" font-size="24" fill="#10b981" text-anchor="middle">char[d]</text>
+                <text x="430" y="145" class="label-text" fill="#10b981">一瞬で完了！</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-text">複雑な条件分岐（if）を「配列の添字アクセス」に置き換え、処理を極限までシンプルかつ高速にしている。</div>
+    </div>
+</div>
+
+<svg style="width:0; height:0; position:absolute;">
+    <defs>
+        <marker id="arrB" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+        </marker>
+    </defs>
+</svg>
+
+</body>
+</html>

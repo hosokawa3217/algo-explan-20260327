@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習69：文字列探索のバックトラック解説</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --warning: #f59e0b;
+            --gray-light: #f8fafc;
+            --gray-dim: #e2e8f0;
+            --bg-gray: #f1f5f9;
+            --panel-bg: #ffffff;
+            --border: #cbd5e1;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-gray);
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .viewport {
+            width: 100vw; height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport::-webkit-scrollbar { display: none; }
+
+        .slide-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; scroll-snap-align: start;
+        }
+
+        .slide { 
+            width: 1280px; height: 850px; 
+            background-color: #ffffff; padding: 0 60px; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header-area { 
+            height: 90px; display: flex; align-items: center; 
+            justify-content: space-between; padding-top: 15px; 
+            border-bottom: 3px solid var(--purple); 
+        }
+        .theme-bar { width: 12px; height: 40px; background-color: var(--purple); margin-right: 15px; border-radius: 4px; }
+        h1 { font-size: 30px; margin: 0; font-weight: 900; color: #1e293b; }
+        .page-num { font-size: 18px; font-weight: 800; color: var(--purple); background: #f5f3ff; padding: 6px 16px; border-radius: 20px; border: 1px solid var(--purple); }
+
+        .infographic-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; flex-grow: 1; margin-top: 30px; margin-bottom: 30px;
+        }
+        .grid-item { 
+            border: 2px solid var(--border); border-radius: 16px; 
+            background-color: var(--gray-light); padding: 30px; box-sizing: border-box;
+            position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        svg { width: 100%; height: 100%; }
+        .grid-title-text { fill: #334155; font-size: 22px; font-weight: 900; }
+        .cell { fill: #ffffff; stroke: #475569; stroke-width: 2; }
+        .cell-dim { fill: #f1f5f9; stroke: #cbd5e1; }
+        .cell-ptn { fill: #eff6ff; stroke: var(--primary); stroke-width: 2; }
+        .text-dim { fill: #94a3b8; }
+        .val-text { font-size: 24px; text-anchor: middle; font-weight: 900; fill: #1e293b; }
+        .idx-text { font-size: 15px; text-anchor: middle; fill: #64748b; font-weight: bold; }
+        
+        .step-container { display: flex; flex-direction: column; gap: 25px; }
+        .step-row { display: flex; align-items: flex-start; gap: 15px; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .step-circle {
+            width: 36px; height: 36px; background: var(--purple); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 20px; flex-shrink: 0;
+        }
+        .step-desc { font-size: 17px; color: #334155; line-height: 1.6; }
+        .step-desc strong { color: #1e1b4b; border-bottom: 2px solid #e0e7ff; }
+
+        .formula-box {
+            margin-top: 20px; padding: 25px; background: #1e2937; border-radius: 12px; color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .footer {
+            margin-bottom: 30px; padding: 15px 25px;
+            background-color: #f5f3ff; border-radius: 12px; border-left: 8px solid var(--purple);
+        }
+        .footer-text { font-size: 18px; font-weight: 700; color: #1e1b4b; margin: 0; }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header-area">
+                <div style="display:flex; align-items:center;"><div class="theme-bar"></div><h1>練習69：文字列比較とポインタの「ズレ」</h1></div>
+                <span class="page-num">STEP 1: 状況把握</span>
+            </div>
+            
+            <div class="infographic-grid">
+                <div class="grid-item">
+                    <svg viewBox="0 0 500 450">
+                        <text x="0" y="25" class="grid-title-text">moji[6] の比較シミュレーション</text>
+                        <g transform="translate(50, 100)">
+                            <rect x="0" y="0" width="60" height="60" class="cell-dim"/><text x="30" y="38" class="val-text text-dim">x</text><text x="30" y="-12" class="idx-text">1</text>
+                            <rect x="60" y="0" width="60" height="60" class="cell" stroke="var(--success)" stroke-width="4"/><text x="90" y="38" class="val-text">a</text><text x="90" y="-12" class="idx-text">2</text>
+                            <rect x="120" y="0" width="60" height="60" class="cell"/><text x="150" y="38" class="val-text">b</text><text x="150" y="-12" class="idx-text">3</text>
+                            <rect x="180" y="0" width="60" height="60" class="cell" stroke="var(--danger)" stroke-width="4"/><text x="210" y="38" class="val-text">a</text><text x="210" y="-12" class="idx-text">4</text>
+                            <rect x="240" y="0" width="60" height="60" class="cell-dim"/><text x="270" y="38" class="val-text text-dim">b</text><text x="270" y="-12" class="idx-text">5</text>
+                            <rect x="300" y="0" width="60" height="60" class="cell-dim"/><text x="330" y="38" class="val-text text-dim">c</text><text x="330" y="-12" class="idx-text">6</text>
+
+                            <text x="90" y="90" class="idx-text" fill="var(--success)">今回の開始(2)</text>
+                            <path d="M 210 130 V 70" stroke="var(--danger)" stroke-width="3" marker-end="url(#arrR)"/>
+                            <text x="210" y="155" class="val-text" fill="var(--danger)" font-size="18">現在 i = 4</text>
+                        </g>
+                        <g transform="translate(110, 280)">
+                            <rect x="0" y="0" width="60" height="60" class="cell-ptn"/><text x="30" y="38" class="val-text" fill="var(--primary)">a</text>
+                            <rect x="60" y="0" width="60" height="60" class="cell-ptn"/><text x="90" y="38" class="val-text" fill="var(--primary)">b</text>
+                            <rect x="120" y="0" width="60" height="60" class="cell-ptn" stroke="var(--danger)" stroke-width="4"/><text x="150" y="38" class="val-text" fill="var(--danger)">b</text>
+                            <text x="150" y="90" class="idx-text" fill="var(--danger)">j = 3 で不一致</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="grid-item" style="background: white;">
+                    <div class="step-container">
+                        <div class="step-row">
+                            <div class="step-circle">1</div>
+                            <div class="step-desc"><strong>ポインタ i の「進みすぎ」</strong><br>内側ループで 3文字目まで比較したため、mojiの添字は 4 まで進んでいます。</div>
+                        </div>
+                        <div class="step-row">
+                            <div class="step-circle">2</div>
+                            <div class="step-desc"><strong>「重複あり」の探索ルール</strong><br>一致しても不一致でも、次は「開始位置の1つ右」から再開するのがルールです。</div>
+                        </div>
+                        <div class="step-row" style="background: #fff8eb; border-color: var(--warning);">
+                            <div class="step-circle" style="background: var(--warning);">!</div>
+                            <div class="step-desc"><strong>次の開始地点は 3</strong><br>現在の i=4 をそのまま使うと、添字 3 の文字を見逃してしまいます。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><p class="footer-text">内側ループを抜けた直後、i は「次に比較すべき位置」よりも先へ進んでしまっています。</p></div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header-area">
+                <div style="display:flex; align-items:center;"><div class="theme-bar"></div><h1>練習69：数式によるポインタの「引き戻し」</h1></div>
+                <span class="page-num">STEP 2: 論理の解決</span>
+            </div>
+            
+            <div class="infographic-grid">
+                <div class="grid-item">
+                    <svg viewBox="0 0 500 500">
+                        <text x="0" y="25" class="grid-title-text">引き戻し（バックトラック）の工程</text>
+                        <g transform="translate(50, 150)">
+                            <line x1="0" y1="30" x2="400" y2="30" stroke="#cbd5e1" stroke-width="2"/>
+                            <circle cx="100" cy="30" r="12" fill="var(--success)"/><text x="100" y="10" class="idx-text">2 (開始)</text>
+                            <circle cx="200" cy="30" r="12" fill="var(--purple)"/><text x="200" y="10" class="idx-text">3 (目標)</text>
+                            <circle cx="300" cy="30" r="12" fill="var(--danger)"/><text x="300" y="10" class="idx-text">4 (現在 i)</text>
+
+                            <path d="M 300 60 Q 200 150 100 60" fill="none" stroke="var(--danger)" stroke-width="4" stroke-dasharray="8" marker-end="url(#arrR)"/>
+                            <text x="200" y="160" text-anchor="middle" font-weight="bold" fill="var(--danger)" font-size="20">① i - (j - 1)</text>
+
+                            <path d="M 100 210 H 200" stroke="var(--success)" stroke-width="4" marker-end="url(#arrG)"/>
+                            <text x="150" y="250" text-anchor="middle" font-weight="bold" fill="var(--success)" font-size="20">② + 1</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="grid-item" style="background: white;">
+                    <div class="step-container">
+                        <div class="step-row">
+                            <div class="step-circle">①</div>
+                            <div class="step-desc"><strong>開始地点まで「戻す」処理</strong><br>i から「比較した文字数(j-1)」を引くことで、今回の比較を開始した位置 2 に戻ります。</div>
+                        </div>
+                        <div class="step-row">
+                            <div class="step-circle">②</div>
+                            <div class="step-desc"><strong>「1つ右」へ「ずらす」処理</strong><br>次に探索を開始すべき場所へ移動させるため、+1 を行います。</div>
+                        </div>
+                        <div class="formula-box">
+                            <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px; font-family: monospace;">整理したコード：</div>
+                            <div style="font-size: 34px; font-weight: bold; color: #fef08a; font-family: monospace; text-align: center;">i = i - j + 2</div>
+                            <div style="font-size: 14px; color: #4ade80; margin-top: 15px; text-align: right;">※ (i - (j - 1)) + 1 を簡略化</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><p class="footer-text">この数式により、mojiの長さや不一致の場所に関わらず、常に「次の開始地点」へ戻ることができます。</p></div>
+        </div>
+    </div>
+</div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arrR" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--danger)"/></marker>
+        <marker id="arrG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--success)"/></marker>
+    </defs>
+</svg>
+
+</body>
+</html>

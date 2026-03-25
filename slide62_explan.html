@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習62：バケットソート（分布数え上げ）の論理</title>
+    <style>
+        :root {
+            --primary: #0ea5e9; /* スカイブルー（整理・格納） */
+            --secondary: #f59e0b; /* アンバー（カウント） */
+            --success: #10b981; /* エメラルド（完成） */
+            --bg-soft: #f8fafc;
+            --text-main: #1e293b;
+            --border: #e2e8f0;
+            --accent: #ef4444;
+        }
+        body { 
+            margin: 0; background: #f1f5f9; color: var(--text-main);
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .slide { 
+            width: 1280px; height: 720px; background: #fff; margin: 20px 0;
+            padding: 40px 60px; box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        header { border-left: 12px solid var(--primary); padding-left: 20px; margin-bottom: 25px; }
+        h1 { font-size: 38px; margin: 0; font-weight: 900; letter-spacing: -1px; }
+        .subtitle { font-size: 18px; color: #64748b; font-weight: 700; margin-top: 5px; }
+
+        .content-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 30px; flex-grow: 1; }
+        
+        /* Left: Steps */
+        .step-container { display: flex; flex-direction: column; gap: 12px; }
+        .step-card { border: 2px solid var(--border); border-radius: 12px; padding: 15px; background: var(--bg-soft); }
+        .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .step-num { background: var(--primary); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
+        .step-title { font-weight: 900; font-size: 18px; color: var(--primary); }
+        .step-desc { font-size: 14px; font-weight: 700; line-height: 1.5; color: #475569; }
+
+        /* Right: Visual Diagram */
+        .visual-panel { border: 2px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #fff; }
+        .diagram-title { font-size: 20px; font-weight: 900; margin-bottom: 15px; color: #1e3a8a; }
+
+        /* SVG Elements */
+        svg { width: 100%; height: auto; }
+        .box-rect { fill: #fff; stroke: #94a3b8; stroke-width: 1.5; }
+        .bucket-rect { fill: #f1f5f9; stroke: var(--secondary); stroke-width: 2; stroke-dasharray: 4; }
+        .val-text { font-size: 16px; font-weight: 900; text-anchor: middle; }
+        .label-text { font-size: 12px; font-weight: 800; fill: #64748b; text-anchor: middle; }
+        .arrow-path { fill: none; stroke: var(--secondary); stroke-width: 2; marker-end: url(#arrow-amber); }
+        
+        .code-inline { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 900; }
+
+        footer { margin-top: auto; padding-top: 15px; border-top: 2px solid var(--border); font-size: 18px; font-weight: 800; color: var(--primary); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <header>
+        <h1>練習62：バケットソート (分布数え上げソート)</h1>
+        <div class="subtitle">比較せずに「値」を「場所」に対応させて並べる超高速アルゴリズム</div>
+    </header>
+
+    <div class="content-layout">
+        <div class="step-container">
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-num">1</div>
+                    <div class="step-title">箱（バケット）を用意</div>
+                </div>
+                <div class="step-desc">
+                    データの値の範囲（1～m）分だけ、個数を数えるための配列 <b>d</b> を用意し、すべて 0 でリセットします。
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-num">2</div>
+                    <div class="step-title">個数をカウント</div>
+                </div>
+                <div class="step-desc">
+                    元のデータ <b>tbl[i]</b> の値をそのまま「添字」として使い、配列 d のカウントを増やします。<br>
+                    <span class="code-inline">d[tbl[i]] ← d[tbl[i]] + 1</span>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-num">3</div>
+                    <div class="step-title">順番に書き戻す</div>
+                </div>
+                <div class="step-desc">
+                    配列 d を 1 から順に見ていき、記録された個数分だけ元の配列へ値を書き込みます。<br>
+                    <span class="code-inline">tbl[j] ← i</span>
+                </div>
+            </div>
+
+            <div class="step-card" style="border-color: #cbd5e1; background: #fff;">
+                <div class="step-title" style="font-size: 16px; color: #475569;">メリットと制約</div>
+                <div class="step-desc">
+                    比較操作がないため、データ範囲が限定的ならクイックソートより速い。ただし、値が飛び抜けて大きいとメモリを浪費します。
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-panel">
+            <div class="diagram-title">「値を場所に対応させる」イメージ</div>
+            <svg viewBox="0 0 600 480">
+                <text x="300" y="30" class="val-text" fill="#1e3a8a">元のデータ (tbl)</text>
+                <g transform="translate(150, 50)">
+                    <rect class="box-rect" x="0" y="0" width="40" height="40" rx="4"/><text x="20" y="26" class="val-text">3</text>
+                    <rect class="box-rect" x="50" y="0" width="40" height="40" rx="4"/><text x="70" y="26" class="val-text">1</text>
+                    <rect class="box-rect" x="100" y="0" width="40" height="40" rx="4"/><text x="120" y="26" class="val-text">3</text>
+                    <rect class="box-rect" x="150" y="0" width="40" height="40" rx="4"/><text x="170" y="26" class="val-text">2</text>
+                    <rect class="box-rect" x="200" y="0" width="40" height="40" rx="4"/><text x="220" y="26" class="val-text">3</text>
+                    <rect class="box-rect" x="250" y="0" width="40" height="40" rx="4"/><text x="270" y="26" class="val-text">1</text>
+                </g>
+
+                <path d="M 170 100 Q 140 150 110 200" class="arrow-path" stroke-dasharray="4"/>
+                <text x="110" y="150" class="label-text" fill="var(--secondary)">値「1」は1番の箱へ</text>
+
+                <text x="300" y="200" class="val-text" fill="var(--secondary)">度数分布テーブル (d)</text>
+                <g transform="translate(180, 220)">
+                    <rect class="bucket-rect" x="0" y="0" width="70" height="60" rx="8"/><text x="35" y="30" class="val-text" style="font-size: 24px;">2</text>
+                    <text x="35" y="80" class="label-text">1の個数</text>
+                    
+                    <rect class="bucket-rect" x="80" y="0" width="70" height="60" rx="8"/><text x="115" y="30" class="val-text" style="font-size: 24px;">1</text>
+                    <text x="115" y="80" class="label-text">2の個数</text>
+                    
+                    <rect class="bucket-rect" x="160" y="0" width="70" height="60" rx="8"/><text x="195" y="30" class="val-text" style="font-size: 24px; fill:var(--accent);">3</text>
+                    <text x="195" y="80" class="label-text">3の個数</text>
+                </g>
+
+                <path d="M 375 310 Q 375 350 375 390" class="arrow-path" stroke="var(--success)" marker-end="url(#arrow-success)"/>
+                <text x="480" y="350" class="label-text" fill="var(--success)">「3」が3個あるので3回書く</text>
+
+                <text x="300" y="390" class="val-text" fill="var(--success)">整列後のデータ</text>
+                <g transform="translate(150, 410)">
+                    <rect class="box-rect" style="stroke:var(--success)" x="0" y="0" width="40" height="40" rx="4"/><text x="20" y="26" class="val-text">1</text>
+                    <rect class="box-rect" style="stroke:var(--success)" x="50" y="0" width="40" height="40" rx="4"/><text x="70" y="26" class="val-text">1</text>
+                    <rect class="box-rect" style="stroke:var(--success)" x="100" y="0" width="40" height="40" rx="4"/><text x="120" y="26" class="val-text">2</text>
+                    <rect class="box-rect" style="stroke:var(--success); fill:#ecfdf5" x="150" y="0" width="40" height="40" rx="4"/><text x="170" y="26" class="val-text">3</text>
+                    <rect class="box-rect" style="stroke:var(--success); fill:#ecfdf5" x="200" y="0" width="40" height="40" rx="4"/><text x="220" y="26" class="val-text">3</text>
+                    <rect class="box-rect" style="stroke:var(--success); fill:#ecfdf5" x="250" y="0" width="40" height="40" rx="4"/><text x="270" y="26" class="val-text">3</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <footer>
+        ポイント：値をカウントして、その回数分だけ数字を並べ直す！
+    </footer>
+</div>
+
+<svg style="width:0; height:0; position:absolute;">
+    <defs>
+        <marker id="arrow-amber" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" />
+        </marker>
+        <marker id="arrow-success" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+        </marker>
+    </defs>
+</svg>
+
+</body>
+</html>

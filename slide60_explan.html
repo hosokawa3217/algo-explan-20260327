@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習60：挿入法（効率化版：データシフト）の論理</title>
+    <style>
+        :root {
+            --primary: #db2777; --bg-soft: #fdf2f8; --text-main: #1e293b;
+            --border: #e5e7eb; --accent: #ec4899; --hole: #f1f5f9;
+        }
+        body { 
+            margin: 0; background: #f3f4f6; color: var(--text-main);
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .slide { 
+            width: 1280px; height: 720px; background: #fff; margin: 20px 0;
+            padding: 40px 60px; box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        header { border-left: 12px solid var(--accent); padding-left: 20px; margin-bottom: 30px; }
+        h1 { font-size: 38px; margin: 0; font-weight: 900; letter-spacing: -1px; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; flex-grow: 1; }
+        .grid-item { border: 2.5px solid var(--border); border-radius: 16px; background-color: #fafafa; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+        .grid-title-text { font-size: 20px; font-weight: 900; color: #1e3a8a; margin-bottom: 10px; border-bottom: 2px solid var(--accent); }
+        .desc-small { font-size: 14px; font-weight: 700; color: #4b5563; margin-bottom: 10px; }
+
+        svg { width: 100%; height: 160px; }
+        .node { fill: #fff; stroke: #64748b; stroke-width: 1.5; }
+        .node-fix { fill: var(--bg-soft); stroke: var(--accent); }
+        .node-wk { fill: #fce7f3; stroke: var(--primary); stroke-width: 2.5; }
+        .node-hole { fill: var(--hole); stroke: #94a3b8; stroke-dasharray: 4; }
+        .txt-val { font-size: 16px; font-weight: 900; text-anchor: middle; fill: #111827; }
+        .txt-sub { font-size: 12px; font-weight: 700; text-anchor: middle; fill: #64748b; }
+        .arrow-line { fill: none; stroke: var(--primary); stroke-width: 2; marker-end: url(#arrow); }
+        
+        footer { margin-top: 15px; padding-top: 10px; border-top: 2px solid var(--border); font-size: 18px; font-weight: 800; color: #be185d; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <header>
+        <h1>練習60：挿入法（データシフト版）の視覚的プロセス</h1>
+    </header>
+
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <div class="grid-title-text">① 挿入対象の退避 (wk = tbl[i])</div>
+            <p class="desc-small">挿入する値「7」を wk にのけ、その場所を「穴」にする</p>
+            <svg viewBox="0 0 500 120">
+                <g transform="translate(50, 40)">
+                    <rect class="node-fix" x="0" y="0" width="50" height="45" rx="4"/><text x="25" y="28" class="txt-val">3</text>
+                    <rect class="node-fix" x="60" y="0" width="50" height="45" rx="4"/><text x="85" y="28" class="txt-val">12</text>
+                    <rect class="node-fix" x="120" y="0" width="50" height="45" rx="4"/><text x="145" y="28" class="txt-val">15</text>
+                    <rect class="node-hole" x="180" y="0" width="50" height="45" rx="4"/><text x="205" y="28" class="txt-val" fill="#94a3b8">穴</text>
+                    <rect class="node" x="240" y="0" width="50" height="45" rx="4"/><text x="265" y="28" class="txt-val">20</text>
+                    
+                    <rect class="node-wk" x="350" y="0" width="50" height="45" rx="4"/><text x="375" y="28" class="txt-val">7</text>
+                    <text x="375" y="65" class="txt-sub">wk</text>
+                    <path d="M 205 -5 Q 290 -35 375 -5" class="arrow-line" stroke-dasharray="3"/>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <div class="grid-title-text">② 要素のずらし (tbl[j+1] = tbl[j])</div>
+            <p class="desc-small">wk(7) より大きい値を、空いている後ろの席へ順次ずらす</p>
+            <svg viewBox="0 0 500 120">
+                <g transform="translate(50, 40)">
+                    <rect class="node-fix" x="0" y="0" width="50" height="45" rx="4"/><text x="25" y="28" class="txt-val">3</text>
+                    <rect class="node-hole" x="60" y="0" width="50" height="45" rx="4"/><text x="85" y="28" class="txt-val" fill="#94a3b8">j</text>
+                    <rect class="node-fix" x="120" y="0" width="50" height="45" rx="4"/><text x="145" y="28" class="txt-val">12</text>
+                    <rect class="node-fix" x="180" y="0" width="50" height="45" rx="4"/><text x="205" y="28" class="txt-val">15</text>
+                    <rect class="node" x="240" y="0" width="50" height="45" rx="4"/><text x="265" y="28" class="txt-val">20</text>
+                    
+                    <path d="M 85 -5 Q 115 -25 145 -5" class="arrow-line"/>
+                    <path d="M 145 -5 Q 175 -25 205 -5" class="arrow-line" opacity="0.5"/>
+                    <text x="145" y="-28" class="txt-sub" fill="#db2777">大きな値を右へ</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <div class="grid-title-text">③ wk の挿入 (tbl[j+1] = wk)</div>
+            <p class="desc-small">自分(7)より小さい値が見つかった直後の「穴」に wk を戻す</p>
+            <svg viewBox="0 0 500 120">
+                <g transform="translate(50, 40)">
+                    <rect class="node-fix" x="0" y="0" width="50" height="45" rx="4"/><text x="25" y="28" class="txt-val">3</text>
+                    <rect class="node-wk" x="60" y="0" width="50" height="45" rx="4"/><text x="85" y="28" class="txt-val">7</text>
+                    <rect class="node-fix" x="120" y="0" width="50" height="45" rx="4"/><text x="145" y="28" class="txt-val">12</text>
+                    <rect class="node-fix" x="180" y="0" width="50" height="45" rx="4"/><text x="205" y="28" class="txt-val">15</text>
+                    <rect class="node" x="240" y="0" width="50" height="45" rx="4"/><text x="265" y="28" class="txt-val">20</text>
+                    
+                    <path d="M 375 50 Q 230 90 85 50" class="arrow-line"/>
+                    <rect class="node-wk" x="350" y="0" width="50" height="45" rx="4" opacity="0.3"/><text x="375" y="28" class="txt-val" opacity="0.3">7</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <div class="grid-title-text">④ 効率化のメリット</div>
+            <div style="padding: 10px; font-weight: 800; line-height: 1.6; font-size: 15px;">
+                <div style="color:#e11d48">■ 代入の削減：交換(3回)をシフト(1回)に短縮</div>
+                <div style="color:#1e40af">■ 早期終了：wk以下の値で即 break</div>
+                <div style="color:#047857">■ 部分整列：整列済みに近いほど超高速</div>
+            </div>
+            <p class="desc-small" style="margin-top:10px">※ 練習59より代入回数が劇的に減ります</p>
+        </div>
+    </div>
+
+    <footer>
+        ポイント：挿入する値を一旦 wk にのけ、大きな値を順次後ろへ押し出すことで空いたスペースに最後に wk を収める。
+    </footer>
+</div>
+
+<svg style="width:0; height:0; position:absolute;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="context-fill" />
+        </marker>
+    </defs>
+</svg>
+
+</body>
+</html>

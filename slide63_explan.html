@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習63：ヒープソートの論理（最終修正版）</title>
+    <style>
+        :root {
+            --primary: #10b981;    /* Emerald */
+            --secondary: #f97316;  /* Orange */
+            --accent: #ef4444;     /* Red */
+            --bg: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-main: #0f172a;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; background: #e2e8f0; color: var(--text-main);
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .slide { 
+            width: 1280px; height: 850px; background: #fff;
+            padding: 40px; display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); border-radius: 12px;
+        }
+        header { border-left: 12px solid var(--primary); padding-left: 20px; margin-bottom: 25px; }
+        h1 { font-size: 38px; margin: 0; font-weight: 900; }
+        
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: 1fr 1fr; 
+            gap: 25px; 
+            flex-grow: 1;
+        }
+        .panel { 
+            border: 2px solid #cbd5e1; border-radius: 15px; 
+            padding: 20px; background: #fff;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .panel-title { 
+            font-size: 20px; font-weight: 900; color: #1e40af; 
+            margin-bottom: 15px; display: flex; align-items: center;
+        }
+        .panel-title::before { content: ""; width: 6px; height: 20px; background: var(--secondary); margin-right: 10px; }
+
+        svg { width: 100%; height: 250px; }
+        .node-rect { fill: #fff; stroke: #334155; stroke-width: 2.5; }
+        .node-text { font-size: 28px; font-weight: 900; text-anchor: middle; dominant-baseline: central; fill: #0f172a; }
+        .index-text { font-size: 16px; font-weight: 800; fill: #64748b; }
+        .edge { stroke: #cbd5e1; stroke-width: 2; }
+        .arrow { fill: none; stroke: var(--secondary); stroke-width: 3; marker-end: url(#arrowhead); }
+        .desc-text { font-size: 18px; font-weight: 800; fill: var(--secondary); }
+        
+        footer { margin-top: 20px; text-align: center; font-size: 22px; font-weight: 900; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <header>
+        <h1>練習63：ヒープソート（データの流れを完全再現）</h1>
+    </header>
+
+    <div class="grid-layout">
+        <div class="panel">
+            <div class="panel-title">① 初期状態：木と配列の対応</div>
+            <svg viewBox="0 0 400 250">
+                <line x1="200" y1="60" x2="100" y2="140" class="edge"/><line x1="200" y1="60" x2="300" y2="140" class="edge"/>
+                <g>
+                    <rect x="175" y="35" width="50" height="50" class="node-rect"/><text x="200" y="60" class="node-text">3</text>
+                    <text x="200" y="25" class="index-text" text-anchor="middle">a[1]</text>
+                </g>
+                <g>
+                    <rect x="75" y="115" width="50" height="50" class="node-rect"/><text x="100" y="140" class="node-text">5</text>
+                    <text x="100" y="105" class="index-text" text-anchor="middle">a[2]</text>
+                    <rect x="275" y="115" width="50" height="50" class="node-rect"/><text x="300" y="140" class="node-text">4</text>
+                    <text x="300" y="105" class="index-text" text-anchor="middle">a[3]</text>
+                </g>
+                <text x="200" y="230" class="index-text" style="fill:var(--primary)" text-anchor="middle">サンプルの初期値：3, 5, 4, 1, 6, 2</text>
+            </svg>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">② 最大ヒープ構築</div>
+            <svg viewBox="0 0 400 250">
+                <line x1="200" y1="60" x2="110" y2="140" class="edge" stroke-dasharray="4"/>
+                <g>
+                    <rect x="175" y="35" width="55" height="55" class="node-rect" style="stroke:var(--primary); stroke-width:4;"/><text x="202" y="62" class="node-text">6</text>
+                    <text x="202" y="25" class="index-text" text-anchor="middle">a[1]</text>
+                </g>
+                <g>
+                    <rect x="80" y="115" width="50" height="50" class="node-rect"/><text x="105" y="140" class="node-text">5</text>
+                    <text x="105" y="105" class="index-text" text-anchor="middle">a[2]</text>
+                </g>
+                <path d="M 120 180 Q 200 170 200 100" class="arrow" style="marker-end: url(#arrowhead);"/>
+                <text x="210" y="150" class="desc-text">最大値(6)が根に到達！</text>
+                <text x="210" y="175" class="index-text" style="fill:#94a3b8">下から順に比較・交換</text>
+            </svg>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">③ 最大値(6)を末尾へ固定</div>
+            <svg viewBox="0 0 400 250">
+                <rect x="50" y="80" width="65" height="65" class="node-rect" style="stroke:var(--accent); stroke-width:4;"/><text x="82" y="112" class="node-text">6</text>
+                <text x="82" y="70" class="index-text" text-anchor="middle">a[1] (MAX)</text>
+                
+                <rect x="280" y="80" width="65" height="65" class="node-rect"/><text x="312" y="112" class="node-text">2</text>
+                <text x="312" y="70" class="index-text" text-anchor="middle">a[6] (末尾)</text>
+                
+                <path d="M 125 112 H 270" class="arrow" style="stroke:var(--accent); marker-end: url(#arrowhead-red);"/>
+                <text x="200" y="160" class="desc-text" style="fill:var(--accent)" text-anchor="middle">根(6) と 末尾(2) を交換</text>
+            </svg>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">④ 範囲を狭めて再構成（n=5）</div>
+            <svg viewBox="0 0 400 250">
+                <g transform="translate(10, 50)">
+                    <rect x="0" y="0" width="50" height="50" class="node-rect"/><text x="25" y="25" class="node-text">5</text>
+                    <rect x="60" y="0" width="50" height="50" class="node-rect"/><text x="85" y="25" class="node-text">4</text>
+                    <rect x="120" y="0" width="50" height="50" class="node-rect"/><text x="145" y="25" class="node-text">3</text>
+                    <rect x="180" y="0" width="50" height="50" class="node-rect"/><text x="205" y="25" class="node-text">1</text>
+                    <rect x="240" y="0" width="50" height="50" class="node-rect"/><text x="265" y="25" class="node-text">2</text>
+                    <rect x="310" y="0" width="60" height="60" style="fill:#f1f5f9; stroke:#cbd5e1; stroke-dasharray:5;"/><text x="340" y="30" class="node-text" style="fill:#94a3b8">6</text>
+                    <text x="340" y="80" class="index-text" style="fill:var(--primary)" text-anchor="middle">整列済み</text>
+                </g>
+                <text x="150" y="180" class="index-text" text-anchor="middle">次のループ：range(5, 1, -1)</text>
+                <text x="150" y="210" class="desc-text" style="fill:var(--primary)">6を無視して再度ヒープを作る</text>
+            </svg>
+        </div>
+    </div>
+
+    <footer>
+        結論：最大値を後ろに追いやり、残った要素で「木」を修復し続ける。
+    </footer>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--secondary)" />
+            </marker>
+            <marker id="arrowhead-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
+            </marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習72：文字置換のアルゴリズム</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --accent: #f59e0b; /* タブ文字用 */
+            --space: #8b5cf6;  /* 空白文字用 */
+            --bg-gray: #f1f5f9;
+            --border: #cbd5e1;
+            --text-main: #1e293b;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-gray);
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .viewport {
+            width: 100vw; height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport::-webkit-scrollbar { display: none; }
+
+        .slide-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; scroll-snap-align: start;
+        }
+
+        .slide { 
+            width: 1280px; height: 850px; 
+            background-color: #ffffff; padding: 40px 60px; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid var(--primary); padding-bottom: 15px; }
+        .title-num { background: var(--primary); color: white; padding: 6px 16px; border-radius: 4px; font-weight: 900; margin-right: 15px; font-size: 18px; }
+        h1 { font-size: 28px; margin: 0; color: var(--text-main); }
+
+        /* レイアウト */
+        .content-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 30px; flex-grow: 1; align-items: stretch; margin-top: 10px; }
+        .visual-panel { background: #f8fafc; border: 2px solid var(--border); border-radius: 16px; padding: 25px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .info-panel { display: flex; flex-direction: column; gap: 20px; justify-content: center;}
+
+        /* SVGスタイル */
+        svg { width: 100%; height: 100%; max-height: 600px; }
+        .cell { fill: #ffffff; stroke: #475569; stroke-width: 2; }
+        .cell-tab { fill: #fef3c7; stroke: var(--accent); stroke-width: 3; }
+        .cell-sp { fill: #f3e8ff; stroke: var(--space); stroke-width: 2; stroke-dasharray: 4; }
+        .val-text { font-size: 22px; text-anchor: middle; font-weight: 900; fill: var(--text-main); }
+        .idx-text { font-size: 14px; fill: #64748b; text-anchor: middle; font-weight: bold; }
+        .label { font-size: 18px; font-weight: bold; fill: #334155; }
+
+        /* カード・数式 */
+        .card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 10px 0; font-size: 18px; color: var(--primary); border-left: 5px solid var(--primary); padding-left: 10px; }
+        .card p { margin: 0; font-size: 15px; line-height: 1.6; color: #475569; }
+        .formula-box { background: #1e293b; color: white; padding: 15px; border-radius: 10px; text-align: center; }
+        .formula { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; color: #fbbf24; margin-top: 5px; }
+        .code-block { background: #f1f5f9; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.7; color: #334155; border: 1px solid var(--border); }
+        .code-hl { background: #fef08a; font-weight: bold; display: inline-block; padding: 0 5px; border-radius: 3px;}
+
+        .footer { margin-top: auto; padding: 15px; background: #eff6ff; border-left: 8px solid var(--primary); border-radius: 8px; font-weight: bold; color: #1e40af; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num">概要</span>
+                <h1>練習72：フォーマット変換とポインタ管理</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 550 450">
+                        <text x="10" y="30" class="label">入力から出力への文字の写像（n=2の例）</text>
+                        
+                        <g transform="translate(20, 80)">
+                            <text x="0" y="-15" class="label" font-size="16">配列 a (入力)</text>
+                            <rect x="0" y="0" width="50" height="50" class="cell"/><text x="25" y="32" class="val-text">A</text><text x="25" y="-35" class="idx-text" fill="var(--primary)">i=1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell"/><text x="75" y="32" class="val-text">B</text><text x="75" y="-35" class="idx-text" fill="var(--primary)">2</text>
+                            <rect x="100" y="0" width="60" height="50" class="cell-tab"/><text x="130" y="32" class="val-text" fill="#b45309">tab</text><text x="130" y="-35" class="idx-text" fill="var(--primary)">3</text>
+                            <rect x="160" y="0" width="50" height="50" class="cell"/><text x="185" y="32" class="val-text">C</text><text x="185" y="-35" class="idx-text" fill="var(--primary)">4</text>
+                            
+                            <path d="M 0 -25 H 210" stroke="var(--primary)" stroke-width="2" opacity="0.5"/>
+                            <path d="M 210 -25 L 210 -5" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowP)" opacity="0.5"/>
+                        </g>
+
+                        <g transform="translate(20, 130)">
+                            <path d="M 25 0 V 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                            <path d="M 75 0 V 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                            
+                            <path d="M 130 0 Q 130 50 100 100" stroke="var(--accent)" stroke-width="3" fill="none" marker-end="url(#arrowA)"/>
+                            <path d="M 130 0 Q 130 50 150 100" stroke="var(--accent)" stroke-width="3" fill="none" marker-end="url(#arrowA)"/>
+                            
+                            <path d="M 185 0 L 200 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                        </g>
+
+                        <g transform="translate(20, 240)">
+                            <text x="0" y="-15" class="label" font-size="16">配列 b (出力)</text>
+                            <rect x="0" y="0" width="50" height="50" class="cell"/><text x="25" y="32" class="val-text">A</text><text x="25" y="70" class="idx-text" fill="var(--success)">last=1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell"/><text x="75" y="32" class="val-text">B</text><text x="75" y="70" class="idx-text" fill="var(--success)">2</text>
+                            <rect x="100" y="0" width="50" height="50" class="cell-sp"/><text x="125" y="32" class="val-text" fill="var(--space)">Δ</text><text x="125" y="70" class="idx-text" fill="var(--success)">3</text>
+                            <rect x="150" y="0" width="50" height="50" class="cell-sp"/><text x="175" y="32" class="val-text" fill="var(--space)">Δ</text><text x="175" y="70" class="idx-text" fill="var(--success)">4</text>
+                            <rect x="200" y="0" width="50" height="50" class="cell"/><text x="225" y="32" class="val-text">C</text><text x="225" y="70" class="idx-text" fill="var(--success)">5</text>
+                            
+                            <path d="M 0 85 H 250" stroke="var(--success)" stroke-width="2" opacity="0.5"/>
+                            <path d="M 250 85 L 250 65" stroke="var(--success)" stroke-width="2" marker-end="url(#arrowG)" opacity="0.5"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="card">
+                        <h3>処理の目的</h3>
+                        <p>文字列内の<b>「tab」</b>を、指定された文字数 n 個分の<b>「空白（Δ）」</b>に置き換えるフォーマット変換プログラムです。</p>
+                    </div>
+                    <div class="card" style="border-left: 5px solid var(--success);">
+                        <h3>ポインタ管理の分離</h3>
+                        <p>1文字が複数文字に変換されるため、入力元の添字 <b>i</b> と、出力先の添字 <b>last</b> はズレていきます。<br>そのため、<b>「i とは独立して、last の位置を正確に更新し続ける」</b>ことが重要になります。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">出力先配列 b の「末尾がどこか」を常に last が指し示している状態をキープします。</div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num" style="background:var(--accent)">核心</span>
+                <h1>練習72：タブ発見時の反復処理</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 550 450">
+                        <text x="10" y="30" class="label">a[i] が tab のときの動き (n=2の場合)</text>
+                        
+                        <g transform="translate(50, 80)">
+                            <rect x="100" y="0" width="80" height="50" class="cell-tab"/><text x="140" y="32" class="val-text" fill="#b45309">tab</text>
+                            <text x="140" y="-10" class="idx-text" fill="var(--primary)" font-size="16" font-weight="bold">i (停止中)</text>
+                            
+                            <path d="M 140 60 L 140 120" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrowA)"/>
+                            <rect x="100" y="140" width="80" height="40" rx="8" fill="#fef3c7" stroke="var(--accent)"/>
+                            <text x="140" y="165" class="idx-text" font-size="16" fill="#b45309">for j=1..n</text>
+
+                            <g transform="translate(-50, 220)">
+                                <rect x="50" y="0" width="60" height="60" class="cell-sp"/><text x="80" y="38" class="val-text" fill="var(--space)">Δ</text>
+                                <text x="80" y="85" class="idx-text" fill="var(--success)">last</text>
+                                <text x="80" y="105" class="idx-text" font-size="12">(+1回目)</text>
+                                <path d="M 120 30 L 140 30" stroke="var(--space)" stroke-width="3" marker-end="url(#arrowS)"/>
+                                
+                                <rect x="150" y="0" width="60" height="60" class="cell-sp"/><text x="180" y="38" class="val-text" fill="var(--space)">Δ</text>
+                                <text x="180" y="85" class="idx-text" fill="var(--success)">last</text>
+                                <text x="180" y="105" class="idx-text" font-size="12">(+2回目)</text>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="code-block">
+                        if ( a[ i ] が tab と等しい )<br>
+                        　for ( <span class="code-hl">j を 1 から n まで 1 ずつ増やす</span> )<br>
+                        　　last ← last + 1<br>
+                        　　b[ last ] ← "Δ"<br>
+                        　endfor<br>
+                        else<br>
+                        　last ← last + 1<br>
+                        　b[ last ] ← a[ i ]<br>
+                        endif
+                    </div>
+                    <div class="formula-box">
+                        <div style="font-size: 14px; margin-bottom: 5px;">空欄の制御文</div>
+                        <div class="formula">j を 1 から n まで<br>1 ずつ増やす</div>
+                    </div>
+                    <div class="card">
+                        <h3>内側ループ（for文）の役割</h3>
+                        <p>タブが見つかった時、外側のループ（i）を一時停止させたまま、<b>「指定された回数（n回）」だけ空白を連続で挿入</b>します。その際も、1文字入れるごとに last を +1 して出力先を進めます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer" style="background:#fffbeb; border-left-color:var(--accent); color:#b45309;">「n 個の空白に置き換える」＝「n 回ループを回して Δ を代入する」と変換できるかが鍵です。</div>
+        </div>
+    </div>
+</div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+        <marker id="arrowP" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)"/></marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--success)"/></marker>
+        <marker id="arrowA" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+        <marker id="arrowS" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--space)"/></marker>
+    </defs>
+</svg>
+
+</body>
+</html>

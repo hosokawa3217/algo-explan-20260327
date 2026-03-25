@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>練習65：マージソート解説スライド</title>
+<style>
+:root {
+--primary: #2563eb;    /* メイン（進行） /
+--accent: #ef4444;     / アクセント（番兵・注目） /
+--success: #10b981;    / 成功（整列済） */
+--dark: #1e293b;
+--bg-page: #f1f5f9;
+--panel-bg: #f8fafc;
+--slide-w: 1280px;
+--slide-h: 900px;
+}
+
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; padding: 40px 0;
+        background: #475569;
+        font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+        display: flex; flex-direction: column; align-items: center;
+        gap: 50px; /* スライド間の余白 */
+    }
+
+    /* スライド外枠（スクロール閲覧形式） */
+    .page {
+        width: var(--slide-w);
+        height: var(--slide-h);
+        background: white;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        position: relative;
+    }
+
+    /* ヘッダー */
+    header {
+        border-left: 12px solid var(--primary);
+        padding-left: 20px;
+        margin-bottom: 25px;
+    }
+    h1 { font-size: 36px; margin: 0; color: var(--dark); letter-spacing: 1px; }
+
+    /* 2x2 グリッド */
+    .grid-4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 20px;
+        flex-grow: 1;
+        min-height: 0;
+    }
+
+    .panel {
+        background: var(--panel-bg);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+    .panel-label {
+        font-size: 20px; font-weight: 900; color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    /* SVGコンテナ：指示通り高さを調整 */
+    .svg-container {
+        flex-grow: 1;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #f1f5f9;
+        /* 前回のレイアウトから高さを微調整 */
+        margin-bottom: 5px; 
+        max-height: calc(100% - 35px); 
+    }
+
+    svg { 
+        width: 100%; 
+        height: calc(100% - 5px); /* SVG自体の縦幅を5px縮小 */
+        display: block;
+    }
+
+    /* キャプション */
+    .caption {
+        height: 110px;
+        margin-top: 20px;
+        padding: 18px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        border-left: 6px solid var(--primary);
+        font-size: 18px;
+        line-height: 1.6;
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    /* SVGテキスト共通 */
+    .val { font-size: 32px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+    .label { font-size: 16px; font-weight: 700; fill: #64748b; text-anchor: middle; }
+    .hv-text { fill: var(--accent); }
+    .arrow-main { stroke: var(--primary); stroke-width: 3; fill: none; }
+    .arrow-accent { stroke: var(--accent); stroke-width: 3; fill: none; }
+
+    /* 印刷設定 */
+    @media print {
+        body { background: white; padding: 0; }
+        .page { box-shadow: none; margin: 0; page-break-after: always; }
+    }
+</style>
+</head>
+<body>
+
+<div class="page">
+<header><h1>練習65：分割 (Divide) － 最小単位まで分解する</h1></header>
+<div class="grid-4">
+<div class="panel">
+<div class="panel-label">1. 中央の位置(中央 m)の計算</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="75" y="50" width="400" height="60" fill="white" stroke="var(--dark)" stroke-width="2"/>
+<line x1="275" y1="50" x2="275" y2="110" stroke="var(--accent)" stroke-width="4"/>
+<text x="175" y="80" class="val" style="font-size:24px">左側グループ</text>
+<text x="375" y="80" class="val" style="font-size:24px">右側グループ</text>
+<text x="275" y="30" class="label">中央 m</text>
+<text x="275" y="180" class="val" fill="var(--primary)">（左端 ＋ 右端）÷ ２</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">2. 偶数（6個）の分割</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<g transform="translate(125,40)">
+<rect x="0" y="0" width="300" height="40" fill="white" stroke="var(--dark)"/>
+<text x="150" y="20" class="val" style="font-size:20px">5, 2, 8, 1, 4, 3</text>
+<path d="M 100 45 L 50 100" class="arrow-main" marker-end="url(#arrB)"/>
+<path d="M 200 45 L 250 100" class="arrow-main" marker-end="url(#arrB)"/>
+<rect x="-25" y="105" width="150" height="40" fill="#eff6ff" stroke="var(--primary)"/>
+<text x="50" y="125" class="val" style="font-size:20px">5, 2, 8</text>
+<rect x="175" y="105" width="150" height="40" fill="#eff6ff" stroke="var(--primary)"/>
+<text x="250" y="125" class="val" style="font-size:20px">1, 4, 3</text>
+</g>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">3. 1要素になるまで繰り返す</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<circle cx="275" cy="50" r="25" fill="white" stroke="var(--dark)"/><text x="275" y="50" class="val" style="font-size:18px">5,2,8</text>
+<path d="M 260 75 L 220 120" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 290 75 L 330 120" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="210" cy="145" r="20" fill="white" stroke="var(--dark)"/><text x="210" y="145" class="val" style="font-size:18px">5</text>
+<circle cx="340" cy="145" r="20" fill="white" stroke="var(--dark)"/><text x="340" y="145" class="val" style="font-size:18px">2,8</text>
+<text x="275" y="205" class="val" fill="var(--primary)" style="font-size:24px">再帰呼び出しを繰り返す</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">4. 要素数1 ＝ 整列済み</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="225" y="55" width="100" height="100" rx="10" fill="#ecfdf5" stroke="var(--success)" stroke-width="4"/>
+<text x="275" y="105" class="val" fill="var(--success)">[ 5 ]</text>
+<text x="275" y="195" class="val" style="font-size:24px">これ以上分けられない状態</text>
+</svg>
+</div>
+</div>
+</div>
+<div class="caption">
+マージソートの「分割」は、中央の位置を境にデータを半分に分ける作業です。要素が1つになるまで分け続けることで、バラバラの状態（それ自体が整列済みである状態）を作ります。
+</div>
+</div>
+
+<div class="page">
+<header><h1>練習65：準備 (Setup) － 比較用のテーブルを作る</h1></header>
+<div class="grid-4">
+<div class="panel">
+<div class="panel-label">1. 作業用配列 ll と rr</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<text x="140" y="60" class="label">左用 ll</text>
+<rect x="40" y="80" width="200" height="60" fill="none" stroke="var(--primary)" stroke-dasharray="8"/>
+<text x="410" y="60" class="label">右用 rr</text>
+<rect x="310" y="80" width="200" height="60" fill="none" stroke="var(--primary)" stroke-dasharray="8"/>
+<text x="275" y="200" class="val" style="font-size:22px">比較のために一時的な「空き地」を用意</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">2. データのコピー（転記）</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="175" y="30" width="200" height="40" fill="white" stroke="var(--dark)"/>
+<text x="275" y="50" class="val" style="font-size:18px">元の配列 a</text>
+<path d="M 230 75 L 150 140" class="arrow-main" marker-end="url(#arrB)"/>
+<path d="M 320 75 L 400 140" class="arrow-main" marker-end="url(#arrB)"/>
+<rect x="50" y="150" width="150" height="40" fill="#eff6ff" stroke="var(--primary)"/>
+<rect x="350" y="150" width="150" height="40" fill="#eff6ff" stroke="var(--primary)"/>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">3. 番兵 hv (High Value)</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="150" y="70" width="80" height="80" fill="white" stroke="var(--dark)"/>
+<text x="190" y="110" class="val">8</text>
+<rect x="230" y="70" width="150" height="80" fill="#fee2e2" stroke="var(--accent)" stroke-width="3"/>
+<text x="305" y="110" class="val hv-text">10000</text>
+<text x="275" y="200" class="val hv-text" style="font-size:24px">これが最強の壁「番兵」</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">4. 準備完了の配列</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<text x="275" y="80" class="val" style="font-size:22px">ll = [ 2, 5, 8, <tspan class="hv-text">10000</tspan> ]</text>
+<text x="275" y="140" class="val" style="font-size:22px">rr = [ 1, 3, 4, <tspan class="hv-text">10000</tspan> ]</text>
+</svg>
+</div>
+</div>
+</div>
+<div class="caption">
+分割したデータを一度別の配列（llとrr）にコピーします。このとき、末尾に「番兵」と呼ばれる非常に大きな数（10000）を置くことで、どちらかの配列が空になってもエラーにならず比較を続けられます。
+</div>
+</div>
+
+<div class="page">
+<header><h1>練習65：併合 (Merge) － 小さい順に拾い上げる</h1></header>
+<div class="grid-4">
+<div class="panel">
+<div class="panel-label">1. 先頭どうしの比較 (VS)</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="100" y="60" width="80" height="80" fill="white" stroke="var(--primary)" stroke-width="4"/>
+<text x="140" y="100" class="val">2</text>
+<text x="275" y="100" class="val" fill="var(--accent)">VS</text>
+<rect x="370" y="60" width="80" height="80" fill="#ecfdf5" stroke="var(--success)" stroke-width="4"/>
+<text x="410" y="100" class="val">1</text>
+<text x="140" y="160" class="label">左の先頭</text>
+<text x="410" y="160" class="label">右の先頭</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">2. 小さい方を元の配列へ</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<path d="M 350 50 Q 275 140 200 140" class="arrow-accent" marker-end="url(#arrR)"/>
+<rect x="150" y="155" width="250" height="60" fill="white" stroke="var(--dark)"/>
+<text x="200" y="185" class="val" fill="var(--success)">1</text>
+<text x="275" y="100" class="val" fill="var(--accent)" style="font-size:22px">採用！</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">3. 番兵との比較</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<rect x="100" y="60" width="80" height="80" fill="white" stroke="var(--primary)" stroke-width="4"/>
+<text x="140" y="100" class="val">8</text>
+<text x="275" y="100" class="val">VS</text>
+<rect x="350" y="60" width="120" height="80" fill="#fee2e2" stroke="var(--accent)" stroke-width="2"/>
+<text x="410" y="100" class="val hv-text" style="font-size:22px">10000</text>
+<text x="275" y="200" class="val" fill="var(--primary)" style="font-size:20px">8 の方が小さいので 8 を採用</text>
+</svg>
+</div>
+</div>
+<div class="panel">
+<div class="panel-label">4. すべて整列完了</div>
+<div class="svg-container">
+<svg viewBox="0 0 550 245">
+<g transform="translate(75,90)">
+<rect x="0" y="0" width="400" height="60" fill="#f0fdf4" stroke="var(--success)" stroke-width="3"/>
+<text x="200" y="30" class="val" fill="var(--success)">1, 2, 3, 4, 5, 8</text>
+</g>
+<text x="275" y="190" class="val" style="font-size:26px">ソート完了！</text>
+</svg>
+</div>
+</div>
+</div>
+<div class="caption">
+左右の先頭を比べて「小さい方」を元の配列に戻します。どちらかが空になっても、末尾にある番兵（10000）が相手になるため、残ったデータが自然に順番通り吸い上げられていきます。
+</div>
+</div>
+
+<svg style="width:0; height:0; position:absolute;">
+<defs>
+<marker id="arrB" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+</marker>
+<marker id="arrR" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+</marker>
+</defs>
+</svg>
+
+</body>
+</html>

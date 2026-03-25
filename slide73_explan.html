@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習73：ランレングス圧縮（全3ページ・レイアウト修正版）</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --accent: #f59e0b;
+            --highlight: #ec4899;
+            --bg-gray: #f8fafc;
+            --border: #cbd5e1;
+            --text-main: #1e293b;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: #e2e8f0;
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギゴ Kaku Gothic ProN W6", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .viewport {
+            width: 100vw; height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport::-webkit-scrollbar { display: none; }
+
+        .slide-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; scroll-snap-align: start;
+        }
+
+        .slide { 
+            width: 1280px; height: 850px; 
+            background-color: #ffffff; padding: 30px 50px; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* ヘッダー */
+        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid var(--primary); padding-bottom: 10px; flex-shrink: 0; }
+        .title-num { background: var(--primary); color: white; padding: 6px 16px; border-radius: 4px; font-weight: 900; margin-right: 15px; font-size: 18px; }
+        h1 { font-size: 28px; margin: 0; color: var(--text-main); }
+
+        /* レイアウト */
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex-grow: 1; align-items: stretch; min-height: 0; }
+        .content-grid-slide2 { display: grid; grid-template-columns: 340px 1fr; gap: 30px; flex-grow: 1; min-height: 0; }
+        
+        .visual-panel { background: var(--bg-gray); border: 2px solid var(--border); border-radius: 16px; padding: 20px; position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; min-height: 0; }
+        .info-panel { display: flex; flex-direction: column; gap: 15px; justify-content: center; min-height: 0; }
+
+        /* カード・コード */
+        .card { background: white; border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 10px 0; font-size: 18px; color: var(--primary); border-left: 6px solid var(--primary); padding-left: 12px; }
+        .card p { margin: 0; font-size: 15px; line-height: 1.6; color: #475569; }
+        .card ul { margin: 8px 0 0 0; padding-left: 20px; font-size: 15px; line-height: 1.6; color: #475569; }
+        
+        /* コードブロック（改行を有効に） */
+        .code-block { 
+            background: #1e293b; 
+            color: #f8fafc; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 15px; 
+            line-height: 1.5; 
+            white-space: pre-wrap; 
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .hl-accent { color: #fbbf24; font-weight: bold; }
+        .code-comment { color: #94a3b8; }
+
+        /* 田の字レイアウト (スライド2用) */
+        .step-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; }
+        .step-card { background: white; border-left: 6px solid var(--accent); padding: 15px; border-radius: 8px; box-shadow: 0 3px 6px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; border-left-width: 6px; display: flex; flex-direction: column; }
+        .step-card h3 { margin: 0 0 10px 0; font-size: 16px; color: var(--accent); }
+        .step-desc { font-size: 14px; color: #334155; line-height: 1.5; margin: auto 0 0 0; background: #f8fafc; padding: 8px 12px; border-radius: 6px; }
+
+        /* 変数状態表示パネル */
+        .var-panel { display: flex; justify-content: center; align-items: center; gap: 24px; margin: -5px 0 10px 0; }
+        .var-item { font-family: 'Courier New', monospace; font-size: 15px; font-weight: 800; color: #475569; display: flex; align-items: center; }
+        .var-val { font-size: 18px; display: inline-block; width: 28px; text-align: center; padding: 2px 0; margin-left: 8px; border-radius: 6px; border: 2px solid; background: white; }
+        .var-val.n { border-color: var(--highlight); color: var(--highlight); box-shadow: 0 2px 5px rgba(236,72,153,0.15); }
+        .var-val.k { border-color: var(--accent); color: var(--accent); box-shadow: 0 2px 5px rgba(245,158,11,0.15); }
+
+        /* スライド3用：比較パネル */
+        .compare-row { display: flex; gap: 15px; width: 100%; min-height: 0; flex-grow: 1; margin-top: 5px; }
+        .compare-box { flex: 1; background: white; border: 2px solid var(--border); border-radius: 12px; padding: 10px; position: relative; display: flex; flex-direction: column; align-items: center; }
+        .compare-box h4 { margin: 0 0 5px 0; text-align: center; font-size: 16px; color: #1e293b; background: #f1f5f9; padding: 8px; border-radius: 6px; width: 100%; box-sizing: border-box; flex-shrink: 0; }
+        .blank-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 15px; animation: pulse 2s infinite; display: inline-block; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* SVG共通 */
+        .cell { fill: white; stroke: #475569; stroke-width: 2; }
+        .cell-c { fill: #fce7f3; stroke: var(--highlight); stroke-width: 2; }
+        .cell-d { fill: #e0e7ff; stroke: var(--primary); stroke-width: 2; }
+        .cell-a { fill: #fef3c7; stroke: var(--accent); stroke-width: 2; }
+        .cell-blank { fill: #fee2e2; stroke: #ef4444; stroke-width: 2; stroke-dasharray: 4; }
+        .text-val { font-size: 20px; font-weight: bold; text-anchor: middle; fill: #1e293b; }
+        .text-idx { font-size: 14px; fill: #64748b; font-weight: bold; }
+        .text-idx-center { font-size: 14px; text-anchor: middle; fill: #64748b; font-weight: bold; }
+        .arrow-line { fill: none; stroke: #94a3b8; stroke-width: 2; }
+
+        .footer { margin-top: auto; padding: 12px 20px; background: #eff6ff; border-left: 8px solid var(--primary); border-radius: 8px; font-weight: bold; color: #1e40af; font-size: 15px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num">概要</span>
+                <h1>練習73：配列 a と b の対応関係と圧縮のルール</h1>
+            </div>
+            
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <h3 style="margin: 0 0 20px 0; color: #334155; align-self: flex-start;">■ 配列のデータマッピング</h3>
+                    <svg viewBox="0 0 450 350" style="width: 100%; height: auto;">
+                        <g transform="translate(10, 40)">
+                            <text x="-10" y="21" class="text-idx" text-anchor="end" font-size="16">配列 a</text>
+                            <rect x="0" y="0" width="36" height="40" class="cell"/><text x="18" y="26" class="text-val">a</text><text x="18" y="-10" class="text-idx-center">1</text>
+                            <rect x="36" y="0" width="36" height="40" class="cell"/><text x="54" y="26" class="text-val">a</text><text x="54" y="-10" class="text-idx-center">2</text>
+                            <rect x="72" y="0" width="36" height="40" class="cell"/><text x="90" y="26" class="text-val">b</text><text x="90" y="-10" class="text-idx-center">3</text>
+                            
+                            <rect x="108" y="0" width="144" height="40" class="cell-c"/>
+                            <path d="M144 0v40 M180 0v40 M216 0v40" stroke="var(--highlight)" stroke-width="1" opacity="0.5"/>
+                            <text x="126" y="26" class="text-val">c</text>
+                            <text x="162" y="26" class="text-val">c</text>
+                            <text x="198" y="26" class="text-val">c</text>
+                            <text x="234" y="26" class="text-val">c</text>
+                            <text x="180" y="-10" class="text-idx-center" fill="var(--highlight)">4～7 (4文字)</text>
+                            
+                            <rect x="252" y="0" width="108" height="40" class="cell-d"/>
+                            <path d="M288 0v40 M324 0v40" stroke="var(--primary)" stroke-width="1" opacity="0.5"/>
+                            <text x="270" y="26" class="text-val">d</text>
+                            <text x="306" y="26" class="text-val">d</text>
+                            <text x="342" y="26" class="text-val">d</text>
+                            <text x="306" y="-10" class="text-idx-center" fill="var(--primary)">8～10 (3文字)</text>
+                            
+                            <rect x="360" y="0" width="36" height="40" class="cell"/><text x="378" y="26" class="text-val">e</text><text x="378" y="-10" class="text-idx-center">11</text>
+                        </g>
+
+                        <g transform="translate(10, 95)">
+                            <path d="M18 0 v80" class="arrow-line" stroke-dasharray="4" marker-end="url(#arr)"/>
+                            <path d="M54 0 v80" class="arrow-line" stroke-dasharray="4" marker-end="url(#arr)"/>
+                            <path d="M90 0 v80" class="arrow-line" stroke-dasharray="4" marker-end="url(#arr)"/>
+                            <path d="M126 0 v80" stroke="var(--highlight)" stroke-width="3" fill="none" marker-end="url(#arrH)"/>
+                            <path d="M234 0 Q 234 40 162 80" stroke="var(--highlight)" stroke-width="2" stroke-dasharray="4" fill="none" marker-end="url(#arrH)"/>
+                            <path d="M270 0 L198 80" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#arrP)"/>
+                            <path d="M342 0 Q 342 40 234 80" stroke="var(--primary)" stroke-width="2" stroke-dasharray="4" fill="none" marker-end="url(#arrP)"/>
+                            <path d="M378 0 L270 80" class="arrow-line" stroke-dasharray="4" marker-end="url(#arr)"/>
+                        </g>
+
+                        <g transform="translate(10, 195)">
+                            <text x="-10" y="21" class="text-idx" text-anchor="end" font-size="16">配列 b</text>
+                            <rect x="0" y="0" width="36" height="40" class="cell"/><text x="18" y="26" class="text-val">a</text>
+                            <rect x="36" y="0" width="36" height="40" class="cell"/><text x="54" y="26" class="text-val">a</text>
+                            <rect x="72" y="0" width="36" height="40" class="cell"/><text x="90" y="26" class="text-val">b</text>
+                            
+                            <rect x="108" y="0" width="36" height="40" class="cell-c"/><text x="126" y="26" class="text-val">c</text>
+                            <rect x="144" y="0" width="36" height="40" class="cell-c"/><text x="162" y="26" class="text-val" fill="var(--highlight)">4</text>
+                            
+                            <rect x="180" y="0" width="36" height="40" class="cell-d"/><text x="198" y="26" class="text-val">d</text>
+                            <rect x="216" y="0" width="36" height="40" class="cell-d"/><text x="234" y="26" class="text-val" fill="var(--primary)">3</text>
+                            
+                            <rect x="252" y="0" width="36" height="40" class="cell"/><text x="270" y="26" class="text-val">e</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="info-panel">
+                    <div class="card" style="border-left-color: var(--highlight);">
+                        <h3 style="color: var(--highlight);">このアルゴリズムの注意点（圧縮ルール）</h3>
+                        <p>このプログラムは、文字の連続回数によって出力を切り替えます。</p>
+                        <ul>
+                            <li><b>3文字以上の連続：</b><br>「文字」＋「連続数（数字）」に圧縮します。<br><span style="color:#94a3b8">例： c,c,c,c → c, 4</span></li>
+                            <li><b>2文字の連続（特例）：</b><br>圧縮せず、そのまま2文字を出力します。（圧縮しても長さが変わらないため）<br><span style="color:#94a3b8">例： a,a → a, a</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>処理の流れ（概要）</h3>
+                        <p>配列 a の先頭から1文字ずつ確認し、<b>「基準となる文字（i）」</b>と<b>「次に続く文字（k）」</b>を比較します。同じ文字が続く限りカウントアップ（n）を続け、違う文字が出現した時点で、カウント数に応じた書き込みを配列 b に行います。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">配列内の同一文字の連続を見つけ出し、文字数を減らす「ランレングス圧縮」の考え方です。</div>
+        </div>
+    </div>
+
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num" style="background:var(--accent)">核心</span>
+                <h1>練習73：連続カウントの詳細ステップ（cが4つ連続する場合）</h1>
+            </div>
+
+            <div class="content-grid-slide2">
+                <div class="info-panel" style="justify-content: flex-start; gap: 15px;">
+                    <div class="card" style="padding: 15px;">
+                        <h3 style="font-size: 16px; margin-bottom: 5px;">登場する変数の役割</h3>
+                        <ul style="font-size: 14px; margin:0; padding-left: 15px;">
+                            <li><b>i</b> : 基準となる文字の場所</li>
+                            <li><b>k</b> : 次の文字を調べる探索ポインタ</li>
+                            <li><b>n</b> : 連続している文字のカウント数</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-block"><span class="code-comment">// i=4 ('c'開始) 時の処理</span>
+n ← 1 
+<span class="hl-accent">k ← i + 1</span> <span class="code-comment">// 次から調査</span>
+while ( k ≦ m and
+       <span class="hl-accent">a[ k ] = a[ i ]</span> )
+　<span class="hl-accent">n ← n + 1</span>
+　k ← k + 1
+endwhile</div>
+
+                    <div class="card" style="border-left-color: var(--primary); padding: 15px; background: #f0fdfa;">
+                        <h3 style="color: var(--primary); font-size: 16px;">ループ終了後のジャンプ</h3>
+                        <p style="font-size: 14px;">
+                            調べ終わった文字をスキップするため、<b>i ← k</b> と一気にジャンプします.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step-grid">
+                    <div class="step-card">
+                        <h3>STEP 1: 探索の準備</h3>
+                        <svg width="100%" height="75" viewBox="0 0 240 80">
+                            <rect x="10" y="10" width="40" height="36" class="cell-c"/><text x="30" y="35" class="text-val">c</text><text x="30" y="62" class="text-idx-center" fill="var(--primary)">i=4</text>
+                            <rect x="50" y="10" width="40" height="36" class="cell-c"/><text x="70" y="35" class="text-val">c</text><text x="70" y="62" class="text-idx-center" fill="var(--accent)">k=5</text>
+                            <rect x="90" y="10" width="40" height="36" class="cell-c"/><text x="110" y="35" class="text-val">c</text>
+                            <rect x="130" y="10" width="40" height="36" class="cell-c"/><text x="150" y="35" class="text-val">c</text>
+                            <rect x="170" y="10" width="40" height="36" class="cell"/><text x="190" y="35" class="text-val">d</text>
+                        </svg>
+                        <div class="var-panel">
+                            <span class="var-item">n = <span class="var-val n">1</span></span>
+                            <span class="var-item">k = <span class="var-val k">5</span></span>
+                        </div>
+                        <p class="step-desc">まず <b>k ← i + 1</b> とし、a[5] と a[4] の比較を始めます.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <h3>STEP 2: 1回目の一致</h3>
+                        <svg width="100%" height="75" viewBox="0 0 240 80">
+                            <rect x="10" y="10" width="40" height="36" class="cell-c" opacity="0.4"/><text x="30" y="35" class="text-val">c</text>
+                            <rect x="50" y="10" width="40" height="36" class="cell-c"/><text x="70" y="35" class="text-val">c</text>
+                            <rect x="90" y="10" width="40" height="36" class="cell-c"/><text x="110" y="35" class="text-val">c</text><text x="110" y="62" class="text-idx-center" fill="var(--accent)">k=6</text>
+                            <rect x="130" y="10" width="40" height="36" class="cell-c"/><text x="150" y="35" class="text-val">c</text>
+                            <rect x="170" y="10" width="40" height="36" class="cell"/><text x="190" y="35" class="text-val">d</text>
+                            <path d="M70 10 Q 90 -5 110 10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrA)"/>
+                        </svg>
+                        <div class="var-panel">
+                            <span class="var-item">n = <span class="var-val n">2</span></span>
+                            <span class="var-item">k = <span class="var-val k">6</span></span>
+                        </div>
+                        <p class="step-desc">等しいので <b>n ← n + 1</b> とし、kを次(6)へ進めます.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <h3>STEP 3: 2回目の一致</h3>
+                        <svg width="100%" height="75" viewBox="0 0 240 80">
+                            <rect x="10" y="10" width="80" height="36" class="cell-c" opacity="0.3"/>
+                            <rect x="90" y="10" width="40" height="36" class="cell-c"/><text x="110" y="35" class="text-val">c</text>
+                            <rect x="130" y="10" width="40" height="36" class="cell-c"/><text x="150" y="35" class="text-val">c</text><text x="150" y="62" class="text-idx-center" fill="var(--accent)">k=7</text>
+                            <rect x="170" y="10" width="40" height="36" class="cell"/><text x="190" y="35" class="text-val">d</text>
+                            <path d="M110 10 Q 130 -5 150 10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrA)"/>
+                        </svg>
+                        <div class="var-panel">
+                            <span class="var-item">n = <span class="var-val n">3</span></span>
+                            <span class="var-item">k = <span class="var-val k">7</span></span>
+                        </div>
+                        <p class="step-desc">等しいので <b>n ← n + 1</b> とし、kを次(7)へ進めます.</p>
+                    </div>
+
+                    <div class="step-card" style="border-left-color: #dc2626;">
+                        <h3>STEP 4: ループ終了</h3>
+                        <svg width="100%" height="75" viewBox="0 0 240 80">
+                            <rect x="10" y="10" width="120" height="36" class="cell-c" opacity="0.2"/>
+                            <rect x="130" y="10" width="40" height="36" class="cell-c"/><text x="150" y="35" class="text-val">c</text>
+                            <rect x="170" y="10" width="40" height="36" class="cell"/><text x="190" y="35" class="text-val">d</text><text x="190" y="62" class="text-idx-center" fill="#dc2626">k=8</text>
+                            <path d="M150 10 Q 170 -5 190 10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrA)"/>
+                        </svg>
+                        <div class="var-panel">
+                            <span class="var-item">n = <span class="var-val n" style="box-shadow: 0 2px 5px rgba(220,38,38,0.15);">4</span></span>
+                            <span class="var-item">k = <span class="var-val k" style="border-color:#dc2626; color:#dc2626; box-shadow: 0 2px 5px rgba(220,38,38,0.15);">8</span></span>
+                        </div>
+                        <p class="step-desc" style="background:#fef2f2;">a[7]で <b>n=4</b> とした後、k=8 になります.a[8] は 'd' で不一致となるため、ここで while を抜けます.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer" style="background:#fffbeb; border-left-color:var(--accent); color:#b45309;">
+                whileループが終わった時点で、n には正確な連続文字数(4)が格納され、k は「次の異なる文字」の場所(8)を指しています.
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num" style="background:#ef4444;">解説</span>
+                <h1>練習73：配列bへの書き込みと「空欄３」の正体</h1>
+            </div>
+
+            <div class="content-grid" style="grid-template-columns: 380px 1fr; gap: 30px;">
+                
+                <div class="info-panel">
+                    <div class="card" style="border-left-color: #ef4444; padding: 12px 15px;">
+                        <h3 style="color: #ef4444; font-size: 16px;">「空欄３」が問うていること</h3>
+                        <p style="font-size: 14px;">カウントした変数 <code>n</code> の値をもとに、出力用配列 <code>b</code> にどう書き込むかの<b>条件分岐（if文）</b>がポイントです.</p>
+                    </div>
+
+                    <div class="code-block" style="font-size: 14px; padding: 12px 15px;"><span class="code-comment">// 1文字目は必ず書き込む</span>
+b[ j ] ← a[ i ]
+j ← j + 1
+
+if ( n ≧ 3 )
+  <span class="code-comment">// 3文字以上なら数字を書き込む</span>
+  b[ j ] ← n
+  j ← j + 1
+elseif ( n = 2 )
+  <span class="code-comment">// 2文字の時はそのままもう1文字</span>
+  <span class="blank-badge">空欄 3</span>
+  j ← j + 1
+endif</div>
+
+                    <div class="card" style="background: #fef2f2; border:none; padding: 12px 15px;">
+                        <p style="color: #991b1b; font-weight: bold; font-size: 14px; line-height: 1.5;">
+                            ルール：「2文字の連続は圧縮せずそのまま出力する」<br><br>
+                            つまり、もう一度同じ文字を配列 <code>b</code> に入れる必要があるため、正解は <code>b[ j ] ← a[ i ]</code> となります.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="visual-panel" style="background: transparent; border: none; padding: 0;">
+                    
+                    <div class="compare-row">
+                        <div class="compare-box">
+                            <h4 style="color: var(--highlight);">【 n ≧ 3 の場合 】 例：'c' が4連続</h4>
+                            
+                            <svg viewBox="0 0 260 210" style="width: 100%; height: auto; margin: auto 0;">
+                                <g transform="translate(45, 20)">
+                                    <text x="-40" y="25" class="text-idx" text-anchor="start">配列 a</text>
+                                    <text x="0" y="-10" class="text-idx" text-anchor="start">a[i]</text>
+                                    <rect x="0" y="0" width="40" height="40" class="cell-c"/><text x="20" y="26" class="text-val">c</text>
+                                    <rect x="40" y="0" width="40" height="40" class="cell-c"/><text x="60" y="26" class="text-val">c</text>
+                                    <rect x="80" y="0" width="40" height="40" class="cell-c"/><text x="100" y="26" class="text-val">c</text>
+                                    <rect x="120" y="0" width="40" height="40" class="cell-c"/><text x="140" y="26" class="text-val">c</text>
+                                    <path d="M0 -5 L160 -5" stroke="var(--highlight)" stroke-width="2" stroke-dasharray="4"/>
+                                    <text x="80" y="-12" class="text-idx-center" fill="var(--highlight)">n = 4</text>
+
+                                    <path d="M20 45 L20 100" class="arrow-line" marker-end="url(#arr)"/>
+                                    <text x="28" y="77" class="text-idx" text-anchor="start">b[j] ← a[i]</text>
+
+                                    <path d="M100 45 L100 100" class="arrow-line" stroke="var(--highlight)" marker-end="url(#arrH)"/>
+                                    <text x="108" y="77" class="text-idx" text-anchor="start" fill="var(--highlight)">b[j] ← n</text>
+
+                                    <text x="-40" y="130" class="text-idx" text-anchor="start">配列 b</text>
+                                    <rect x="0" y="105" width="40" height="40" class="cell-c"/><text x="20" y="131" class="text-val">c</text>
+                                    <text x="20" y="162" class="text-idx-center">j</text>
+
+                                    <rect x="80" y="105" width="40" height="40" class="cell-c"/><text x="100" y="141" class="text-val" fill="var(--highlight)">4</text>
+                                    <text x="100" y="172" class="text-idx-center">j+1</text>
+                                </g>
+                            </svg>
+                        </div>
+
+                        <div class="compare-box" style="border-color: #ef4444; border-width: 3px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                            <h4 style="color: #ef4444; background: #fee2e2;">【 n = 2 の場合 】 例：'a' が2連続</h4>
+                            
+                            <svg viewBox="0 0 260 210" style="width: 100%; height: auto; margin: auto 0;">
+                                <g transform="translate(45, 20)">
+                                    <text x="-40" y="25" class="text-idx" text-anchor="start">配列 a</text>
+                                    <text x="0" y="-10" class="text-idx" text-anchor="start">a[i]</text>
+                                    <rect x="0" y="0" width="40" height="40" class="cell-a"/><text x="20" y="26" class="text-val">a</text>
+                                    <rect x="40" y="0" width="40" height="40" class="cell-a"/><text x="60" y="26" class="text-val">a</text>
+                                    <rect x="80" y="0" width="40" height="40" class="cell" stroke-dasharray="2"/><text x="100" y="26" class="text-val" fill="#94a3b8">b</text>
+                                    
+                                    <path d="M0 -5 L80 -5" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4"/>
+                                    <text x="40" y="-12" class="text-idx-center" fill="var(--accent)">n = 2</text>
+
+                                    <path d="M20 45 L20 100" class="arrow-line" marker-end="url(#arr)"/>
+                                    <text x="28" y="77" class="text-idx" text-anchor="start">b[j] ← a[i]</text>
+
+                                    <path d="M60 45 L60 100" class="arrow-line" stroke="#ef4444" marker-end="url(#arrR)"/>
+                                    
+                                    <rect x="68" y="61" width="90" height="22" rx="4" class="cell-blank"/>
+                                    <text x="76" y="77" class="text-idx" text-anchor="start" fill="#ef4444">b[j] ← a[i]</text>
+
+                                    <text x="-40" y="130" class="text-idx" text-anchor="start">配列 b</text>
+                                    <rect x="0" y="105" width="40" height="40" class="cell-a"/><text x="20" y="131" class="text-val">a</text>
+                                    <text x="20" y="162" class="text-idx-center">j</text>
+
+                                    <rect x="40" y="105" width="40" height="40" class="cell-a"/><text x="60" y="131" class="text-val" fill="#ef4444">a</text>
+                                    <text x="60" y="162" class="text-idx-center">j+1</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="footer" style="background:#fef2f2; border-left-color:#ef4444; color:#991b1b;">
+                圧縮によってデータ長が変わらない（むしろ増えてしまう）ケースを回避するための「特例ルール」が正しく実装されているかが問われる問題です.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+        <marker id="arrP" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker>
+        <marker id="arrH" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ec4899"/></marker>
+        <marker id="arrA" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/></marker>
+        <marker id="arrR" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/></marker>
+    </defs>
+</svg>
+
+</body>
+</html>

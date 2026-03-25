@@ -1,0 +1,190 @@
+<div style="background-color: #f1f5f9; padding: 20px; border-radius: 12px; font-family: sans-serif;">
+    <style>
+        .step-container { margin-bottom: 20px; background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .step-label { font-weight: 800; color: #3b82f6; border-bottom: 2px solid #3b82f6; display: inline-block; margin-bottom: 10px; }
+        .cell { fill: #fff; stroke: #475569; stroke-width: 2; }
+        .cell-l { fill: #dbeafe; stroke: #3b82f6; stroke-width: 2; }
+        .cell-i { fill: #fce7f3; stroke: #ec4899; stroke-width: 2; }
+        .cell-match { fill: #fef3c7; stroke: #f59e0b; stroke-width: 2; }
+        .cell-output { fill: #10b981; stroke: #059669; stroke-width: 2; }
+        .txt { font-size: 18px; font-weight: bold; text-anchor: middle; fill: #1e293b; }
+        .txt-sm { font-size: 12px; text-anchor: middle; fill: #64748b; font-weight: bold; }
+        .arrow { stroke: #94a3b8; stroke-width: 2; fill: none; }
+    </style>
+
+    <div class="step-container">
+        <div class="step-label">STEP 1: 第1階層開始 (l=1, i=1)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[1]とc[1]を交換（'a'を1番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-match"/><text x="30" y="37" class="txt">a</text><text x="30" y="58" class="txt-sm">l, i</text>
+            <rect x="50" y="10" width="40" height="40" class="cell"/><text x="70" y="37" class="txt">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 2: 第2階層 (l=2, i=2)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[2]とc[2]を交換（'b'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-match"/><text x="70" y="37" class="txt">b</text><text x="70" y="58" class="txt-sm">l, i</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 3: 第3階層 (l=3) ＝ 出力 1/6</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">l=r(3)のため、現在の配列を出力して戻る。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">c</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [a, b, c]</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 4: 第2階層へ復帰 (l=2, i=3)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[3]とc[2]を交換（'c'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-l"/><text x="70" y="37" class="txt">c</text><text x="70" y="58" class="txt-sm">l</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-i"/><text x="110" y="37" class="txt">b</text><text x="110" y="58" class="txt-sm">i</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 5: 第3階層 (l=3) ＝ 出力 2/6</div>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">c</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">b</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [a, c, b]</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 6: バックトラック (l=2終了)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[3]とc[2]を再度交換し、元の[a, b, c]に戻してl=1へ戻る。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell"/><text x="30" y="37" class="txt">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell"/><text x="70" y="37" class="txt">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 7: 第1階層続き (l=1, i=2)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[2]とc[1]を交換（'b'を1番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-l"/><text x="30" y="37" class="txt">b</text><text x="30" y="58" class="txt-sm">l</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-i"/><text x="70" y="37" class="txt">a</text><text x="70" y="58" class="txt-sm">i</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 8: 第2階層 (l=2, i=2)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[2]とc[2]を交換（'a'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">b</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-match"/><text x="70" y="37" class="txt">a</text><text x="70" y="58" class="txt-sm">l, i</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 9: 出力 3/6</div>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">b</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">a</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">c</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [b, a, c]</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 10: 第2階層 (l=2, i=3)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[3]とc[2]を交換（'c'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">b</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-l"/><text x="70" y="37" class="txt">c</text><text x="70" y="58" class="txt-sm">l</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-i"/><text x="110" y="37" class="txt">a</text><text x="110" y="58" class="txt-sm">i</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 11: 出力 4/6</div>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">b</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">c</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">a</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [b, c, a]</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 12: バックトラック (l=1へ戻る)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">第2階層を復元し、さらに第1階層でc[2]とc[1]を交換して元の[a, b, c]に一旦戻る。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell"/><text x="30" y="37" class="txt">a</text>
+            <rect x="50" y="10" width="40" height="40" class="cell"/><text x="70" y="37" class="txt">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">c</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 13: 第1階層続き (l=1, i=3)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[3]とc[1]を交換（'c'を1番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-l"/><text x="30" y="37" class="txt">c</text><text x="30" y="58" class="txt-sm">l</text>
+            <rect x="50" y="10" width="40" height="40" class="cell"/><text x="70" y="37" class="txt">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-i"/><text x="110" y="37" class="txt">a</text><text x="110" y="58" class="txt-sm">i</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 14: 第2階層 (l=2, i=2)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[2]とc[2]を交換（'b'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">c</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-match"/><text x="70" y="37" class="txt">b</text><text x="70" y="58" class="txt-sm">l, i</text>
+            <rect x="90" y="10" width="40" height="40" class="cell"/><text x="110" y="37" class="txt">a</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 15: 出力 5/6</div>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">c</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">b</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">a</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [c, b, a]</text>
+        </svg>
+    </div>
+
+    <div class="step-container">
+        <div class="step-label">STEP 16: 第2階層 (l=2, i=3)</div>
+        <p style="font-size: 14px; margin: 0 0 10px 0;">c[3]とc[2]を交換（'a'を2番目に固定）。</p>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell" style="fill:#f8fafc;"/><text x="30" y="37" class="txt" style="fill:#94a3b8;">c</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-l"/><text x="70" y="37" class="txt">a</text><text x="70" y="58" class="txt-sm">l</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-i"/><text x="110" y="37" class="txt">b</text><text x="110" y="58" class="txt-sm">i</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="border-left: 5px solid #10b981;">
+        <div class="step-label" style="color:#10b981;">STEP 17: 出力 6/6</div>
+        <svg width="300" height="60" viewBox="0 0 300 60">
+            <rect x="10" y="10" width="40" height="40" class="cell-output"/><text x="30" y="37" class="txt" fill="white">c</text>
+            <rect x="50" y="10" width="40" height="40" class="cell-output"/><text x="70" y="37" class="txt" fill="white">a</text>
+            <rect x="90" y="10" width="40" height="40" class="cell-output"/><text x="110" y="37" class="txt" fill="white">b</text>
+            <text x="180" y="37" class="txt" fill="#10b981">-> [c, a, b]</text>
+        </svg>
+    </div>
+
+    <div class="step-container" style="background-color: #f8fafc;">
+        <div class="step-label" style="color:#64748b;">STEP 18: 全処理完了</div>
+        <p style="font-size: 14px; margin: 0;">すべてのバックトラックが完了し、最初の呼び出し元に戻ります。</p>
+    </div>
+</div>

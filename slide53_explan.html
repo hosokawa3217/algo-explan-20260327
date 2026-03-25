@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習53：ハッシュ法と衝突回避（オープンアドレス法）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #8b5cf6; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #f5f3ff; border: 2px dashed #8b5cf6; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .info-label { font-size: 18px; font-weight: 900; color: #6d28d9; }
+        .info-desc { font-weight: 700; color: #374151; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 10px; }
+        
+        /* 最終判定パネル用の強調スタイル */
+        .grid-item-final { background-color: #f0f9ff; border: 2px solid #3b82f6; }
+
+        svg { width: 100%; height: 200px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #1e3a8a; font-size: 17px; text-anchor: middle; }
+        .title-underline { stroke: #8b5cf6; stroke-width: 2; }
+        
+        /* 図形要素のスタイル定義 */
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-focus { fill: #f5f3ff; stroke: #8b5cf6; stroke-width: 3; }
+        .node-collision { fill: #fee2e2; stroke: #ef4444; stroke-width: 2; stroke-dasharray: 4; }
+        
+        .val-text { font-size: 16px; fill: #111827; text-anchor: middle; }
+        .index-text { font-size: 12px; fill: #6b7280; text-anchor: middle; }
+        .ptr-label { font-size: 13px; font-weight: 900; text-anchor: middle; }
+        .formula-text { font-size: 16px; font-weight: 900; fill: #7c3aed; text-anchor: middle; }
+        .result-text { font-size: 15px; font-weight: 900; fill: #374151; text-anchor: middle; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #5b21b6; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習53：ハッシュ法と衝突回避（オープンアドレス法）</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="info-label">核心：</div>
+        <div class="info-desc">ハッシュ値で即座にアクセスし、衝突時は空きが見つかるまで隣（循環あり）を探索する。</div>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">① 基本：データから格納位置を算出</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">data mod 100 + 1 ➡ 直接添字(h)を決定</text>
+                
+                <g transform="translate(100, 80)">
+                    <rect x="0" y="0" width="300" height="70" rx="8" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2" />
+                    <text x="150" y="25" class="ptr-label" fill="#6d28d9">ハッシュ関数</text>
+                    <text x="150" y="52" class="formula-text" style="font-size:22px">h ← hash( data )</text>
+                </g>
+                <text x="250" y="185" class="formula-text">理想的な探索効率は O(1)</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">② 衝突：既にデータがある場合の回避</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">別の値があれば空きを求めて隣へ移動</text>
+
+                <g transform="translate(100, 90)">
+                    <rect class="node-collision" x="0" y="20" width="75" height="40" rx="4" />
+                    <text x="37.5" y="46" class="val-text">既設</text>
+                    <text x="37.5" y="75" class="index-text">h</text>
+                    <text x="37.5" y="48" fill="#ef4444" font-size="28px" opacity="0.5" text-anchor="middle">×</text>
+
+                    <rect class="node-focus" x="120" y="20" width="75" height="40" rx="4" />
+                    <text x="157.5" y="46" class="val-text">探索中</text>
+                    <text x="157.5" y="75" class="index-text">h+1</text>
+                    
+                    <path d="M 40 15 Q 80 -15 120 15" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow-purple)" />
+                </g>
+                <text x="250" y="185" class="formula-text">オープンアドレス法（線形探索）</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">③ 循環：末尾に達したら先頭へ戻る</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">100の次は1に戻り、全域を網羅する</text>
+
+                <g transform="translate(80, 90)">
+                    <rect class="node-focus" x="0" y="20" width="65" height="40" rx="4" /><text x="32.5" y="46" class="val-text">100</text>
+                    <rect class="node-rect" x="180" y="20" width="65" height="40" rx="4" /><text x="212.5" y="46" class="val-text">1</text>
+                    
+                    <path d="M 35 15 Q 105 -25 175 15" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4" fill="none" marker-end="url(#arrow-purple)" />
+                    <text x="105" y="-5" class="ptr-label" fill="#8b5cf6">循環</text>
+                </g>
+                <text x="250" y="185" class="formula-text" style="font-size:18px">h ← hash( h + 1 )</text>
+            </svg>
+        </div>
+
+        <div class="grid-item grid-item-final">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text" style="fill: #1e3a8a;">④ 判定：探索回数が上限以内か</text>
+                <line x1="130" y1="32" x2="370" y2="32" class="title-underline" style="stroke: #3b82f6;" />
+                <text x="250" y="55" class="result-text">一周（n回）以内に見つかったかを判定</text>
+
+                <g transform="translate(100, 80)">
+                    <rect x="0" y="0" width="300" height="65" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="2" />
+                    <text x="150" y="28" class="ptr-label" fill="#1e40af">ループ後の成否チェック</text>
+                    <text x="150" y="52" class="formula-text" style="font-size: 20px; fill: #1e40af;">空欄(2): i ≤ n</text>
+                </g>
+                <text x="250" y="185" class="result-text" style="fill: #1e40af;">YES ➡ 発見 / NO ➡ 配列に存在せず</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        ハッシュ法＋オープンアドレス法：効率的な計算と、漏れのない再探索の組み合わせ。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-purple" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+            </marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習57：交換法（改良版・打ち切り判定）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #f59e0b; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .info-label { font-size: 18px; font-weight: 900; color: #b45309; }
+        .info-desc { font-weight: 700; color: #1e293b; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 10px; }
+
+        svg { width: 100%; height: 200px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #1e3a8a; font-size: 17px; text-anchor: middle; }
+        .title-underline { stroke: #f59e0b; stroke-width: 2; }
+        
+        /* 改良バブルソート用スタイル */
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-active { fill: #fffbeb; stroke: #f59e0b; stroke-width: 3; }
+        .node-check { fill: #f0fdf4; stroke: #22c55e; stroke-width: 2; }
+        
+        .val-text { font-size: 16px; fill: #111827; text-anchor: middle; }
+        .ptr-label { font-size: 13px; font-weight: 900; }
+        .formula-text { font-size: 16px; font-weight: 900; fill: #d97706; text-anchor: middle; }
+        .result-text { font-size: 14px; font-weight: 900; fill: #334155; text-anchor: middle; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #92400e; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習57：交換法（改良版：打ち切り判定の導入）</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="info-label">改良点：</div>
+        <div class="info-desc">「1周して一度も交換がなければ終了」というフラグ管理で、無駄なループを劇的に削減。</div>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">① 初期化：各周の開始時にフラグを倒す</text>
+                <line x1="100" y1="32" x2="400" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">内側ループの直前で flg を 0（交換なし）にする</text>
+                <g transform="translate(100, 80)">
+                    <rect x="0" y="0" width="300" height="60" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="2" />
+                    <text x="150" y="38" class="formula-text" style="font-size:22px">flg ← 0</text>
+                    <text x="150" y="75" class="ptr-label" fill="#b45309" text-anchor="middle">「交換なし」と仮定してスタート</text>
+                </g>
+                <text x="250" y="185" class="formula-text">この後の走査で交換を監視する準備</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">② 更新：交換が発生したらフラグを立てる</text>
+                <line x1="100" y1="32" x2="400" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">逆順を見つけたら「まだ整列が必要」と記録</text>
+                <g transform="translate(140, 85)">
+                    <rect class="node-active" x="0" y="0" width="55" height="40" rx="4" /><text x="27.5" y="26" class="val-text">30</text>
+                    <rect class="node-active" x="65" y="0" width="55" height="40" rx="4" /><text x="92.5" y="26" class="val-text">10</text>
+                    <path d="M 27.5 -10 Q 60 -35 92.5 -10" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrow-orange)" />
+                    <text x="-5" y="-20" class="ptr-label" style="fill: #d97706; text-anchor: end;">空欄(1): flg ← 1</text>
+                    <text x="60" y="60" class="ptr-label" fill="#ef4444" text-anchor="middle">交換アリ！</text>
+                </g>
+                <text x="250" y="185" class="formula-text" style="color:#b45309">一度でも 1 になれば次周へ続く</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">③ 判定：フラグが 0 のままなら脱出</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">while ( i > 1 ) and ( flg == 1 )</text>
+                <g transform="translate(100, 90)">
+                    <rect class="node-check" x="0" y="0" width="140" height="50" rx="8" />
+                    <text x="70" y="30" class="result-text" fill="#15803d">flg == 1</text>
+                    <text x="70" y="65" class="ptr-label" fill="#15803d" text-anchor="middle">継続（まだ交換中）</text>
+                    
+                    <rect class="node-rect" x="160" y="0" width="140" height="50" rx="8" stroke="#ef4444" stroke-width="2" />
+                    <text x="230" y="30" class="result-text" fill="#ef4444">flg == 0</text>
+                    <text x="230" y="65" class="ptr-label" fill="#ef4444" text-anchor="middle">終了（整列完了！）</text>
+                </g>
+                <text x="250" y="185" class="formula-text">データの並びに応じた動的な最適化</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">④ 特徴：整列済みデータに無敵の速さ</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">既に並んでいる場合、たった1回の走査で終了</text>
+                <g transform="translate(80, 100)">
+                    <rect class="node-rect" x="0" y="0" width="45" height="40" rx="4" /><text x="22.5" y="26" class="val-text">1</text>
+                    <rect class="node-rect" x="55" y="0" width="45" height="40" rx="4" /><text x="77.5" y="26" class="val-text">2</text>
+                    <rect class="node-rect" x="110" y="0" width="45" height="40" rx="4" /><text x="132.5" y="26" class="val-text">3</text>
+                    <rect class="node-rect" x="165" y="0" width="45" height="40" rx="4" /><text x="187.5" y="26" class="val-text">4</text>
+                    <rect class="node-rect" x="220" y="0" width="45" height="40" rx="4" /><text x="242.5" y="26" class="val-text">5</text>
+                    
+                    <path d="M 20 50 L 250 50" stroke="#22c55e" stroke-width="4" stroke-dasharray="8" />
+                    <text x="135" y="80" class="ptr-label" fill="#15803d" text-anchor="middle">走査1回目：一度も交換なし ➡ 即終了！</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        打ち切り判定付き交換法：状況を「監視」し、不要な手間を省く賢いアルゴリズム。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-orange" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

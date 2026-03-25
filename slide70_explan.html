@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習74：順列生成 完全解説スライド</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #059669;
+            --accent: #d97706;
+            --backtrack: #dc2626;
+            --bg-gray: #f1f5f9;
+            --border: #94a3b8;
+            --text-main: #000000;
+        }
+
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", "Meiryo", sans-serif; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        
+        .slide { 
+            width: 1280px; height: 850px; background: white; padding: 30px; box-sizing: border-box;
+            display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .header { border-bottom: 4px solid var(--primary); padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; }
+        .problem-no { font-size: 22px; font-weight: bold; color: var(--primary); margin-right: 10px; }
+        .page-num { background: var(--primary); color: white; padding: 4px 15px; border-radius: 4px; margin-right: 15px; font-weight: bold; font-size: 20px; }
+        h1 { font-size: 26px; margin: 0; color: #1e293b; flex-grow: 1; }
+
+        /* 1-2P: 3x3 Grid */
+        .step-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 12px; flex-grow: 1; }
+        .step-box { background: #ffffff; border-radius: 6px; border: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+        .step-title { font-size: 14px; font-weight: 800; color: var(--primary); border-bottom: 1px solid #e2e8f0; margin-bottom: 5px; }
+        .step-desc { font-size: 15px; color: var(--text-main); font-weight: 600; line-height: 1.4; } /* フォントサイズ+2、ウェイト微増 */
+
+        /* SVG Utils */
+        .svg-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; }
+        .cell { fill: white; stroke: #334155; stroke-width: 1.5; }
+        .cell-fixed { fill: #dbeafe; stroke: var(--primary); stroke-width: 2; }
+        .cell-i { fill: #fce7f3; stroke: #ec4899; stroke-width: 2; }
+        .cell-match { fill: #fef3c7; stroke: var(--accent); stroke-width: 2; }
+        .cell-out { fill: var(--success); stroke: #064e3b; stroke-width: 1.5; }
+        .txt-val { font-size: 18px; font-weight: bold; text-anchor: middle; fill: #000; dominant-baseline: central; }
+        .txt-label { font-size: 11px; text-anchor: middle; fill: #475569; font-weight: bold; }
+
+        /* 4P Layout (75:25) */
+        .logic-container { display: grid; grid-template-columns: 75% 25%; gap: 20px; flex-grow: 1; margin-top: 10px; }
+        .code-area { background: #1e293b; color: #f8fafc; padding: 30px; border-radius: 12px; font-family: "Cascadia Code", "Courier New", monospace; font-size: 18px; line-height: 1.8; overflow: auto; }
+        .comment { color: #94a3b8; font-style: italic; margin-left: 20px; font-size: 16px; }
+        .highlight-pink { color: #f472b6; font-weight: bold; border: 1px dashed #f472b6; padding: 2px 4px; }
+        
+        .footer { margin-top: 15px; padding: 10px 20px; background: #eff6ff; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--primary); border-left: 5px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="problem-no">練習74</span><span class="page-num">1</span><h1>順列生成トレース：STEP 1～9</h1></div>
+            <div class="step-grid">
+                <div class="step-box"><div class="step-title">STEP 1 (l=1, i=1)</div><div class="step-desc">'a'を1番目に固定</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell-match"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">l, i</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">b</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 2 (l=2, i=2)</div><div class="step-desc">'b'を2番目に固定。</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">a</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-match"/><text x="20" y="20" class="txt-val">b</text><text x="20" y="55" class="txt-label">l, i</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 3 (l=3)</div><div class="step-desc">出力 1：[a, b, c]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">a, b, c</text></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 4 (l=2, i=3)</div><div class="step-desc">'c'を2番目に交換(b⇔c)　</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">a</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-fixed"/><text x="20" y="20" class="txt-val">c</text><text x="20" y="55" class="txt-label">l</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell-i"/><text x="20" y="20" class="txt-val">b</text><text x="20" y="55" class="txt-label">i</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 5 (l=3)</div><div class="step-desc">出力 2：[a, c, b]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">a, c, b</text></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--backtrack);"><div class="step-title" style="color:var(--backtrack)">STEP 6 (Backtrack)</div><div class="step-desc">元に戻し、l=1へ。</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">a</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">b</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 7 (l=1, i=2)</div><div class="step-desc">'b'を1番目に固定(a⇔b)　</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell-fixed"/><text x="20" y="20" class="txt-val">b</text><text x="20" y="55" class="txt-label">l</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-i"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">i</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 8 (l=2, i=2)</div><div class="step-desc">'a'を2番目に固定。</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">b</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-match"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">l, i</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 9 (l=3)</div><div class="step-desc">出力 3：[b, a, c]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">b, a, c</text></svg></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="problem-no">練習74</span><span class="page-num">2</span><h1>順列生成トレース：STEP 10～18</h1></div>
+            <div class="step-grid">
+                <div class="step-box"><div class="step-title">STEP 10 (l=2, i=3)</div><div class="step-desc">'c'を2番目に固定(a⇔c)　</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">b</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-fixed"/><text x="20" y="20" class="txt-val">c</text><text x="20" y="55" class="txt-label">l</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell-i"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">i</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 11 (l=3)</div><div class="step-desc">出力 4：[b, c, a]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">b, c, a</text></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--backtrack);"><div class="step-title" style="color:var(--backtrack)">STEP 12 (Backtrack)</div><div class="step-desc">全体を初期状態に復帰。</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">a</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">b</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">c</text></g></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 13 (l=1, i=3)</div><div class="step-desc">'c'を1番目に固定(a⇔c)　</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell-fixed"/><text x="20" y="20" class="txt-val">c</text><text x="20" y="55" class="txt-label">l</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">b</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell-i"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">i</text></g></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 14 (l=2, i=2)</div><div class="step-desc">'b'を2番目に固定。</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">c</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-match"/><text x="20" y="20" class="txt-val">b</text><text x="20" y="55" class="txt-label">l, i</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell"/><text x="20" y="20" class="txt-val">a</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 15 (l=3)</div><div class="step-desc">出力 5：[c, b, a]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">c, b, a</text></svg></div></div>
+                <div class="step-box"><div class="step-title">STEP 16 (l=2, i=3)</div><div class="step-desc">'a'を2番目に固定(b⇔a)　</div>
+                    <div class="svg-container"><svg width="160" height="70"><g transform="translate(20,5)"><rect width="40" height="40" class="cell" fill="#f1f5f9"/><text x="20" y="20" class="txt-val" opacity="0.4">c</text></g><g transform="translate(60,5)"><rect width="40" height="40" class="cell-fixed"/><text x="20" y="20" class="txt-val">a</text><text x="20" y="55" class="txt-label">l</text></g><g transform="translate(100,5)"><rect width="40" height="40" class="cell-i"/><text x="20" y="20" class="txt-val">b</text><text x="20" y="55" class="txt-label">i</text></g></svg></div></div>
+                <div class="step-box" style="border: 2px solid var(--success);"><div class="step-title" style="color:var(--success)">STEP 17 (l=3)</div><div class="step-desc">出力 6：[c, a, b]</div>
+                    <div class="svg-container"><svg width="160" height="70"><rect x="20" y="5" width="120" height="40" rx="4" class="cell-out"/><text x="80" y="25" class="txt-val" fill="white">c, a, b</text></svg></div></div>
+                <div class="step-box" style="background:#f1f5f9;"><div class="step-title" style="color:#64748b;">STEP 18</div><div class="step-desc" style="text-align:center;"><b>探索完了</b><br>3! = 6通りの順列を出力</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="problem-no">練習74</span><span class="page-num">3</span><h1>処理構造の俯瞰：再帰探索ツリー</h1></div>
+            <div class="svg-container">
+                <svg width="1000" height="600" viewBox="0 0 1000 600">
+                    <g stroke="#94a3b8" stroke-width="2" fill="none">
+                        <path d="M500 80 L200 220 M500 80 L500 220 M500 80 L800 220"/>
+                        <path d="M200 220 L120 400 M200 220 L280 400"/>
+                        <path d="M500 220 L420 400 M500 220 L580 400"/>
+                        <path d="M800 220 L720 400 M800 220 L880 400"/>
+                    </g>
+                    <g transform="translate(425,30)"><rect width="150" height="50" rx="5" class="cell" stroke-width="2"/><text x="75" y="25" class="txt-val">[a, b, c]</text><text x="75" y="-10" class="txt-label">l=1 (Root)</text></g>
+                    <g transform="translate(125,220)"><rect width="150" height="50" rx="5" class="cell-fixed"/><text x="75" y="25" class="txt-val">a固定 [b,c]</text></g>
+                    <g transform="translate(425,220)"><rect width="150" height="50" rx="5" class="cell-fixed"/><text x="75" y="25" class="txt-val">b固定 [a,c]</text></g>
+                    <g transform="translate(725,220)"><rect width="150" height="50" rx="5" class="cell-fixed"/><text x="75" y="25" class="txt-val">c固定 [b,a]</text></g>
+                    <g transform="translate(50,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">a, b, c</text></g>
+                    <g transform="translate(220,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">a, c, b</text></g>
+                    <g transform="translate(350,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">b, a, c</text></g>
+                    <g transform="translate(520,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">b, c, a</text></g>
+                    <g transform="translate(650,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">c, b, a</text></g>
+                    <g transform="translate(820,400)"><rect width="130" height="40" rx="20" class="cell-out"/><text x="65" y="20" class="txt-val" fill="white" font-size="14">c, a, b</text></g>
+                </svg>
+            </div>
+            <div class="footer">ツリーの深さが注目位置 $l$ に対応し、葉の部分で順列が完成します。</div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="problem-no">練習74</span><span class="page-num">4</span><h1>疑似言語の詳細解説と論理構成</h1></div>
+            <div class="logic-container">
+                <div class="code-area">
+<div style="margin-bottom:10px; color:#60a5fa;">○ permutation(c, n, l, r)</div>
+<div style="display:flex;"><span>if ( l == r )</span> <span class="comment">// 並べ替えの注目位置が右端に達したとき</span></div>
+<div style="display:flex;"><span style="margin-left:2em;">c[1] ~ c[n] を出力</span> <span class="comment">// 1つの順列が完成したので出力する</span></div>
+<div>else</div>
+<div style="display:flex;"><span style="margin-left:2em;">for ( i を l から r まで )</span> <span class="comment">// 未確定の範囲(l～r)から文字を選択</span></div>
+<div style="display:flex;"><span style="margin-left:4em; border-bottom:1px solid #d97706;">c[i] と c[l] を交換</span> <span class="comment">// 選択したi番目の文字を、位置 l に固定する</span></div>
+<div style="display:flex;"><span style="margin-left:4em;" class="highlight-pink">permutation(c, n, l + 1, r)</span> <span class="comment">// 次の注目位置(l+1)以降を再帰的に生成</span></div>
+<div style="display:flex;"><span style="margin-left:4em; border-bottom:1px solid #dc2626;">c[i] と c[l] を交換</span> <span class="comment">// 次のループに備え、交換した文字を元の位置に戻す</span></div>
+<div style="margin-left:2em;">endfor</div>
+<div>endif</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="border-left: 5px solid #10b981; padding-left: 10px;">
+                        <h4 style="margin:0; color:#059669;">出口の論理</h4>
+                        <p style="margin:5px 0; font-size:14px; color:#000;">$l=r$ で再帰が止まり、結果が得られます。</p>
+                    </div>
+                    <div style="border-left: 5px solid #d97706; padding-left: 10px;">
+                        <h4 style="margin:0; color:#d97706;">文字の選択</h4>
+                        <p style="margin:5px 0; font-size:14px; color:#000;">交換により、候補を順番に先頭(l)へ据えます。</p>
+                    </div>
+                    <div style="border-left: 5px solid #f472b6; padding-left: 10px;">
+                        <h4 style="margin:0; color:#f472b6;">空欄【 1 】</h4>
+                        <p style="margin:5px 0; font-size:14px; color:#000;">隣の位置を処理するため、引数は <b>l+1</b>。解答：<b>エ</b></p>
+                    </div>
+                    <div style="border-left: 5px solid #dc2626; padding-left: 10px;">
+                        <h4 style="margin:0; color:#dc2626;">バックトラック</h4>
+                        <p style="margin:5px 0; font-size:14px; color:#000;">元の状態に戻さないと、正しい順列が作れません。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

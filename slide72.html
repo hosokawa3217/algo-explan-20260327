@@ -2,201 +2,237 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習72：挿入ソート教材</title>
+    <title>練習72：文字置換のアルゴリズム（アップデート版）</title>
     <style>
-        /* ■ 1. 画面構成 (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            font-weight: 900;
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --accent: #f59e0b; /* タブ文字用 */
+            --space: #8b5cf6;  /* 空白文字用 */
+            --bg-gray: #f1f5f9;
+            --border: #cbd5e1;
+            --text-main: #1e293b;
         }
-        
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-gray);
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .viewport {
+            width: 100vw; height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport::-webkit-scrollbar { display: none; }
+
+        .slide-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; scroll-snap-align: start;
+        }
+
         .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 1280px; height: 850px; 
+            background-color: #ffffff; padding: 40px 60px; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         /* ヘッダー */
-        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
-        .title-group { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid var(--primary); padding-bottom: 15px; }
+        .title-num { background: var(--primary); color: white; padding: 6px 16px; border-radius: 4px; font-weight: 900; margin-right: 15px; font-size: 18px; }
+        h1 { font-size: 28px; margin: 0; color: var(--text-main); }
 
-        /* コンテンツエリア */
-        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
-        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
-        .left-content { flex: 0 0 62%; }
-        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+        /* レイアウト */
+        .content-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 30px; flex-grow: 1; align-items: stretch; margin-top: 10px; }
+        .visual-panel { background: #f8fafc; border: 2px solid var(--border); border-radius: 16px; padding: 25px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .info-panel { display: flex; flex-direction: column; gap: 15px; justify-content: center;}
 
-        /* 疑似言語表示 */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-            font-weight: 900;
-        }
-        b { font-weight: 900; }
-        .blank { color: #a52a2a; font-weight: 900; }
-        .correct { color: #ef4444; font-weight: 900; }
+        /* SVGスタイル */
+        svg { width: 100%; height: 100%; max-height: 600px; }
+        .cell { fill: #ffffff; stroke: #475569; stroke-width: 2; }
+        .cell-tab { fill: #fef3c7; stroke: var(--accent); stroke-width: 3; }
+        .cell-sp { fill: #f3e8ff; stroke: var(--space); stroke-width: 2; stroke-dasharray: 4; }
+        .cell-done { fill: #e2e8f0; stroke: #94a3b8; stroke-width: 1; }
+        .val-text { font-size: 22px; text-anchor: middle; font-weight: 900; fill: var(--text-main); }
+        .idx-text { font-size: 14px; fill: #64748b; text-anchor: middle; font-weight: bold; }
+        .label { font-size: 18px; font-weight: bold; fill: #334155; }
 
-        /* 説明用リスト */
-        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
-        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
+        /* カード・数式 */
+        .card { background: white; border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 8px 0; font-size: 18px; color: var(--primary); border-left: 5px solid var(--primary); padding-left: 10px; }
+        .card p { margin: 0; font-size: 15px; line-height: 1.6; color: #475569; }
+        .formula-box { background: #1e293b; color: white; padding: 15px; border-radius: 10px; text-align: center; }
+        .formula { font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; color: #fbbf24; margin-top: 5px; }
+        .code-block { background: #f1f5f9; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.7; color: #334155; border: 1px solid var(--border); }
+        .code-hl { background: #fef08a; font-weight: bold; display: inline-block; padding: 0 5px; border-radius: 3px;}
 
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
-            border-radius: 15px; width: 100%; margin-top: auto;
-        }
-        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
-        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
-
-        /* SVG共通設定 */
-        svg { 
-            width: 100%; height: auto; 
-            border: 2px solid #64748b; border-radius: 12px; 
-            background: #ffffff;
-        }
-        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
-        .box-tmp { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
-        .arrow-move { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
-        .arrow-insert { stroke: #ef4444; stroke-width: 4; fill: #ef4444; }
-        svg text { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+        .footer { margin-top: auto; padding: 15px; background: #eff6ff; border-left: 8px solid var(--primary); border-radius: 8px; font-weight: bold; color: #1e40af; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習72：挿入ソート（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">整列済みの部分に新しい要素を「適切な位置」へ挿入するプログラムを完成させよ。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-for ( <b>i</b> ← 1 to <b>n</b> - 1 )
-　　<b>tmp</b> ← <b>A[i]</b>
-　　<b>j</b> ← <b>i</b> - 1
-　　while ( <b>j</b> ≧ 0 and <span class="blank">【　　 1 　　】</span> )
-　　　　<b>A[j + 1]</b> ← <b>A[j]</b>
-　　　　<b>j</b> ← <b>j</b> - 1
-　　endwhile
-　　<b>A[j + 1]</b> ← <b>tmp</b>
-endfor</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="40" y="100" width="60" height="60" class="box" style="fill:#d1fae5"/><text x="70" y="130">3</text>
-                <rect x="100" y="100" width="60" height="60" class="box" style="fill:#d1fae5"/><text x="130" y="130">7</text>
-                <rect x="160" y="40" width="60" height="60" class="box-tmp" /><text x="190" y="70">5</text>
-                
-                <path d="M 190,110 L 190,150" class="arrow-move" marker-end="url(#m1)"/>
-                <path d="M 130,110 Q 160,140 190,110" class="arrow-move" stroke-dasharray="4"/>
-                <defs><marker id="m1" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
-                
-                <text x="200" y="240" font-size="22" fill="#3b82f6">自分より大きい値を</text>
-                <text x="200" y="275" font-size="22" fill="#3b82f6">1つ右へずらして道を作る</text>
-            </svg>
-        </div>
-    </div>
-</div>
+<div class="viewport">
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num">概要</span>
+                <h1>練習72：フォーマット変換と変数 last の役割</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 550 450">
+                        <text x="10" y="20" class="label">入力から出力への文字の写像（n=2の例）</text>
+                        
+                        <g transform="translate(20, 80)">
+                            <rect x="0" y="0" width="50" height="50" class="cell"/><text x="25" y="32" class="val-text">A</text><text x="25" y="-35" class="idx-text" fill="var(--primary)">i=1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell"/><text x="75" y="32" class="val-text">B</text><text x="75" y="-35" class="idx-text" fill="var(--primary)">2</text>
+                            <rect x="100" y="0" width="60" height="50" class="cell-tab"/><text x="130" y="32" class="val-text" fill="#b45309">tab</text><text x="130" y="-35" class="idx-text" fill="var(--primary)">3</text>
+                            <rect x="160" y="0" width="50" height="50" class="cell"/><text x="185" y="32" class="val-text">C</text><text x="185" y="-35" class="idx-text" fill="var(--primary)">4</text>
+                            
+                            <text x="240" y="30" class="label" font-size="16">← 配列 a (入力)</text>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習72：解説（要素の移動）</h1></div>
-        <div class="page-num">2/4</div>
-    </div>
-    <div class="problem-text">「ずらす」作業を繰り返すのはどのような時か？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>一時待避</b>：挿入したい値（<b>A[i]</b>）を <b>tmp</b> に預け、その場所を空ける。</li>
-                <li><b>右へ移動</b>：<b>tmp</b> より大きな値がある限り、その値を右（<b>j+1</b>）へコピーして隙間を左へ広げていく。</li>
-                <li><b>停止</b>：<b>tmp</b> 以下の値にぶつかるか、左端（<b>j < 0</b>）に達したら移動を止める。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="40" y="100" width="60" height="60" class="box" /><text x="70" y="130">7</text>
-                <rect x="100" y="100" width="60" height="60" class="box" style="stroke-dasharray:4"/><text x="130" y="130"></text>
-                <path d="M 75,130 L 125,130" class="arrow-move" marker-end="url(#m2)"/>
-                <defs><marker id="m2" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
-                
-                <text x="200" y="200" font-size="20" fill="#3b82f6">A[j+1] ← A[j]</text>
-                
-                <rect x="50" y="280" width="300" height="80" rx="10" fill="#f0f9ff" stroke="#3b82f6" stroke-width="2"/>
-                <text x="200" y="320" font-size="22">j を減らしながら左へ確認</text>
-            </svg>
-        </div>
-    </div>
-</div>
+                            <path d="M 0 -25 H 210" stroke="var(--primary)" stroke-width="2" opacity="0.5"/>
+                            <path d="M 210 -25 L 210 -5" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowP)" opacity="0.5"/>
+                        </g>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習72：解説（継続の条件）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">while文が「回り続ける」ための条件を考える。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>比較対象</b>：挿入したい値 <b>tmp</b> と、整列済みの要素 <b>A[j]</b> を比較する。</li>
-                <li><b>継続の判断</b>：左側の <b>A[j]</b> の方が <b>tmp</b> より大きい間は、まだ挿入位置ではないため「ずらし」を続ける。</li>
-                <li><b>条件式</b>：<b>A[j] ＞ tmp</b> が成立する間、ループは継続する。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="80" y="100" width="100" height="100" class="box" /><text x="130" y="150" font-size="40">7</text>
-                <rect x="220" y="100" width="100" height="100" class="box-tmp" /><text x="270" y="150" font-size="40">5</text>
-                
-                <text x="130" y="75" font-size="18">A[j]</text>
-                <text x="270" y="75" font-size="18">tmp</text>
+                        <g transform="translate(20, 130)">
+                            <path d="M 25 0 V 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                            <path d="M 75 0 V 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                            
+                            <path d="M 130 0 Q 130 50 100 100" stroke="var(--accent)" stroke-width="3" fill="none" marker-end="url(#arrowA)"/>
+                            <path d="M 130 0 Q 130 50 150 100" stroke="var(--accent)" stroke-width="3" fill="none" marker-end="url(#arrowA)"/>
+                            
+                            <path d="M 185 0 L 200 100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                        </g>
 
-                <text x="200" y="230" font-size="50" fill="#ef4444">＞</text>
-                <text x="200" y="310" font-size="22">A[j]の方が大きい？</text>
-                <text x="200" y="350" font-size="24" fill="#ef4444">YES → 右へずらして継続</text>
-            </svg>
-        </div>
-    </div>
-</div>
+                        <g transform="translate(20, 240)">
+                            <rect x="0" y="0" width="50" height="50" class="cell"/><text x="25" y="32" class="val-text">A</text><text x="25" y="70" class="idx-text" fill="var(--success)">1</text>
+                            <rect x="50" y="0" width="50" height="50" class="cell"/><text x="75" y="32" class="val-text">B</text><text x="75" y="70" class="idx-text" fill="var(--success)">2</text>
+                            <rect x="100" y="0" width="50" height="50" class="cell-sp"/><text x="125" y="32" class="val-text" fill="var(--space)">Δ</text><text x="125" y="70" class="idx-text" fill="var(--success)">3</text>
+                            <rect x="150" y="0" width="50" height="50" class="cell-sp"/><text x="175" y="32" class="val-text" fill="var(--space)">Δ</text><text x="175" y="70" class="idx-text" fill="var(--success)">4</text>
+                            <rect x="200" y="0" width="50" height="50" class="cell"/><text x="225" y="32" class="val-text">C</text><text x="225" y="70" class="idx-text" fill="var(--success)">(last=5)</text>
+                            
+                            <text x="270" y="30" class="label" font-size="16">← 配列 b (出力)</text>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習72：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">挿入ソート（昇順）完成プログラム</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-for ( <b>i</b> ← 1 to <b>n</b> - 1 )
-　　<b>tmp</b> ← <b>A[i]</b>
-　　<b>j</b> ← <b>i</b> - 1
-　　while ( <b>j</b> ≧ 0 and <b class="correct">A[j] ＞ tmp</b> )
-　　　　<b>A[j + 1]</b> ← <b>A[j]</b>
-　　　　<b>j</b> ← <b>j</b> - 1
-　　endwhile
-　　<b>A[j + 1]</b> ← <b>tmp</b>
-endfor</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答</h2>
-                <div class="ans-text">
-                    【１】 ウ．A[j] ＞ tmp
+                            <path d="M 0 85 H 250" stroke="var(--success)" stroke-width="2" opacity="0.5"/>
+                            <path d="M 250 85 L 250 65" stroke="var(--success)" stroke-width="2" marker-end="url(#arrowG)" opacity="0.5"/>
+                            <rect x="270" y="55" width="220" height="30" rx="5" fill="#d1fae5" stroke="var(--success)"/>
+                            <text x="380" y="75" class="idx-text" fill="#065f46" font-size="14" font-weight="900">このサンプルの最終的な last は 5</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="card" style="border-left: 5px solid var(--success); background: #f0fdf4;">
+                        <h3 style="color: #059669;">変数 last の役割</h3>
+                        <p>出力先である<b>配列 b の「現在の末尾位置（どこまで文字を格納したか）」</b>を記憶するポインタです。文字を1つ追加するたびに必ず <b>+ 1</b> されます。</p>
+                    </div>
+                    <div class="card">
+                        <h3>ポインタ管理の分離</h3>
+                        <p>1文字が複数文字に変換される（tab → ΔΔ）ため、入力元の添字 <b>i</b> と、出力先の添字 <b>last</b> は次第にズレていきます。<br>そのため、i の進行とは完全に切り離して last の位置を独立して更新し続ける必要があります。</p>
+                    </div>
                 </div>
             </div>
+            <div class="footer">変換によって出力される文字数が変わるため、「書き込み用ポインタ（last）」が必要になります。</div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header">
+                <span class="title-num" style="background:var(--accent)">核心</span>
+                <h1>練習72：forループによる空白挿入のステップ図式</h1>
+            </div>
+            <div class="content-grid">
+                <div class="visual-panel">
+                    <svg viewBox="0 0 600 550">
+                        <text x="10" y="20" class="label">a[i] が tab のときの動き（n=2 の場合のステップ）</text>
+                        
+                        <g transform="translate(20, 60)">
+                            <rect x="0" y="0" width="50" height="40" class="cell-done"/><text x="25" y="26" class="val-text" fill="#94a3b8">B</text>
+                            <rect x="50" y="0" width="80" height="40" class="cell-tab"/><text x="90" y="26" class="val-text" fill="#b45309">tab</text>
+                            <rect x="130" y="0" width="50" height="40" class="cell-done"/><text x="155" y="26" class="val-text" fill="#94a3b8">C</text>
+                            <text x="90" y="-10" class="idx-text" fill="var(--primary)" font-size="14" font-weight="bold">i = 3 (停止中)</text>
+                            <path d="M 90 40 L 90 60" stroke="var(--accent)" stroke-width="3" marker-end="url(#arrowA)"/>
+                            
+                            <g transform="translate(250, -10)">
+                                <text x="0" y="10" class="idx-text" font-size="14" font-weight="bold" fill="#64748b">[ ループ突入前 ] last = 2</text>
+                                <rect x="0" y="20" width="40" height="30" class="cell-done"/><text x="20" y="42" class="val-text" font-size="16" fill="#94a3b8">A</text>
+                                <rect x="40" y="20" width="40" height="30" class="cell-done"/><text x="60" y="42" class="val-text" font-size="16" fill="#94a3b8">B</text>
+                                <path d="M 60 65 L 60 55" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+                                <text x="60" y="80" class="idx-text" font-size="12">↑ 現在の末尾</text>
+                            </g>
+                        </g>
+
+                        <g transform="translate(50, 180)">
+                            <rect x="0" y="0" width="500" height="100" rx="10" fill="#fef3c7" stroke="var(--accent)"/>
+                            <text x="20" y="30" font-weight="bold" fill="#b45309" font-size="18">① j = 1 の処理</text>
+                            <text x="40" y="60" font-family="monospace" font-size="16">last ← last + 1  <tspan fill="#64748b">( 2 + 1 = 3 )</tspan></text>
+                            <text x="40" y="85" font-family="monospace" font-size="16">b[ last ] ← "Δ"   <tspan fill="#64748b">( b[3] に Δ を代入 )</tspan></text>
+                            
+                            <g transform="translate(320, 20)">
+                                <rect x="0" y="0" width="40" height="30" class="cell-done"/>
+                                <rect x="40" y="0" width="40" height="30" class="cell-done"/>
+                                <rect x="80" y="0" width="40" height="30" class="cell-sp"/><text x="100" y="22" class="val-text" font-size="16" fill="var(--space)">Δ</text>
+                                <path d="M 100 45 L 100 35" stroke="var(--success)" stroke-width="2" marker-end="url(#arrowG)"/>
+                                <text x="100" y="60" class="idx-text" fill="var(--success)">last = 3</text>
+                            </g>
+                        </g>
+                        
+                        <path d="M 300 280 L 300 300" stroke="var(--accent)" stroke-width="3" marker-end="url(#arrowA)"/>
+
+                        <g transform="translate(50, 310)">
+                            <rect x="0" y="0" width="500" height="100" rx="10" fill="#fef3c7" stroke="var(--accent)"/>
+                            <text x="20" y="30" font-weight="bold" fill="#b45309" font-size="18">② j = 2 の処理</text>
+                            <text x="40" y="60" font-family="monospace" font-size="16">last ← last + 1  <tspan fill="#64748b">( 3 + 1 = 4 )</tspan></text>
+                            <text x="40" y="85" font-family="monospace" font-size="16">b[ last ] ← "Δ"   <tspan fill="#64748b">( b[4] に Δ を代入 )</tspan></text>
+                            
+                            <g transform="translate(320, 20)">
+                                <rect x="0" y="0" width="40" height="30" class="cell-done"/>
+                                <rect x="40" y="0" width="40" height="30" class="cell-done"/>
+                                <rect x="80" y="0" width="40" height="30" class="cell-sp"/>
+                                <rect x="120" y="0" width="40" height="30" class="cell-sp"/><text x="140" y="22" class="val-text" font-size="16" fill="var(--space)">Δ</text>
+                                <path d="M 140 45 L 140 35" stroke="var(--success)" stroke-width="2" marker-end="url(#arrowG)"/>
+                                <text x="140" y="60" class="idx-text" fill="var(--success)">last = 4</text>
+                            </g>
+                        </g>
+                        
+                        <text x="300" y="440" font-weight="bold" fill="#64748b" font-size="16" text-anchor="middle">↓ ( j が n まで到達したので for ループ終了 )</text>
+                    </svg>
+                </div>
+                <div class="info-panel">
+                    <div class="formula-box">
+                        <div style="font-size: 14px; margin-bottom: 5px; color:#cbd5e1;">空欄の制御文</div>
+                        <div class="formula">for ( <span style="color:#fef08a;">j を 1 から n まで</span><br>1 ずつ増やす )</div>
+                    </div>
+                    <div class="code-block" style="background:#fffbeb; border-color:var(--accent);">
+                        <span style="color:#b45309;">// forループ内の処理</span><br>
+                        last ← last + 1<br>
+                        b[ last ] ← "Δ"
+                    </div>
+                    <div class="card">
+                        <h3>内側ループ（for文）の挙動</h3>
+                        <p>外側のループ（i）を「tab」の場所で一時停止させたまま、<b>「1進めては Δ を書く」</b>という動作を n 回繰り返します。<br>これにより、配列 b の末尾を正しく更新しながら連続して空白を挿入することができます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer" style="background:#fffbeb; border-left-color:var(--accent); color:#b45309;">「n 回ループを回す」＝「ポインタを進める処理と代入処理を n 回繰り返す」構造です。</div>
         </div>
     </div>
 </div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+        <marker id="arrowP" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)"/></marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--success)"/></marker>
+        <marker id="arrowA" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+    </defs>
+</svg>
 
 </body>
 </html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習55：選択法（改良版・最小値の記録）</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #f3f4f6; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        }
+        .slide { 
+            width: 1280px; height: 720px; background-color: #ffffff; 
+            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column;
+        }
+        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
+        .theme-bar { width: 15px; height: 50px; background-color: #10b981; margin-right: 20px; }
+        h1 { font-size: 36px; margin: 0; font-weight: 900; }
+        
+        .structure-info { 
+            background: #ecfdf5; border: 2px dashed #10b981; border-radius: 8px;
+            padding: 10px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+        }
+        .info-label { font-size: 18px; font-weight: 900; color: #047857; }
+        .info-desc { font-weight: 700; color: #374151; }
+
+        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 240px; gap: 20px; }
+        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 10px; }
+
+        svg { width: 100%; height: 200px; }
+        svg text { font-weight: 900; }
+        .grid-title-text { fill: #1e3a8a; font-size: 17px; text-anchor: middle; }
+        .title-underline { stroke: #10b981; stroke-width: 2; }
+        
+        /* 選択法(改良版)スタイル */
+        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
+        .node-i { fill: #ecfdf5; stroke: #10b981; stroke-width: 3; }
+        .node-m { fill: #fff7ed; stroke: #f97316; stroke-width: 3; }
+        .node-j { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4; }
+        
+        .val-text { font-size: 16px; fill: #111827; text-anchor: middle; }
+        .ptr-label { font-size: 13px; font-weight: 900; }
+        .formula-text { font-size: 16px; font-weight: 900; fill: #059669; text-anchor: middle; }
+        .result-text { font-size: 14px; font-weight: 900; fill: #374151; text-anchor: middle; }
+        
+        .footer { height: 60px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #065f46; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="theme-bar"></div>
+        <h1>練習55：選択法（改良版：交換回数の削減）</h1>
+    </div>
+
+    <div class="structure-info">
+        <div class="info-label">改良点：</div>
+        <div class="info-desc">最小値を見つけるたびに交換せず、「場所（添字 m）」だけをメモ。最後に一度だけ交換する。</div>
+    </div>
+    
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">① 記録：暫定最小値の「位置」をメモ</text>
+                <line x1="100" y1="32" x2="400" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">値が小さければ m を更新し、場所を指し示す</text>
+                <g transform="translate(60, 90)">
+                    <rect class="node-i" x="40" y="20" width="50" height="40" rx="4" /><text x="65" y="46" class="val-text">15</text>
+                    <rect class="node-rect" x="100" y="20" width="50" height="40" rx="4" /><text x="125" y="46" class="val-text">25</text>
+                    <rect class="node-m" x="160" y="20" width="50" height="40" rx="4" /><text x="185" y="46" class="val-text">8</text>
+                    <rect class="node-j" x="220" y="20" width="50" height="40" rx="4" /><text x="245" y="46" class="val-text">12</text>
+                    
+                    <text x="65" y="75" class="ptr-label" fill="#10b981" text-anchor="middle">i</text>
+                    <text x="185" y="75" class="ptr-label" fill="#f97316" text-anchor="middle">m (最小位置)</text>
+                    <text x="245" y="75" class="ptr-label" fill="#64748b" text-anchor="middle">j</text>
+                </g>
+                <text x="250" y="185" class="formula-text">空欄(1): m ← j （添字だけを更新）</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">② 判定：交換が必要かチェック</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">i と m が異なる ＝ もっと小さい値が見つかった</text>
+                
+                <g transform="translate(140, 75)">
+                    <rect class="node-i" x="0" y="20" width="55" height="40" rx="4" /><text x="27.5" y="46" class="val-text">15</text>
+                    <rect class="node-rect" x="70" y="20" width="55" height="40" rx="4" /><text x="97.5" y="46" class="val-text">...</text>
+                    <rect class="node-m" x="140" y="20" width="55" height="40" rx="4" /><text x="167.5" y="46" class="val-text">8</text>
+                    
+                    <text x="27.5" y="75" class="ptr-label" fill="#10b981" text-anchor="middle">i</text>
+                    <text x="167.5" y="75" class="ptr-label" fill="#f97316" text-anchor="middle">m</text>
+                    
+                    <text x="97.5" y="48" fill="#ef4444" font-size="30px" text-anchor="middle">≠</text>
+                </g>
+                
+                <text x="250" y="180" class="formula-text" style="font-size:20px">if ( i ≠ m )</text>
+                <text x="250" y="198" class="result-text" style="fill:#047857">（同じ場所なら無駄な交換をスキップ）</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">③ 移動：本物の最小値を先頭(i)へ</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">i の値を退避させた後、m の値を i へ移動</text>
+                <g transform="translate(150, 80)">
+                    <rect class="node-i" x="0" y="20" width="60" height="40" rx="4" /><text x="30" y="46" class="val-text">8</text>
+                    <rect class="node-m" x="140" y="20" width="60" height="40" rx="4" /><text x="170" y="46" class="val-text">8</text>
+                    <path d="M 130 15 Q 85 -10 40 15" stroke="#f97316" stroke-width="2" fill="none" marker-end="url(#arrow-orange)" />
+                    <text x="30" y="5" class="ptr-label" style="fill: #f97316; text-anchor: end;">空欄(2): tbl[i] ← tbl[m]</text>
+                </g>
+                <text x="250" y="185" class="formula-text">確定位置 i が「本当の最小値」に</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 500 200">
+                <text x="250" y="25" class="grid-title-text">④ 完了：退避していた値を戻す</text>
+                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
+                <text x="250" y="55" class="result-text">wk に保存しておいた値を元の m の位置へ</text>
+                <g transform="translate(120, 80)">
+                    <rect class="node-m" x="110" y="20" width="60" height="40" rx="4" /><text x="140" y="46" class="val-text">15</text>
+                    <rect class="node-rect" x="210" y="20" width="60" height="40" rx="4" style="stroke-dasharray:4;"/><text x="240" y="46" class="val-text" fill="#64748b">wk</text>
+                    <path d="M 200 15 Q 165 -10 120 15" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+                    <text x="210" y="5" class="ptr-label" style="fill: #059669; text-anchor: start;">空欄(3): tbl[m] ← wk</text>
+                </g>
+                <text x="250" y="185" class="result-text" style="fill: #1e40af;">交換は 1 周につき最大 1 回のみ発生！</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        添字管理（ポインタ操作）により、メモリへの書き込み負荷を最適化している。
+    </div>
+
+    <svg style="width:0; height:0; position:absolute;">
+        <defs>
+            <marker id="arrow-orange" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316" /></marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+        </defs>
+    </svg>
+</div>
+
+</body>
+</html>

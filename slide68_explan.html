@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習68：文字列探索（出現位置の特定）解説スライド</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-gray: #f3f4f6;
+            --panel-bg: #f9fafb;
+            --border: #e5e7eb;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-gray);
+            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh;
+        }
+
+        .slide { 
+            width: 1280px; 
+            height: 800px; 
+            background-color: #ffffff; 
+            padding: 40px 60px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .header-area { 
+            height: 80px; display: flex; align-items: center; 
+            justify-content: space-between; border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .header-left { display: flex; align-items: center; }
+        .theme-bar { width: 12px; height: 40px; background-color: var(--warning); margin-right: 15px; }
+        h1 { font-size: 32px; margin: 0; font-weight: 900; color: #111827; }
+        .algo-label { 
+            background: var(--primary); color: white; padding: 4px 15px; 
+            border-radius: 20px; font-size: 14px; font-weight: bold; 
+        }
+
+        .infographic-grid { 
+            display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; flex-grow: 1;
+        }
+        .grid-item { 
+            border: 2px solid var(--border); border-radius: 12px; 
+            background-color: var(--panel-bg); padding: 20px; display: flex; flex-direction: column;
+        }
+
+        svg { width: 100%; height: 100%; }
+        .grid-title-text { fill: #1e3a8a; font-size: 20px; font-weight: 900; }
+        .cell { fill: #ffffff; stroke: #1f2937; stroke-width: 2; }
+        .cell-found { fill: #fef3c7; stroke: var(--warning); stroke-width: 3; }
+        .val-text { font-size: 18px; text-anchor: middle; font-weight: 900; }
+        .code-bg { fill: #1e2937; rx: 8; }
+
+        .footer {
+            margin-top: 20px; padding: 15px 25px;
+            background-color: #fffbeb; border-radius: 10px; border-left: 8px solid var(--warning);
+        }
+        .footer-text { font-size: 18px; font-weight: 700; color: #1f2937; margin: 0; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <div class="header-area">
+        <div class="header-left">
+            <div class="theme-bar"></div>
+            <h1>練習68：文字列探索（出現位置の特定）の要点</h1>
+        </div>
+        <span class="algo-label">アルゴリズム解説</span>
+    </div>
+
+    <div class="infographic-grid">
+        <div class="grid-item">
+            <svg viewBox="0 0 500 550">
+                <text x="0" y="30" class="grid-title-text">① 最初に見つかった位置を返す</text>
+                
+                <g transform="translate(20, 70)">
+                    <text x="0" y="0" font-size="14" fill="#64748b">moji[添字]</text>
+                    <rect x="0" y="10" width="40" height="40" class="cell"/><text x="20" y="37" class="val-text">a</text>
+                    <rect x="40" y="10" width="40" height="40" class="cell-found"/><text x="60" y="37" class="val-text">b</text>
+                    <rect x="80" y="10" width="40" height="40" class="cell-found"/><text x="100" y="37" class="val-text">c</text>
+                    <rect x="120" y="10" width="40" height="40" class="cell"/><text x="140" y="37" class="val-text">a</text>
+                    <text x="40" y="75" font-size="14" fill="var(--warning)" font-weight="bold">↑ 添字 2 で発見</text>
+                </g>
+
+                <g transform="translate(20, 180)">
+                    <rect x="0" y="0" width="420" height="80" rx="10" fill="#fff" stroke="#e5e7eb" />
+                    <text x="15" y="30" font-size="16" font-weight="bold">戻り値の設計：</text>
+                    <text x="30" y="55" font-size="15" fill="var(--success)">● 発見：先頭位置 (例では 2) を返す</text>
+                    <text x="30" y="75" font-size="15" fill="var(--danger)">● 未発見： -1 を返す</text>
+                </g>
+
+                <text x="0" y="310" class="grid-title-text">② 探索のループ構造</text>
+                <rect x="0" y="330" width="450" height="180" rx="10" fill="#eff6ff" stroke="var(--primary)" stroke-dasharray="5"/>
+                <text x="20" y="360" font-size="18" fill="var(--primary)" font-weight="bold">外側 (i): 照合開始位置の制御</text>
+                <text x="20" y="385" font-size="14" fill="#1e40af">1文字目から (m-n+1)文字目まで移動</text>
+                
+                <rect x="20" y="410" width="410" height="85" rx="10" fill="#f0fdf4" stroke="var(--success)" stroke-dasharray="3"/>
+                <text x="40" y="440" font-size="18" fill="var(--success)" font-weight="bold">内側 (j): 1文字ずつの照合</text>
+                <text x="40" y="465" font-size="14" fill="#166534">ptnの全ての文字が一致するか判定</text>
+            </svg>
+        </div>
+
+        <div class="grid-item">
+            <svg viewBox="0 0 600 550">
+                <text x="0" y="30" class="grid-title-text">③ 発見時の即時脱出（空欄1の処理）</text>
+                
+                <g transform="translate(20, 60)">
+                    <rect x="0" y="0" width="540" height="160" rx="15" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+                    
+                    <circle cx="40" cy="50" r="15" fill="var(--primary)"/><text x="40" y="56" class="val-text" fill="white" font-size="14">1</text>
+                    <text x="70" y="55" font-size="18" font-weight="bold">変数 c に現在位置 i を代入（c ← i）</text>
+                    
+                    <circle cx="40" cy="110" r="15" fill="var(--danger)"/><text x="40" y="116" class="val-text" fill="white" font-size="14">2</text>
+                    <text x="70" y="115" font-size="18" fill="var(--danger)" font-weight="bold">外側ループを break で強制終了！</text>
+                    
+                    <path d="M 370 110 H 430" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrG)"/>
+                    <text x="440" y="115" font-size="13" fill="#64748b" font-weight="bold">以降の探索は行わない</text>
+                </g>
+
+                <g transform="translate(20, 250)">
+                    <rect x="0" y="0" width="540" height="260" code-bg class="code-bg" />
+                    <text x="25" y="40" font-size="16" fill="#94a3b8" font-family="monospace">for (i = 1; i <= m - n + 1; i++) {</text>
+                    <text x="50" y="75" font-size="16" fill="#94a3b8" font-family="monospace">  // 内側ループで一致判定...</text>
+                    <text x="50" y="115" font-size="18" fill="#fcd34d" font-family="monospace">  if (j > n) {  // 全文字一致した場合</text>
+                    <text x="80" y="155" font-size="20" fill="#fef08a" font-family="monospace" font-weight="bold">    c = i;  // ★空欄(1)</text>
+                    <text x="80" y="195" font-size="20" fill="#fca5a5" font-family="monospace" font-weight="bold">    break;  // 外側ループを抜ける</text>
+                    <text x="50" y="225" font-size="18" fill="#fcd34d" font-family="monospace">  }</text>
+                    <text x="25" y="245" font-size="16" fill="#94a3b8" font-family="monospace">}</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p class="footer-text">要点：練習67（全個数）とは異なり、最初の一つが見つかった瞬間に「即座に処理を切り上げる」合理的な設計。</p>
+    </div>
+</div>
+
+<svg style="position:absolute; width:0; height:0;">
+    <defs>
+        <marker id="arrG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+        </marker>
+    </defs>
+</svg>
+
+</body>
+</html>

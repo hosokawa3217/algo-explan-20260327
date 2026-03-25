@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>練習75 解説スライド</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #059669;
+            --accent: #d97706;
+            --bg-gray: #f8fafc;
+            --border: #cbd5e1;
+            --code-bg: #1e293b;
+        }
+
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", "Meiryo", sans-serif; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        
+        .slide { 
+            width: 1280px; height: 850px; background: white; padding: 40px; box-sizing: border-box;
+            display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative; overflow: hidden;
+        }
+
+        .header { border-bottom: 4px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; }
+        .prob-num { background: var(--primary); color: white; padding: 5px 20px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 24px; }
+        h1 { font-size: 30px; margin: 0; color: #1e293b; }
+
+        /* Slide 1 Layout */
+        .calc-area { flex-grow: 1; display: flex; justify-content: space-around; align-items: center; }
+        .calc-grid { position: relative; font-family: monospace; font-size: 38px; font-weight: bold; }
+        .index-row { display: flex; margin-left: 100px; color: var(--primary); font-size: 22px; margin-bottom: 10px; }
+        .index-item { width: 70px; text-align: center; margin: 0 5px; }
+        .row { display: flex; align-items: center; margin-bottom: 15px; }
+        .row-label { width: 100px; font-size: 35px; }
+        .cell { width: 70px; height: 70px; border: 2px solid #334155; display: flex; justify-content: center; align-items: center; margin: 0 5px; background: white; }
+        .x-cell { background: #eff6ff; border-color: var(--primary); }
+        .y-cell { background: #f0fdf4; border-color: var(--success); }
+        .z-cell { background: #fff7ed; border-color: var(--accent); border-width: 3px; }
+        .plus { position: absolute; left: -60px; top: 105px; font-size: 45px; }
+        .hr-line { width: 340px; height: 4px; background: #334155; margin: 5px 0 20px 100px; }
+
+        /* Slide 2 Table & Explanation Area */
+        .table-container { margin-top: 10px; }
+        .large-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .large-table th { background: #475569; color: white; padding: 15px; font-size: 18px; border: 1px solid #94a3b8; }
+        .large-table td { padding: 15px; text-align: center; border: 1px solid #cbd5e1; font-size: 20px; }
+        .expl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .expl-box { background: #f8fafc; border-left: 6px solid var(--primary); padding: 15px; border-radius: 4px; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .expl-box h4 { margin: 0 0 10px 0; color: var(--primary); font-size: 20px; }
+        .expl-box p { margin: 0; font-size: 16px; line-height: 1.6; color: #334155; }
+
+        /* Slide 3 & 4 Code Area */
+        .split-container { display: grid; grid-template-columns: 55% 45%; gap: 30px; flex-grow: 1; align-items: start; }
+        .code-block { background: var(--code-bg); color: #f8fafc; padding: 25px; border-radius: 12px; font-family: 'Consolas', monospace; font-size: 17px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+        .card { background: #f1f5f9; border-left: 8px solid var(--primary); padding: 20px; border-radius: 0 10px 10px 0; margin-bottom: 25px; }
+        .card h3 { margin: 0 0 12px 0; color: var(--primary); font-size: 22px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .card p { margin: 0; font-size: 18px; line-height: 1.8; }
+
+        /* Highlight classes */
+        .hl { color: #fde047; font-weight: bold; }
+        .cmt { color: #94a3b8; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="viewport">
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="prob-num">練習75</span><h1>16進数4桁加算：アルゴリズムの全体像</h1></div>
+            <div class="calc-area">
+                <div style="width: 450px; font-size: 20px; line-height: 2;">
+                    <div style="border-left: 8px solid var(--primary); padding-left: 20px; margin-bottom: 40px;">
+                        <b>処理の目的：</b><br>4桁の16進数文字列 x と y を足し算し、その結果を文字列 z に入れる。
+                    </div>
+                    <div style="border-left: 8px solid var(--accent); padding-left: 20px;">
+                        <b>基本ルール：</b><br>
+                        ・右端（i = 3）から左端（i = 0）へ計算。<br>
+                        ・16以上の和が出たら「桁上がり」とする。<br>
+                        ・各桁は 0～15 を 0～f の文字で表す。
+                    </div>
+                </div>
+                <div class="calc-grid">
+                    <div class="index-row">
+                        <div class="index-item">0</div><div class="index-item">1</div><div class="index-item">2</div><div class="index-item">3</div>
+                    </div>
+                    <div class="row">
+                        <div class="row-label" style="color:var(--primary)">x</div>
+                        <div class="cell x-cell">0</div><div class="cell x-cell">3</div><div class="cell x-cell">f</div><div class="cell x-cell">a</div>
+                    </div>
+                    <div class="row">
+                        <div class="plus">＋</div>
+                        <div class="row-label" style="color:var(--success)">y</div>
+                        <div class="cell y-cell">1</div><div class="cell y-cell">4</div><div class="cell y-cell">b</div><div class="cell y-cell">c</div>
+                    </div>
+                    <div class="hr-line"></div>
+                    <div class="row">
+                        <div class="row-label" style="color:var(--accent)">z</div>
+                        <div class="cell z-cell">1</div><div class="cell z-cell">8</div><div class="cell z-cell">b</div><div class="cell z-cell">6</div>
+                    </div>
+                    <div style="margin-left: 100px; text-align: center; color: var(--accent);">
+                        <div style="font-weight:bold; font-size:20px;">処理の順序（i = 3 から 0 へ）</div>
+                        <div style="font-size:40px; margin-top:-15px;">←──────</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="prob-num">練習75</span><h1>トレース図：計算プロセスの詳細</h1></div>
+            <div class="table-container">
+                <table class="large-table">
+                    <thead>
+                        <tr>
+                            <th style="width:12%">回数(i)</th>
+                            <th style="background:#3b82f6">x[i]</th>
+                            <th style="background:#10b981">y[i]</th>
+                            <th style="background:#d97706">桁上がり c</th>
+                            <th style="background:#ef4444">和 t</th>
+                            <th style="background:#8b5cf6">現在の桁 z[i]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>i = 3</td><td>"a" (10)</td><td>"c" (12)</td><td>0</td><td>10 + 12 + 0 = <b>22</b></td><td style="color:var(--accent); font-weight:bold;">"6"</td></tr>
+                        <tr><td>i = 2</td><td>"f" (15)</td><td>"b" (11)</td><td>1 (22 ÷ 16 の商)</td><td>15 + 11 + 1 = <b>27</b></td><td style="color:var(--accent); font-weight:bold;">"b"</td></tr>
+                        <tr><td>i = 1</td><td>"3" (3)</td><td>"4" (4)</td><td>1 (27 ÷ 16 の商)</td><td>3 + 4 + 1 = <b>8</b></td><td style="color:var(--accent); font-weight:bold;">"8"</td></tr>
+                        <tr><td>i = 0</td><td>"0" (0)</td><td>"1" (1)</td><td>0 (8 ÷ 16 の商)</td><td>0 + 1 + 0 = <b>1</b></td><td style="color:var(--accent); font-weight:bold;">"1"</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="expl-grid">
+                <div class="expl-box">
+                    <h4>1. 和 t の計算</h4>
+                    <p>文字 x[i] と y[i] を数値に直し、前の桁からの桁上がり c を加算します。<br>例：10 + 12 + 0 = 22</p>
+                </div>
+                <div class="expl-box">
+                    <h4>2. 桁の決定（余り）</h4>
+                    <p>和 t を 16 で割った余りが、その桁の値になります。<br>例：22 ÷ 16 = 1 余り 6 → "6" を z[i] に格納</p>
+                </div>
+                <div class="expl-box">
+                    <h4>3. 桁上がり c（商）</h4>
+                    <p>和 t を 16 で割った商を、次の左隣の計算へ送ります。<br>例：22 ÷ 16 = 商 1 → 次の c は 1</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="prob-num">練習75</span><h1>アルゴリズムの構造と解説</h1></div>
+            <div class="split-container">
+                <div class="code-block">
+大域: 文字型の配列: n ← {"0" , "1" , "2" , "3" , "4" , 
+      "5" , "6" , "7" , "8" , "9" , "a" , "b" , 
+      "c" , "d" , "e" , "f"}
+<span class="cmt">/* 要素番号は0から始まる */</span>
+
+○ addhex(x, y, z)
+  c ← 0
+  for ( i を 3 から 0 まで 1 ずつ減らす )
+    t ← tonum(x[i]) + tonum(y[i]) + c
+    z[i] ← n[t mod 16]
+    c ← t ÷ 16
+  endfor
+                </div>
+                <div class="expl-block">
+                    <div class="card">
+                        <h3>数値と文字の相互変換</h3>
+                        <p>配列 n を使って 10進数 と 16進文字 を対応させます。<br>
+                        文字 "a" ⇔ 数値 10<br>
+                        文字 "f" ⇔ 数値 15</p>
+                    </div>
+                    <div class="card">
+                        <h3>計算ロジックの3手順</h3>
+                        <p>1. <b>t</b> = (xの数値) + (yの数値) + c<br>
+                        2. <b>z[i]</b> = t を 16 で割った余りの文字<br>
+                        3. <b>c</b> = t を 16 で割った商（次へ）</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="header"><span class="prob-num">練習75</span><h1>完成プログラム：addhex と tonum</h1></div>
+            <div class="code-block" style="font-size: 19px; line-height: 1.55; flex-grow: 1;">
+<div>大域: 文字型の配列: n ← {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}</div>
+<div><span class="cmt">/* 要素番号は0から始まる */</span></div>
+<br>
+<div><span style="color: #60a5fa;">○ addhex(文字型の配列: x, 文字型の配列: y, 文字型の配列: z)</span></div>
+<div>  整数型: i, c, t</div>
+<div>  c ← 0 <span class="cmt">// 桁上がりをリセット</span></div>
+<div>  for ( i を 3 から 0 まで 1 ずつ減らす )</div>
+<div>    t ← tonum(x[i]) + tonum(y[i]) + c</div>
+<div>    z[i] ← <span class="hl">n[t mod 16]</span> <span class="cmt">// 【1】現在の桁の文字を確定</span></div>
+<div>    c ← <span class="hl">t ÷ 16</span>       <span class="cmt">// 【2】次の桁への上がりを算出</span></div>
+<div>  endfor</div>
+<br>
+<div><span style="color: #60a5fa;">○ tonum(文字型: a)</span></div>
+<div>  整数型: i</div>
+<div>  for ( i を 0 から 15 まで 1 ずつ増やす )</div>
+<div>    if ( a が n[i] と等しい )</div>
+<div>      return i <span class="cmt">// 文字に対応する添字（数値）を返す</span></div>
+<div>    endif</div>
+<div>  endfor</div>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #fff7ed; border: 2px dashed var(--accent); border-radius: 8px; font-size: 18px;">
+                <b>まとめ：</b>10進数の筆算（10で割る）を16進数（16で割る）に置き換えただけの論理です。
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

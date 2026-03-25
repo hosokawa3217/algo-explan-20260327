@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Stooge Sort解説：重ねて整列</title>
+    <style>
+        :root {
+            --primary: #6366f1; /* インディゴ */
+            --secondary: #a855f7; /* パープル */
+            --bg-soft: #f8fafc;
+            --text-main: #1e293b;
+            --border: #e2e8f0;
+            --accent: #f43f5e; /* ローズ */
+        }
+        body { 
+            margin: 0; background: #f1f5f9; color: var(--text-main);
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .slide { 
+            width: 1280px; height: 720px; background: #fff; margin: 20px 0;
+            padding: 40px 60px; box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        header { border-left: 12px solid var(--primary); padding-left: 20px; margin-bottom: 25px; }
+        h1 { font-size: 38px; margin: 0; font-weight: 900; letter-spacing: -1px; }
+        .subtitle { font-size: 18px; color: #64748b; font-weight: 700; margin-top: 5px; }
+
+        /* Main Contents Area */
+        .content-layout { display: grid; grid-template-columns: 1fr 1.3fr; gap: 30px; flex-grow: 1; }
+        
+        /* Left: Process steps */
+        .step-container { display: flex; flex-direction: column; gap: 15px; }
+        .step-card { border: 2px solid var(--border); border-radius: 12px; padding: 15px; background: var(--bg-soft); }
+        .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .step-num { background: var(--primary); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
+        .step-title { font-weight: 900; font-size: 18px; color: var(--primary); }
+        .step-desc { font-size: 14px; font-weight: 700; line-height: 1.5; color: #475569; }
+
+        /* Right: Visual Diagram */
+        .visual-panel { border: 2px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #fff; position: relative; }
+        .diagram-title { font-size: 20px; font-weight: 900; margin-bottom: 25px; color: #1e3a8a; }
+
+        /* SVG Elements */
+        svg { width: 100%; height: auto; }
+        .bar-base { fill: #e2e8f0; rx: 4; }
+        .bar-active { fill: var(--primary); opacity: 0.2; rx: 4; stroke: var(--primary); stroke-width: 1; }
+        .bar-label { font-size: 13px; font-weight: 900; fill: var(--primary); text-anchor: middle; }
+        .node-rect { fill: #fff; stroke: #94a3b8; stroke-width: 1.5; }
+        .node-swap { fill: #fff1f2; stroke: var(--accent); stroke-width: 2.5; }
+        .val-text { font-size: 16px; font-weight: 900; text-anchor: middle; }
+        
+        .code-box { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; margin-top: 10px; }
+        .code-highlight { color: #38bdf8; font-weight: bold; }
+
+        footer { margin-top: 20px; padding-top: 15px; border-top: 2px solid var(--border); font-size: 18px; font-weight: 800; color: var(--primary); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <header>
+        <h1>重ねて整列：ストゥージソート (Stooge Sort)</h1>
+        <div class="subtitle">「2/3ずつ3回」呼び出す、ユニークな再帰構造</div>
+    </header>
+
+    <div class="content-layout">
+        <div class="step-container">
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-num">1</div>
+                    <div class="step-title">端っこをチェック</div>
+                </div>
+                <div class="step-desc">
+                    範囲の先頭 <b>tbl[i]</b> と末尾 <b>tbl[j]</b> を比較。<br>
+                    末尾の方が小さければ（逆順なら）入れ替える。
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-num">2</div>
+                    <div class="step-title">自分を呼び出す（3回）</div>
+                </div>
+                <div class="step-desc">
+                    要素数が3つ以上なら、全体の1/3の長さ <b>t</b> を計算。<br>
+                    次の「重なり」を持たせた順序で整列を行う。
+                </div>
+                <div class="code-box">
+                    1. <span class="code-highlight">stooge_sort(tbl, i, j - t)</span> // 前2/3<br>
+                    2. <span class="code-highlight">stooge_sort(tbl, i + t, j)</span> // 後2/3<br>
+                    3. <span class="code-highlight">stooge_sort(tbl, i, j - t)</span> // 前2/3(再)
+                </div>
+            </div>
+
+            <div class="step-card" style="border-color: #cbd5e1;">
+                <div class="step-title" style="font-size: 16px; color: #475569;">特徴</div>
+                <div class="step-desc">
+                    決して速くないが、再帰を理解するためのユニークな例。<br>
+                    重ねて整列することで、データが正しい位置へ動いていく。
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-panel">
+            <div class="diagram-title">「2/3」を3回重ねる再帰構造</div>
+            
+            <svg viewBox="0 0 600 120" style="margin-bottom: 20px;">
+                <text x="300" y="20" class="bar-label" fill="#475569" font-size="14">Step 1: 先頭と末尾の比較・交換</text>
+                
+                <text x="145" y="-30" class="txt-sub" style="fill:var(--accent); text-anchor:middle; font-size:14px; font-weight:900;" transform="translate(100, 70)">tbl[i] > tbl[j] なら交換</text>
+
+                <g transform="translate(100, 70)">
+                    <rect class="node-swap" x="0" y="0" width="40" height="40" rx="4"/><text x="20" y="26" class="val-text" fill="var(--accent)">90</text>
+                    <rect class="node-rect" x="50" y="0" width="40" height="40" rx="4"/><text x="70" y="26" class="val-text">30</text>
+                    <rect class="node-rect" x="100" y="0" width="40" height="40" rx="4"/><text x="120" y="26" class="val-text">50</text>
+                    <rect class="node-rect" x="150" y="0" width="40" height="40" rx="4"/><text x="170" y="26" class="val-text">10</text>
+                    <rect class="node-rect" x="200" y="0" width="40" height="40" rx="4"/><text x="220" y="26" class="val-text">40</text>
+                    <rect class="node-swap" x="250" y="0" width="40" height="40" rx="4"/><text x="270" y="26" class="val-text" fill="var(--accent)">20</text>
+                    
+                    <path d="M 20 15 Q 145 -35 270 15" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow-rose)" stroke-dasharray="4"/>
+                </g>
+            </svg>
+
+            <svg viewBox="0 0 600 280">
+                <g transform="translate(50, 20)">
+                    <text x="250" y="10" class="bar-label" fill="#1e3a8a">Step 2: 3段階の呼び出し範囲</text>
+                    
+                    <rect class="bar-base" x="50" y="40" width="400" height="20"/>
+                    <text x="50" y="35" class="txt-sub" style="text-anchor:start">i</text>
+                    <text x="450" y="35" class="txt-sub" style="text-anchor:end">j</text>
+
+                    <rect class="bar-active" x="50" y="80" width="266" height="30"/>
+                    <text x="183" y="100" class="bar-label">1. 先頭 2/3 を整列</text>
+                    <text x="316" y="75" class="txt-sub" style="fill:var(--primary)">j - t</text>
+                    
+                    <rect class="bar-active" style="fill:var(--secondary); stroke:var(--secondary);" x="184" y="130" width="266" height="30"/>
+                    <text x="317" y="150" class="bar-label" style="fill:var(--secondary)">2. 末尾 2/3 を整列</text>
+                    <text x="184" y="175" class="txt-sub" style="fill:var(--secondary)">i + t</text>
+
+                    <rect class="bar-active" x="50" y="180" width="266" height="30"/>
+                    <text x="183" y="200" class="bar-label">3. 再度、先頭 2/3 を整列</text>
+                    
+                    <path d="M 50 230 H 183" stroke="#94a3b8" stroke-width="2" marker-start="url(#dot)" marker-end="url(#dot)"/>
+                    <text x="116" y="250" class="txt-sub">t (全体の1/3)</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <footer>
+        核心：「前2/3 → 後2/3 → 前2/3」の順序で整列を重ね、全体を正しい並びへ収束させる。
+    </footer>
+</div>
+
+<svg style="width:0; height:0; position:absolute;">
+    <defs>
+        <marker id="arrow-rose" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
+        </marker>
+        <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4">
+            <circle cx="5" cy="5" r="3" fill="#94a3b8" />
+        </marker>
+    </defs>
+</svg>
+
+</body>
+</html>
