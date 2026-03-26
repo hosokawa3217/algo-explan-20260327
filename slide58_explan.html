@@ -2,140 +2,182 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習58：コムソート具体例解説 (最終確定版)</title>
+    <title>練習58：コムソート完全解説（解答強調）</title>
     <style>
-        body { 
-            margin: 0; padding: 0; background-color: #f3f4f6; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W6", sans-serif;
+        :root {
+            --canvas-width: 1400px; --canvas-height: 800px; --guard-rail: 20px;
+            --primary: #8b5cf6; --success: #10b981; --accent: #f59e0b; --danger: #ef4444;
+            --bg-rail: #f1f5f9; --bg-content: #ffffff; --border: #cbd5e1; --code-bg: #1e293b;
+            --pitch: 97px; /* セル幅85px + 隙間12px */
         }
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin: 20px 0; padding: 0 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            display: flex; flex-direction: column;
-        }
-        .header-area { height: 100px; display: flex; align-items: center; padding-top: 20px; }
-        .theme-bar { width: 15px; height: 50px; background-color: #8b5cf6; margin-right: 20px; }
-        h1 { font-size: 32px; margin: 0; font-weight: 900; }
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", "Meiryo", sans-serif; overflow: hidden; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        .slide { width: var(--canvas-width); height: var(--canvas-height); background: var(--bg-rail); padding: var(--guard-rail); box-sizing: border-box; display: flex; }
         
-        .structure-info { 
-            background: #f5f3ff; border: 2px dashed #8b5cf6; border-radius: 8px;
-            padding: 10px 20px; margin-bottom: 15px; display: flex; align-items: center; 
+        .slide-content { 
+            width: 100%; height: 100%; background: var(--bg-content); 
+            padding: 15px 60px 30px 60px; box-sizing: border-box; 
+            display: flex; flex-direction: column; border-radius: 4px; position: relative; 
         }
-        .info-desc { font-weight: 700; color: #1e293b; font-size: 18px; }
+        
+        .header { 
+            border-bottom: 4px solid var(--primary); padding-bottom: 8px; margin-bottom: 15px; 
+            display: flex; align-items: center; transform: translateY(-8px); 
+        }
+        .prob-num { background: var(--primary); color: white; padding: 5px 25px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 26px; }
+        h1 { font-size: 32px; margin: 0; color: #1e293b; }
 
-        .infographic-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 250px 250px; gap: 20px; }
-        .grid-item { border: 2px solid #e5e7eb; border-radius: 12px; background-color: #f9fafb; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+        .summary-box { background: #f5f3ff; border: 1px solid var(--primary); border-radius: 8px; padding: 15px 25px; margin-bottom: 15px; }
+        .summary-box p { margin: 5px 0; font-size: 19px; line-height: 1.4; color: #4c1d95; }
 
-        svg { width: 100%; height: 190px; }
-        .grid-title-text { fill: #1e3a8a; font-size: 18px; font-weight: 900; text-anchor: middle; }
-        .title-underline { stroke: #8b5cf6; stroke-width: 2; }
+        .visual-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .array-row { display: flex; gap: 12px; position: relative; padding-top: 50px; margin-bottom: 10px; justify-content: center; width: 100%; }
+        .cell-group { display: flex; flex-direction: column; align-items: center; width: 85px; }
+        .cell { width: 85px; height: 85px; border: 2.5px solid #334155; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 28px; background: white; z-index: 2; }
+        .index { margin-top: 15px; font-size: 20px; font-weight: bold; color: #64748b; }
+
+        .swap-arc { position: absolute; border: 4px solid var(--primary); border-bottom: none; border-radius: 1000px 1000px 0 0; height: 60px; top: 0px; z-index: 1; }
         
-        .node-rect { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; }
-        .node-target { fill: #ede9fe; stroke: #8b5cf6; stroke-width: 3; }
-        .node-swap { fill: #fef2f2; stroke: #ef4444; stroke-width: 2; }
+        .vertical-layout { display: flex; flex-direction: column; gap: 20px; flex-grow: 1; }
+        .sub-diagram { border-radius: 15px; padding: 20px 40px; border: 1px solid #cbd5e1; display: flex; flex-direction: column; position: relative; align-items: center; }
+        .bg-pink { background-color: #fffafa; } 
+        .bg-green { background-color: #fafffa; }
+        .logic-title { font-weight: bold; font-size: 22px; align-self: flex-start; margin-bottom: 5px; }
+        .step-text { align-self: flex-start; font-size: 18px; color: #475569; margin-bottom: 10px; font-weight: bold; }
         
-        .val-text { font-size: 18px; font-weight: 900; fill: #111827; text-anchor: middle; }
-        .label-text { font-size: 14px; font-weight: 900; fill: #6d28d9; text-anchor: middle; }
-        .desc-text { font-size: 14px; font-weight: 700; fill: #4b5563; text-anchor: middle; }
-        
-        .footer { height: 50px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #e5e7eb; margin-top: auto; font-weight: 900; color: #4c1d95; }
+        .dir-container { position: absolute; right: 40px; top: 50px; font-size: 28px; font-weight: bold; white-space: pre; text-align: right; }
+
+        /* Code and Highlight Styles */
+        .code-block { 
+            background: var(--code-bg); color: #f8fafc; padding: 20px 30px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 19px; line-height: 1.5; 
+            white-space: pre; overflow: hidden;
+        }
+        .ans-hl { 
+            color: #fde047; font-weight: bold; 
+            background-color: rgba(253, 224, 71, 0.15); 
+            padding: 2px 6px; border: 2px solid #fde047; border-radius: 6px;
+        }
+        .cmt { color: #94a3b8; font-style: italic; }
     </style>
 </head>
 <body>
+<div class="viewport">
 
-<div class="slide">
-    <div class="header-area">
-        <div class="theme-bar"></div>
-        <h1>コムソート：具体的なデータ移動のプロセス</h1>
-    </div>
-
-    <div class="structure-info">
-        <div class="info-desc">対象配列：[ 90, 20, 50, 10, 80, 30 ] （n = 6）</div>
-    </div>
-    
-    <div class="infographic-grid">
-        <div class="grid-item">
-            <svg viewBox="0 0 500 190">
-                <text x="250" y="25" class="grid-title-text">Step 1：間隔 m = 3 で開始</text>
-                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
-                <g transform="translate(50, 85)">
-                    <rect class="node-target" x="0" y="0" width="60" height="50" rx="4" /><text x="30" y="32" class="val-text">90</text>
-                    <rect class="node-rect" x="65" y="0" width="60" height="50" rx="4" /><text x="95" y="32" class="val-text">20</text>
-                    <rect class="node-rect" x="130" y="0" width="60" height="50" rx="4" /><text x="160" y="32" class="val-text">50</text>
-                    <rect class="node-target" x="195" y="0" width="60" height="50" rx="4" /><text x="225" y="32" class="val-text">10</text>
-                    <rect class="node-rect" x="260" y="0" width="60" height="50" rx="4" /><text x="290" y="32" class="val-text">80</text>
-                    <rect class="node-rect" x="325" y="0" width="60" height="50" rx="4" /><text x="355" y="32" class="val-text">30</text>
-                    <path d="M 30 -10 Q 127.5 -40 225 -10" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow-purple)" />
-                    <text x="127.5" y="-35" class="label-text">90 > 10 なので交換！</text>
-                </g>
-                <text x="250" y="180" class="desc-text">遠くの大きな値と小さな値を一気に入れ替える</text>
-            </svg>
-        </div>
-
-        <div class="grid-item">
-            <svg viewBox="0 0 500 190">
-                <text x="250" y="25" class="grid-title-text">Step 2：間隔 m = 1 へ収束</text>
-                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
-                <g transform="translate(50, 85)">
-                    <rect class="node-rect" x="0" y="0" width="60" height="50" rx="4" /><text x="30" y="32" class="val-text">10</text>
-                    <rect class="node-rect" x="65" y="0" width="60" height="50" rx="4" /><text x="95" y="32" class="val-text">20</text>
-                    <rect class="node-rect" x="130" y="0" width="60" height="50" rx="4" /><text x="160" y="32" class="val-text">50</text>
-                    <rect class="node-target" x="195" y="0" width="60" height="50" rx="4" /><text x="225" y="32" class="val-text">90</text>
-                    <rect class="node-target" x="260" y="0" width="60" height="50" rx="4" /><text x="290" y="32" class="val-text">80</text>
-                    <rect class="node-rect" x="325" y="0" width="60" height="50" rx="4" /><text x="355" y="32" class="val-text">30</text>
-                    <path d="M 225 -10 Q 257.5 -40 290 -10" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow-purple)" />
-                    <text x="257.5" y="-35" class="label-text">90 > 80 なので交換</text>
-                </g>
-                <text x="250" y="180" class="desc-text">櫛の目が一番細かくなり、隣接比較へ移行</text>
-            </svg>
-        </div>
-
-        <div class="grid-item">
-            <svg viewBox="0 0 500 190">
-                <text x="250" y="25" class="grid-title-text">Step 3：隣接比較で仕上げ</text>
-                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
-                <g transform="translate(50, 85)">
-                    <rect class="node-rect" x="0" y="0" width="60" height="50" rx="4" /><text x="30" y="32" class="val-text">10</text>
-                    <rect class="node-rect" x="65" y="0" width="60" height="50" rx="4" /><text x="95" y="32" class="val-text">20</text>
-                    <rect class="node-rect" x="130" y="0" width="60" height="50" rx="4" /><text x="160" y="32" class="val-text">50</text>
-                    <rect class="node-rect" x="195" y="0" width="60" height="50" rx="4" /><text x="225" y="32" class="val-text">80</text>
-                    <rect class="node-target" x="260" y="0" width="60" height="50" rx="4" /><text x="290" y="32" class="val-text">90</text>
-                    <rect class="node-target" x="325" y="0" width="60" height="50" rx="4" /><text x="355" y="32" class="val-text">30</text>
-                    <path d="M 290 -10 Q 322.5 -40 355 -10" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrow-red)" />
-                </g>
-                <text x="250" y="180" class="desc-text">バブルソートと同様の手順で細かい逆転を解消</text>
-            </svg>
-        </div>
-
-        <div class="grid-item">
-            <svg viewBox="0 0 500 190">
-                <text x="250" y="25" class="grid-title-text">Step 4：整列完了</text>
-                <line x1="120" y1="32" x2="380" y2="32" class="title-underline" />
-                <g transform="translate(50, 85)">
-                    <rect class="node-rect" x="0" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="30" y="32" class="val-text">10</text>
-                    <rect class="node-rect" x="65" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="95" y="32" class="val-text">20</text>
-                    <rect class="node-rect" x="130" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="160" y="32" class="val-text">30</text>
-                    <rect class="node-rect" x="195" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="225" y="32" class="val-text">50</text>
-                    <rect class="node-rect" x="260" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="290" y="32" class="val-text">80</text>
-                    <rect class="node-rect" x="325" y="0" width="60" height="50" rx="4" style="stroke:#10b981; stroke-width:3;"/><text x="355" y="32" class="val-text">90</text>
-                </g>
-                <text x="250" y="180" class="desc-text" style="fill:#065f46; font-size:16px;">少ない交換回数で、効率的にデータが整列！</text>
-            </svg>
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">練習58</span><h1>コムソート：櫛の歯で「亀の歩み」を解消する</h1></div>
+                <div class="summary-box">
+                    <p><b>【アルゴリズムの要旨】</b></p>
+                    <p>間隔 <b>m</b> を徐々に狭めながら比較。最初は遠く、最後は隣り合う要素を交換する。</p>
+                    <p>末尾付近にある小さな値「亀」を、大きなジャンプで一気に先頭方向へ移動させる。</p>
+                </div>
+                <div class="visual-area">
+                    <div style="background: var(--primary); color: white; padding: 8px 25px; border-radius: 20px; font-weight: bold; font-size: 22px; margin-bottom: 10px;">
+                        初期状態： <b>n = 6</b>, 間隔 <b>m = 4</b>
+                    </div>
+                    <div class="array-row">
+                        <div class="swap-arc" style="left: calc(50% - 239px); width: 388px;"></div>
+                        <div class="cell-group"><div class="cell" style="border-color:var(--primary); background:#f5f3ff;">90</div><div class="index">1</div></div>
+                        <div class="cell-group"><div class="cell">20</div><div class="index">2</div></div>
+                        <div class="cell-group"><div class="cell">50</div><div class="index">3</div></div>
+                        <div class="cell-group"><div class="cell">10</div><div class="index">4</div></div>
+                        <div class="cell-group"><div class="cell" style="border-color:var(--primary); background:#f5f3ff;">30</div><div class="index">5</div></div>
+                        <div class="cell-group"><div class="cell">80</div><div class="index">6</div></div>
+                    </div>
+                    <div style="margin-top: 30px; font-size: 22px; font-weight: bold; color: #1e293b; background: #f1f5f9; padding: 15px 40px; border-radius: 10px; border-left: 10px solid var(--primary);">
+                        「櫛の歯」を粗く通し、大きく逆転している要素（<b>tbl[1]</b>と<b>tbl[5]</b>）を交換する。
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="footer">
-        コムソートの威力：荒く梳かしてから細かく仕上げることで、バブルソートを高速化。
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">理論</span><h1>ソートの推移：STEP表現</h1></div>
+                <div class="vertical-layout">
+                    <div class="sub-diagram bg-pink">
+                        <div class="logic-title" style="color:var(--danger);">【1】粗梳きフェーズ：ジャンプ比較</div>
+                        <div class="step-text">STEP 1: 間隔 <b>m</b> を設定。 STEP 2: <b>m</b> の間隔で配列全体を走査。</div>
+                        <div class="dir-container" style="color:var(--danger);">　STEP 3: <b>m</b> ← <b>m</b> ÷ 2 を繰り返す</div>
+                        <div class="array-row" style="padding-top:30px;">
+                            <div class="swap-arc" style="left: calc(50% - 142px); width: 291px; border-color:var(--danger);"></div>
+                            <div class="cell-group"><div class="cell">30</div><div class="index">1</div></div>
+                            <div class="cell-group"><div class="cell" style="border-color:var(--danger);">90</div><div class="index">2</div></div>
+                            <div class="cell-group"><div class="cell">50</div><div class="index">3</div></div>
+                            <div class="cell-group"><div class="cell">10</div><div class="index">4</div></div>
+                            <div class="cell-group"><div class="cell" style="border-color:var(--danger);">20</div><div class="index">5</div></div>
+                            <div class="cell-group"><div class="cell">80</div><div class="index">6</div></div>
+                        </div>
+                    </div>
+                    <div class="sub-diagram bg-green">
+                        <div class="logic-title" style="color:var(--success);">【2】仕上げフェーズ：隣接比較への収束</div>
+                        <div class="step-text">STEP 4: <b>m = 1</b> の状態で、交換が発生しなくなるまで継続。</div>
+                        <div class="dir-container" style="color:var(--success);">　交換がなくなれば完了 →</div>
+                        <div class="array-row" style="padding-top:30px;">
+                            <div class="swap-arc" style="left: calc(50% - 239px); width: 97px; border-color:var(--success);"></div>
+                            <div class="cell-group"><div class="cell" style="border-color:var(--success);">20</div><div class="index">1</div></div>
+                            <div class="cell-group"><div class="cell" style="border-color:var(--success);">10</div><div class="index">2</div></div>
+                            <div class="cell-group"><div class="cell">30</div><div class="index">3</div></div>
+                            <div class="cell-group"><div class="cell">50</div><div class="index">4</div></div>
+                            <div class="cell-group"><div class="cell">80</div><div class="index">5</div></div>
+                            <div class="cell-group"><div class="cell">90</div><div class="index">6</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <svg style="width:0; height:0; position:absolute;">
-        <defs>
-            <marker id="arrow-purple" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" /></marker>
-            <marker id="arrow-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
-        </defs>
-    </svg>
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">実装</span><h1>コムソートの疑似言語</h1></div>
+                <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: flex-start; margin-top: 0px;">
+                    <div class="code-block">○ comb_sort(整数型の配列: <b>tbl</b> ,  整数型: <b>n</b> )
+整数型: <b>i</b> ,  <b>wk</b> ,  <b>flg</b> ,  <b>m</b>
+<b>flg</b> ← 1
+<b>m</b> ← <b>n</b>
+while ( <span class="ans-hl">( <b>m</b> が 1 より大きい ) or ( <b>flg</b> が 1 と等しい )</span> ) <span class="cmt">/* 【 1 】 */</span>
+　　<b>flg</b> ← 0
+　　<b>m</b> ← <b>m</b> ÷ 2
+　　if ( <b>m</b> が 1 より小さい )
+　　　　<b>m</b> ← 1
+　　endif
+　　<b>i</b> ← 1
+　　while ( <span class="ans-hl"><b>i</b> が ( <b>n</b> - <b>m</b> ) 以下</span> )                       <span class="cmt">/* 【 2 】 */</span>
+　　　　if ( <b>tbl</b>[ <b>i</b> ] が <b>tbl</b>[ <b>i</b> + <b>m</b> ] より大きい )
+　　　　　　<b>wk</b> ← <b>tbl</b>[ <b>i</b> ]
+　　　　　　<b>tbl</b>[ <b>i</b> ] ← <b>tbl</b>[ <b>i</b> + <b>m</b> ]
+　　　　　　<b>tbl</b>[ <b>i</b> + <b>m</b> ] ← <b>wk</b>
+　　　　　　<b>flg</b> ← 1
+　　　　endif
+　　　　<b>i</b> ← <b>i</b> + 1
+　　endwhile
+endwhile</div>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div style="border-left: 10px solid var(--primary); padding: 15px 25px; background: #f5f3ff; border-radius: 0 15px 15px 0;">
+                            <h3 style="color:var(--primary); margin:0 0 10px 0;">【 1 】：継続条件</h3>
+                            <p style="font-size:18px; line-height:1.6; margin:0;">
+                                間隔 <b>m</b> が 1 より大きい間、または <b>m=1</b> であっても交換が発生した（<b>flg=1</b>）場合は処理を継続します。
+                            </p>
+                        </div>
+                        <div style="border-left: 10px solid var(--success); padding: 15px 25px; background: #f0fdf4; border-radius: 0 15px 15px 0;">
+                            <h3 style="color:var(--success); margin:0 0 10px 0;">【 2 】：比較範囲の制御</h3>
+                            <p style="font-size:18px; line-height:1.6; margin:0;">
+                                比較対象のペア <b>tbl[i]</b> と <b>tbl[i+m]</b> について、右側の添字 <b>i+m</b> が <b>n</b> を超えないように制御します。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
-
 </body>
 </html>
