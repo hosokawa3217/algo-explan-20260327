@@ -2,199 +2,293 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習59：ハッシュ法（オープンアドレス法）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アルゴリズム解説：挿入法（Insertion Sort）修正版</title>
     <style>
-        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        :root {
+            --primary: #2c3e50;
+            --accent: #d35400;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --info: #2980b9;
+            --bg: #f0f3f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
         }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw; height: 100vh;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll; overflow-x: hidden;
+        }
+
+        .slide {
+            width: 1400px; height: 800px;
+            margin: 0 auto; padding: 40px;
+            scroll-snap-align: start;
+            position: relative;
+            background: var(--card-bg);
+            border-bottom: 2px solid #ddd;
             display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
-
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
-
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 65%; }
-        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
-
-        /* 文字装飾 */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
-
-        /* 疑似言語(pre) */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        h1 {
+            font-size: 2.8rem; color: var(--primary);
+            border-left: 10px solid var(--accent);
+            padding-left: 20px; margin-bottom: 20px;
         }
 
-        /* 説明文・箇条書き */
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+        h2 { font-size: 1.8rem; margin-bottom: 15px; color: var(--info); }
 
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .columns { display: flex; gap: 40px; flex: 1; min-height: 0; }
+        .col-left { flex: 1.2; }
+        .col-right { flex: 0.8; position: relative; }
+
+        /* 配列視覚化 */
+        .array-row {
+            display: flex; gap: 10px; justify-content: center;
+            margin: 40px 0; position: relative;
         }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
 
-        /* SVG図式 */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .cell { fill: #ffffff; stroke: #334155; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .marker-head { fill: #3b82f6; }
+        .cell {
+            width: 75px; height: 75px;
+            border: 3px solid var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: bold;
+            background: white; position: relative;
+            font-family: 'Consolas', monospace;
+            z-index: 2;
+        }
+
+        .cell.sorted { background: #dff9fb; border-color: var(--info); }
+        .cell.target { background: var(--accent); color: white; border-color: var(--accent); }
+        .cell.active-idx { background: #f1f2f6; border-color: #718093; }
+
+        .idx-label {
+            position: absolute; top: -30px; font-size: 0.9rem; color: #7f8c8d;
+            font-weight: normal; font-family: 'Consolas', monospace;
+        }
+
+        /* 数値強調用 */
+        .num-hl {
+            color: var(--accent);
+            font-weight: bold;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* コードブロック */
+        pre {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 20px; border-radius: 8px;
+            font-family: 'Consolas', monospace; line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .ans-hl {
+            color: #f1c40f; font-weight: bold;
+            border-bottom: 2px solid #f1c40f;
+        }
+
+        .comment { color: #6a9955; font-style: italic; }
+
+        /* 図解エリアのSVGと説明 */
+        .viz-box {
+            position: relative;
+            height: 500px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .arc-desc {
+            position: absolute;
+            background: white;
+            border: 2px solid #eee;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.08);
+            line-height: 1.5;
+            z-index: 5; /* 最前面に配置 */
+            width: 260px;
+        }
+
+        .highlight-box {
+            background: #fff5f5; border-left: 5px solid var(--danger);
+            padding: 15px; border-radius: 4px; margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習59：ハッシュ法（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">
-        <p>ハッシュ関数 <b>h(x) = x mod n</b> を用いるハッシュ表（オープンアドレス法）の探索アルゴリズムである。空欄を埋めよ。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ hash_search(整数型: <b>num</b> )
-　　<b>i</b> ← <span class="blank">【　　 1 　　】</span>
-　　while ( <b>H[i]</b> != <b>空</b> )
-　　　　if ( <b>H[i]</b> == <b>num</b> )
-　　　　　　return <b>i</b>
-　　　　endif
-　　　　<b>i</b> ← <span class="blank">【　　 2 　　】</span>
-　　endwhile
-　　return -1</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="150" y="50" width="100" height="40" rx="5" fill="#e2e8f0" stroke="#334155" />
-                <text x="200" y="70" font-size="18">Key: num</text>
-                <path d="M 200,90 L 200,130" stroke="#334155" stroke-width="3" fill="none" marker-end="url(#head)" />
-                <rect x="130" y="140" width="140" height="50" rx="10" fill="#fef3c7" stroke="#ea580c" stroke-width="2" />
-                <text x="200" y="165" font-size="16">h(num) = num mod n</text>
-                <rect x="50" y="240" width="300" height="60" class="cell" />
-                <line x1="150" y1="240" x2="150" y2="300" stroke="#334155" stroke-width="2" />
-                <line x1="250" y1="240" x2="250" y2="300" stroke="#334155" stroke-width="2" />
-                <text x="100" y="270" font-size="14">...H[i]...</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習59：解説（ハッシュ探索）</h1></div>
-        <div class="page-num">2/4</div>
-    </div>
-    <div class="problem-text">
-        <p>ハッシュ法は、データのキー値から直接「入っているはずの場所」を計算する。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>初期位置の決定</b>：<br>探索を開始する添字 <b>i</b> は、ハッシュ関数によって一意に決まる。</li>
-                <li><b>衝突（コリジョン）の解決</b>：<br>もし計算した場所に別のデータが入っていた場合、オープンアドレス法では「次の場所」を順に調べていく。</li>
-                <li><b>探索の終了</b>：<br>目的の値が見つかるか、あるいは「空」の場所に辿り着いたとき（そこにも無いことが確定）に終了する。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <circle cx="200" cy="100" r="40" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
-                <text x="200" y="100" font-size="20">高速</text>
-                <text x="200" y="160" font-size="18">計算量 O(1)</text>
-                <rect x="100" y="220" width="200" height="80" rx="10" fill="#fff" stroke="#3b82f6" stroke-width="3" />
-                <text x="200" y="250" font-size="16">H[i] == num ?</text>
-                <text x="200" y="275" font-size="14">一致しなければ次へ</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習59：解説（ハッシュ関数と再ハッシュ）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">
-        <p>空欄を埋めるための計算式を整理しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>空欄1（初期添字）</b>：<br>ハッシュ関数 <b>h(num)</b> の戻り値をそのまま <b>i</b> に代入する。今回の関数は <b>num mod n</b> である。</li>
-                <li><b>空欄2（次の添字）</b>：<br>線形探査法では添字を 1 増やすが、配列の末尾を超えないように <b>n</b> で割った余りをとる。</li>
-                <li><b>式の意味</b>：<br><b>(i + 1) mod n</b> とすることで、添字が <b>n-1</b> の次は <b>0</b> に戻る円環構造を実現できる。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <path d="M 200,50 A 100,100 0 1,1 199,50" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="8,4" />
-                <text x="200" y="150" font-size="18">添字の循環</text>
-                <text x="200" y="180" font-size="22" fill="#ef4444">(i + 1) mod n</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習59：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>ハッシュ法（hash_search）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ hash_search(整数型: <b>num</b> )
-　　<b>i</b> ← <b class="important">num mod n</b>
-　　while ( <b>H[i]</b> != <b>空</b> )
-　　　　if ( <b>H[i]</b> == <b>num</b> )
-　　　　　　return <b>i</b>
-　　　　endif
-　　　　<b>i</b> ← <b class="important">(i + 1) mod n</b>
-　　endwhile
-　　return -1</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 ア．num mod n</span>
-                    <span class="ans-item">【２】 イ．(i + 1) mod n</span>
+<div class="container">
+    <section class="slide">
+        <h1>挿入法 (Insertion Sort)</h1>
+        <div class="columns">
+            <div class="col-left">
+                <h2>アルゴリズムの本質</h2>
+                <p style="font-size: 1.3rem; line-height: 1.8; margin-bottom: 30px;">
+                    整列済みの列に、未整列の値を<strong>「適切な位置を見つけて割り込ませる」</strong>手法です。
+                </p>
+                <div style="background: #eef2f3; padding: 25px; border-radius: 12px;">
+                    <h3>特徴まとめ</h3>
+                    <ul style="margin-left: 25px; margin-top: 15px; line-height: 2; font-size: 1.1rem;">
+                        <li>計算量：<strong>O(n²)</strong></li>
+                        <li>トランプを並べる感覚に近い</li>
+                        <li><strong>「ほぼ整列済み」</strong>のデータに非常に強い</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-right" style="display: flex; align-items: center; justify-content: center;">
+                <div style="text-align: center; background: white; border: 1px solid #ddd; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                    <h3 style="margin-bottom: 20px;">挿入のイメージ</h3>
+                    <svg width="300" height="200" viewBox="0 0 300 200">
+                        <rect x="20" y="80" width="60" height="80" fill="#3498db" rx="5" />
+                        <rect x="90" y="80" width="60" height="80" fill="#3498db" rx="5" />
+                        <rect x="180" y="20" width="60" height="80" fill="var(--accent)" rx="5" />
+                        <text x="50" y="125" text-anchor="middle" fill="white" font-weight="bold">10</text>
+                        <text x="120" y="125" text-anchor="middle" fill="white" font-weight="bold">30</text>
+                        <text x="210" y="65" text-anchor="middle" fill="white" font-weight="bold">20</text>
+                        <path d="M 210,110 Q 210,160 125,150" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="4" marker-end="url(#arrow)" />
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
+                            </marker>
+                        </defs>
+                    </svg>
+                    <p style="margin-top: 15px; color: var(--accent); font-weight: bold;">適切な位置(間)へ差し込む</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="slide">
+        <h1>ステップトレース</h1>
+        <h2>[10, 30, 20, 5] の整列 (i = 2 の場合)</h2>
+        <div class="array-row">
+            <div class="cell sorted"><span class="idx-label">1</span>10</div>
+            <div class="cell sorted" style="background: #fffbe6;"><span class="idx-label">2</span>30</div>
+            <div class="cell target"><span class="idx-label">3</span>20</div>
+            <div class="cell"><span class="idx-label">4</span>5</div>
+        </div>
+        <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
+                <h3 style="color: var(--accent);">① 比較の開始</h3>
+                <p style="font-size: 1.1rem; line-height: 1.6;">
+                    変数 <span class="num-hl">i</span> は 2。<br>
+                    挿入したい要素は <strong>tbl[3]</strong> (値:20)。<br>
+                    これを左隣の <strong>tbl[2]</strong> (値:30) と比較します。
+                </p>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
+                <h3 style="color: var(--success);">② 交換と確定</h3>
+                <p style="font-size: 1.1rem; line-height: 1.6;">
+                    30 > 20 なので交換し、20は2番目へ。<br>
+                    次に <strong>tbl[1]</strong> (10) と比較。<br>
+                    10 < 20 なので、ここが定位置！(break)
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h1>実装の急所と j の制御</h1>
+        <div class="columns">
+            <div class="col-left">
+<pre>
+for (i を 1 から n - 1 まで増やす)
+  <span class="comment">/* 空欄1: 挿入要素の左隣から比較開始 */</span>
+  for (j を <span class="ans-hl">i から 1 まで 1 減らす</span>)
+    if (tbl[j] > tbl[j + 1])
+      <span class="comment">/* 隣り合う要素を交換 */</span>
+      wk ← tbl[j]
+      tbl[j] ← tbl[j + 1]
+      tbl[j + 1] ← wk
+    else
+      break <span class="comment">/* 挿入位置確定 */</span>
+    endif
+  endfor
+endfor
+</pre>
+                <div class="highlight-box">
+                    <strong>論理的導出：</strong><br>
+                    比較対象が <span class="num-hl">tbl[j]</span> と <span class="num-hl">tbl[j + 1]</span> であることが最大のヒント。<br>
+                    挿入したい要素は最初 <span class="num-hl">i + 1</span> 番目にあるので、<br>
+                    <span class="num-hl">j + 1 = i + 1</span> つまり <span class="num-hl">j = i</span> から開始します。
+                </div>
+            </div>
+
+            <div class="col-right">
+                <h3 style="margin-bottom: 20px; color: var(--accent);">j の動きを可視化</h3>
+                <div class="viz-box">
+                    <svg class="canvas-overlay" viewBox="0 0 500 500">
+                        <path d="M 390,140 Q 390,60 310,60" fill="none" stroke="var(--info)" stroke-width="3" marker-end="url(#arrow-info)" />
+                        <path d="M 280,220 Q 180,280 80,220" fill="none" stroke="var(--danger)" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow-danger)" />
+                        
+                        <defs>
+                            <marker id="arrow-info" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--info)" />
+                            </marker>
+                            <marker id="arrow-danger" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--danger)" />
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="array-row" style="position: absolute; top: 130px; left: 0; width: 100%;">
+                        <div class="cell active-idx"><span class="idx-label">j = 1</span>1</div>
+                        <div class="cell" style="border: none; background: transparent;">...</div>
+                        <div class="cell active-idx" style="border-color: var(--info);"><span class="idx-label">j = i</span>i</div>
+                        <div class="cell target"><span class="idx-label">j + 1</span>i + 1</div>
+                    </div>
+
+                    <div class="arc-desc" style="top: 10px; right: 20px; border-left: 5px solid var(--info);">
+                        <strong>開始位置：j = i</strong><br>
+                        比較相手の右側 <strong>j + 1</strong> が<br>
+                        挿入要素 <strong>i + 1</strong> を指すように<br>
+                        初期値を設定します。
+                    </div>
+
+                    <div class="arc-desc" style="bottom: 80px; left: 40px; border-left: 5px solid var(--danger);">
+                        <strong>方向：1 まで減らす</strong><br>
+                        左隣と比較しながら、<br>
+                        値を先頭 <strong>1</strong> に向かって<br>
+                        運んでいく動きを表します。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
+
+<script>
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+        }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' });
+        }
+    });
+</script>
 
 </body>
 </html>
