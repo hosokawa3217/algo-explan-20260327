@@ -2,159 +2,166 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026/3/26 基本情報技術者　科目B　アルゴリズム対策 メニュー</title>
+    <title>練習43 最終完成版スライド（図解・具体例最適化）</title>
     <style>
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            display: flex; height: 100vh; width: 100vw;
-            background-color: #4b5563;
-            overflow: hidden; 
+        :root {
+            --canvas-width: 1400px; --canvas-height: 800px; --guard-rail: 20px;
+            --primary: #2563eb; --success: #059669; --accent: #d97706; --danger: #ef4444;
+            --bg-rail: #f1f5f9; --bg-content: #ffffff; --border: #cbd5e1; --code-bg: #1e293b;
         }
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", sans-serif; overflow: hidden; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        .slide { width: var(--canvas-width); height: var(--canvas-height); background: var(--bg-rail); padding: var(--guard-rail); box-sizing: border-box; display: flex; }
+        .slide-content { width: 100%; height: 100%; background: var(--bg-content); padding: 30px 60px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 4px; }
+        
+        .header { border-bottom: 4px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; }
+        .prob-num { background: var(--primary); color: white; padding: 5px 25px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 26px; }
+        h1 { font-size: 32px; margin: 0; color: #1e293b; }
 
-        /* サイドバー：幅170px */
-        aside {
-            width: 170px; flex-shrink: 0;
-            background-color: #ffffff; border-right: 2px solid #e5e7eb;
-            display: flex; flex-direction: column;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 10;
-        }
+        .summary-box { background: #eff6ff; border: 1px solid var(--primary); border-radius: 8px; padding: 15px 25px; margin-bottom: 15px; }
+        .summary-box p { margin: 5px 0; font-size: 19px; line-height: 1.4; color: #1e40af; }
+        
+        .expl-text { font-size: 22px; font-weight: bold; color: #334155; margin-bottom: 10px; text-align: center; }
 
-        .menu-header { padding: 10px; border-bottom: 2px solid #e5e7eb; }
-        .menu-header h2 { margin: 0; font-size: 14px; color: #1f2937; border-left: 4px solid #3b82f6; padding-left: 8px; }
+        /* Array UI */
+        .array-row { display: flex; gap: 10px; justify-content: center; margin: 70px 0 70px 0; position: relative; }
+        .cell-group { display: flex; flex-direction: column; align-items: center; width: 80px; }
+        .cell { width: 80px; height: 80px; border: 2.5px solid #334155; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 28px; background: white; z-index: 2; position: relative; }
+        .index { margin-top: 15px; font-size: 20px; font-weight: bold; color: #475569; }
 
-        .button-list { flex: 1; overflow-y: auto; padding: 5px; }
+        .cell.active { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 10px rgba(37, 99, 235, 0.2); }
+        .cell.danger { border-color: var(--danger); background: #fee2e2; color: var(--danger); }
+        .cell.focus { border-color: var(--success); background: #dcfce7; }
+        
+        /* Jump Arc - Adjusted to indicate 1 -> 5 -> 9 */
+        .jump-arc { position: absolute; top: -55px; border: 3.5px solid var(--primary); border-bottom: none; border-radius: 50% 50% 0 0; height: 50px; z-index: 1; }
 
-        .problem-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 4px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #f3f4f6;
-            white-space: nowrap;
-        }
+        /* Logic Styles */
+        .vertical-layout { display: flex; flex-direction: column; gap: 20px; flex-grow: 1; }
+        .sub-diagram { border-radius: 15px; padding: 20px; position: relative; border: 1px solid #cbd5e1; }
+        .bg-pink { background-color: #fff1f2; }
+        .bg-green { background-color: #f0fdf4; }
 
-        .problem-label {
-            font-size: 12px; font-weight: bold; color: #374151;
-            width: 50px; flex-shrink: 0;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 3px;
-            flex-shrink: 0;
-            width: 105px;
-        }
-
-        .action-btn {
-            flex: 1;
-            height: 28px;
-            line-height: 1;
-            padding: 0;
-            text-align: center;
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb !important;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #4b5563;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-sizing: border-box;
-        }
-
-        /* [処理] ボタン：オレンジ */
-        .btn-process { border-left: 4px solid #f97316 !important; } 
-        .btn-process:hover { background-color: #fff7ed; border-color: #fb923c !important; color: #ea580c; }
-        .btn-process.active { background-color: #f97316 !important; color: #ffffff !important; border-color: #ea580c !important; }
-
-        /* [解説] ボタン：緑 */
-        .btn-explan { border-left: 4px solid #10b981 !important; }
-        .btn-explan:hover { background-color: #f0fdf4; border-color: #34d399 !important; color: #059669; }
-        .btn-explan.active { background-color: #10b981 !important; color: #ffffff !important; border-color: #059669 !important; }
-
-        main { flex: 1; position: relative; background-color: #4b5563; overflow: hidden; }
-
-        #slide-view {
-            width: 1280px; height: 720px;
-            border: none; background-color: white;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            position: absolute;
-            transform-origin: top left;
-        }
-
-        .button-list::-webkit-scrollbar { width: 4px; }
-        .button-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .code-block { background: var(--code-bg); color: #f8fafc; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 19px; line-height: 1.5; white-space: pre-wrap; }
+        .hl { background: rgba(253, 224, 71, 0.2); color: #fde047; font-weight: bold; padding: 0 4px; }
+        
+        .target-mark { position: absolute; top: -45px; color: var(--accent); font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <aside>
-        <div class="menu-header"><h2>演習一覧</h2></div>
-        <div id="menu" class="button-list"></div>
-    </aside>
-    <main id="main-view">
-        <iframe id="slide-view" src="slide40_explan.html"></iframe>
-    </main>
+<div class="viewport">
 
-    <script>
-        const menu = document.getElementById('menu');
-        const iframe = document.getElementById('slide-view');
-        const mainView = document.getElementById('main-view');
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">練習43</span><h1>ジャンプ探索の全体像：具体例 <b>data = 42</b></h1></div>
+                
+                <div class="summary-box">
+                    <p><b>【アルゴリズムの要旨】</b></p>
+                    <p>ジャンプ幅 <b>m</b>（<b>√n</b>）ごとに比較を行い、値を通り過ぎた瞬間にその直前の区間を戻りながら精査する。</p>
+                    <p>例：<b>n = 12</b>, <b>m = 4</b> の場合、インデックス <b>1 → 5 → 9</b> とジャンプして値を比較する。</p>
+                </div>
 
-        for (let i = 40; i <= 77; i++) {
-            const row = document.createElement('div');
-            row.className = 'problem-row';
+                <div class="expl-text">
+                    幅 <b>m=4</b> でジャンプ中、<b>tbl[9] = 50</b> が <b>data=42</b> を超えたため、その手前を精査。
+                </div>
+                
+                <div class="array-row">
+                    <div style="position: absolute; top: -110px; right: 250px; padding: 10px 20px; border: 2px dashed var(--accent); border-radius: 8px; color: var(--accent); font-weight: bold; font-size: 20px;">
+                        探索する値：data = 42
+                    </div>
 
-            const label = document.createElement('div');
-            label.className = 'problem-label';
-            label.innerText = `練 ${i}`;
-            row.appendChild(label);
+                    <div class="cell-group"><div class="cell active">10</div><div class="index">i=1</div></div>
+                    <div class="cell-group"><div class="cell">15</div><div class="index">2</div></div>
+                    <div class="cell-group"><div class="cell">20</div><div class="index">3</div></div>
+                    <div class="cell-group"><div class="cell">25</div><div class="index">4</div></div>
+                    <div class="cell-group"><div class="cell active">30</div><div class="index">i=5</div></div>
+                    <div class="cell-group"><div class="cell focus">35</div><div class="index">6</div></div>
+                    <div class="cell-group"><div class="cell focus">40</div><div class="index">7</div></div>
+                    <div class="cell-group"><div class="cell focus">45</div><div class="index">8</div></div>
+                    <div class="cell-group"><div class="cell danger">50</div><div class="index" style="color:var(--danger)">i=9 (Over!)</div></div>
+                    
+                    <div class="jump-arc" style="left:337px; width:360px;"></div> <div class="jump-arc" style="left:697px; width:360px;"></div> </div>
 
-            const btnGroup = document.createElement('div');
-            btnGroup.className = 'btn-group';
+                <div style="text-align:center; font-size: 20px; font-weight: bold; color: var(--primary);">
+                    ジャンプ経路：tbl[1] (10) → tbl[5] (30) → tbl[9] (50) 
+                    <span style="color:var(--danger); margin-left: 10px;">➔ 42を超えた！</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            // [処理] ボタン -> slideX_explan.html を表示
-            const btnProcess = document.createElement('button');
-            btnProcess.className = 'action-btn btn-process';
-            btnProcess.innerHTML = `処`;
-            if (i === 40) btnProcess.classList.add('active'); // 初期状態
-            btnProcess.onclick = () => loadSlide(btnProcess, `slide${i}_explan.html`);
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">理論</span><h1>探索範囲の決定（空欄の論理）</h1></div>
+                
+                <div class="vertical-layout">
+                    <div class="sub-diagram bg-pink">
+                        <div style="font-weight:bold; color:var(--danger); font-size:22px; margin-bottom:10px;">【1】値を通り過ぎた場合：逆方向に探索（空欄１）</div>
+                        <div class="array-row" style="margin: 30px 0 20px 0;">
+                            <div class="cell-group" style="opacity:0.3"><div class="cell">25</div><div class="index">i-m</div></div>
+                            <div class="cell-group"><div class="cell focus">35</div><div class="index" style="color:var(--success)">i-m+1 (終)</div></div>
+                            <div class="cell-group"><div class="cell focus">40</div><div class="index">...</div></div>
+                            <div class="cell-group"><div class="cell focus">45</div><div class="index" style="color:var(--success)">i-1 (始)</div></div>
+                            <div class="cell-group"><div class="cell danger">50</div><div class="index" style="color:var(--danger)">i (現在)</div></div>
+                            <div style="position:absolute; top:10px; right:150px; font-size:40px; color:var(--danger); font-weight:bold;">← 戻って順に比較</div>
+                        </div>
+                    </div>
 
-            // [解説] ボタン -> slideX.html を表示
-            const btnExplan = document.createElement('button');
-            btnExplan.className = 'action-btn btn-explan';
-            btnExplan.innerHTML = `解`;
-            btnExplan.onclick = () => loadSlide(btnExplan, `slide${i}.html`);
+                    <div class="sub-diagram bg-green">
+                        <div style="font-weight:bold; color:var(--success); font-size:22px; margin-bottom:10px;">【2】末尾に到達した場合：順方向に探索（空欄２）</div>
+                        <div class="array-row" style="margin: 30px 0 20px 0;">
+                            <div class="cell-group" style="opacity:0.3"><div class="cell">70</div><div class="index">i-m</div></div>
+                            <div class="cell-group"><div class="cell active">75</div><div class="index" style="color:var(--primary)">i-m+1 (始)</div></div>
+                            <div class="cell-group"><div class="cell active">80</div><div class="index">...</div></div>
+                            <div class="cell-group"><div class="cell active">85</div><div class="index" style="color:var(--primary)">n (末尾)</div></div>
+                            <div style="position:absolute; top:10px; left:150px; font-size:40px; color:var(--success); font-weight:bold;">末尾まで順に比較 →</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            btnGroup.appendChild(btnProcess);
-            btnGroup.appendChild(btnExplan);
-            row.appendChild(btnGroup);
-            menu.appendChild(row);
-        }
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">実装</span><h1>疑似言語プログラム解説</h1></div>
+                <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px;">
+                    <div class="code-block">
+while ( i ≦ (n - m + 1) )
+    if (tbl[i] = data) return i
+    elseif (tbl[i] > data)
+        // 【１】戻り探索（dataを通り過ぎた区間）
+        for (j を <b>i-1</b> から <b>i-m+1</b> まで 1減らす)
+            if (tbl[j] = data) return j
+        endfor
+        return -1
+    endif
+    i ← i + m
+endwhile
 
-        function loadSlide(clickedBtn, url) {
-            document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-            clickedBtn.classList.add('active');
-            iframe.src = url;
-        }
+// 【２】末尾探索（残った端の区間）
+for (j を <b>i-m+1</b> から <b>n</b> まで 1増やす)
+    if (tbl[j] = data) return j
+endfor</div>
+                    <div style="display: flex; flex-direction: column; gap: 20px; justify-content: center;">
+                        <div style="border-left: 8px solid var(--danger); padding-left: 20px; background: #fff1f2; padding: 20px; border-radius: 0 15px 15px 0;">
+                            <h3 style="color:var(--danger); margin-top:0;">空欄【 １ 】</h3>
+                            <p>大きい値が見つかった位置 <b>i</b> の直前 <b>i-1</b> から、一つ前のジャンプ地点の直後 <b>i-m+1</b> までを「減らしながら」探します。</p>
+                        </div>
+                        <div style="border-left: 8px solid var(--success); padding-left: 20px; background: #f0fdf4; padding: 20px; border-radius: 0 15px 15px 0;">
+                            <h3 style="color:var(--success); margin-top:0;">空欄【 ２ 】</h3>
+                            <p>ループを抜けた後、最後に比較した地点の直後 <b>i-m+1</b> から、配列の本当の末尾 <b>n</b> までを「増やしながら」探します。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function resizeIframe() {
-            const margin = 20;
-            const availableWidth = mainView.clientWidth - margin;
-            const availableHeight = mainView.clientHeight - margin;
-            const scale = Math.min(availableWidth / 1280, availableHeight / 720);
-            iframe.style.transform = `scale(${scale})`;
-            const offsetX = (mainView.clientWidth - (1280 * scale)) / 2;
-            const offsetY = (mainView.clientHeight - (720 * scale)) / 2;
-            iframe.style.left = `${offsetX}px`;
-            iframe.style.top = `${offsetY}px`;
-        }
-
-        window.onresize = resizeIframe;
-        window.onload = resizeIframe;
-        setTimeout(resizeIframe, 100);
-    </script>
+</div>
 </body>
 </html>

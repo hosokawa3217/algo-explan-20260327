@@ -1,179 +1,329 @@
+<!-- slide43.html 練習43 ジャンプ探索（空欄導出） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <style>
-        /* 1. 全体・画面設計: 1280x720px固定、背景白、padding 40px 80px */
-        body { margin: 0; padding: 0; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; }
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin: 20px 0; position: relative; box-sizing: border-box; 
-            padding: 40px 80px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            display: flex; flex-direction: column;
+        /* 基本レイアウト設定 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            color: #000000;
+        }
+        .slide {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            padding: 40px 80px;
+            display: none; /* 初期は非表示 */
+        }
+        .slide.active {
+            display: flex;
+            flex-direction: column;
         }
 
-        /* 2. タイトル領域: 38px, 左側に25pxの青色バー(#3b82f6) */
-        h1 { 
-            font-size: 38px; border-left: 25px solid #3b82f6; padding-left: 20px; 
-            margin: 0 0 25px 0; color: #000000; line-height: 1.2;
+        /* ヘッダー領域 */
+        .header {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            margin-bottom: 25px;
+        }
+        .blue-bar {
+            width: 20px;
+            height: 50px;
+            background-color: #3b82f6;
+            margin-right: 15px;
+        }
+        h1 {
+            font-size: 38px;
+            font-weight: 900;
+            margin: 0;
+        }
+        .page-num {
+            margin-left: auto;
+            font-size: 24px;
+            color: #64748b;
         }
 
-        /* 3. コンテンツ領域: 左65% vs 右35%, 間隔25px */
-        .content-area { display: flex; flex: 1; width: 100%; margin-bottom: 80px; gap: 25px; }
-        .text-column { flex: 0 0 65%; box-sizing: border-box; }
-        .figure-column { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
-
-        /* 4. 文字・装飾ルール: <b>タグ使用、クォーテーション廃止 */
-        .explanation { font-size: 31px; line-height: 1.5; color: #000000; margin-bottom: 15px; }
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; }
-        b { font-weight: 900; } 
-        pre { 
-            background-color: #e2e8f0; padding: 20px; border-radius: 10px; 
-            font-family: 'Consolas', monospace; font-size: 26px; line-height: 1.3; 
-            border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        /* コンテンツ領域 */
+        .problem-text {
+            width: 100%;
+            font-size: 28px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+        .content {
+            display: flex;
+            flex: 1;
+            gap: 25px;
+        }
+        .text-column {
+            flex: 0 0 65%;
+            font-size: 30px;
+            line-height: 1.5;
+        }
+        .figure-column {
+            flex: 0 0 35%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 上揃え */
         }
 
-        /* 5. フッター領域 */
-        .footer { 
-            position: absolute; bottom: 40px; left: 80px; right: 80px; 
-            height: 60px; display: flex; align-items: center;
+        /* 疑似言語装飾 */
+        pre {
+            background-color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 23px;
+            font-weight: bold;
+            line-height: 1.3;
+            margin: 0;
+        }
+        b { font-weight: 900; }
+        .blank { color: #a52a2a; font-weight: 900; }
+        .red-text { color: #ef4444; font-weight: 900; }
+        .ans-highlight { color: #ef4444; font-weight: 900; }
+
+        /* フッター領域 */
+        .footer {
+            height: 63px;
             border-top: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            font-size: 25px;
+            color: #4b5563;
+            margin-top: auto;
         }
-        .footer-text { font-size: 25px; width: 100%; padding-top: 10px; font-weight: bold; }
-        .supplement-color { color: #4b5563; } 
-        .answer-color { color: #ea580c; }
+        .footer.ans {
+            color: #ea580c;
+            font-weight: 900;
+        }
 
-        /* 6. SVG実装ルール: 箱(セル)と物理的な動き。テキストをビューポート内に収める */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; padding: 10px; box-sizing: border-box; }
-        text { font-weight: bold; font-family: sans-serif; }
+        /* リスト・解答ボックス */
+        ul { margin: 10px 0; padding-left: 40px; }
+        li { margin-bottom: 8px; }
+        .ans-box {
+            width: 100%;
+            background-color: #fffaf4;
+            border: 3px solid #ea580c;
+            border-radius: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .ans-box h2 {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid #ea580c;
+            font-weight: 900;
+        }
+        .ans-item {
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
     </style>
 </head>
 <body>
 
-<div class="slide">
-    <h1>練習42：先頭への移動法（問題提示）</h1>
-    <div class="content-area">
+<!-- スライド1：問題提示 -->
+<div class="slide active">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>練習４３：ジャンプ探索（１）</h1>
+        <div class="page-num">1 / 5</div>
+    </div>
+    <div class="problem-text">
+        昇順に整列された配列 <b>tbl</b> から、一定の幅 <b>m</b> で飛ばしながら目的の <b>data</b> を探す。
+    </div>
+    <div class="content">
         <div class="text-column">
-            <p class="explanation">
-                探索で見つかった <b>i</b> 番目の値を <b>tbl[ 1 ]</b> に持ってくるため、その前の要素を <b>1つずつ右にずらす</b> アルゴリズムを完成させよう。
-            </p>
             <pre>
-if ( i ≦ n )
-  for ( j を <span class="blank">【 1 】</span> )
-    tbl[ j ] ← tbl[ j - 1 ]
-  endfor
-  tbl[ 1 ] ← data
-endif</pre>
+while ( <b>i</b> が ( <b>n</b> - <b>m</b> + 1 ) 以下 )
+　　if ( <b>tbl[ i ]</b> が <b>data</b> と等しい )
+　　　　return <b>i</b>
+　　elseif ( <b>tbl[ i ]</b> が <b>data</b> より大きい )
+　　　　for ( <b>j</b> を <span class="blank">【 1 】</span> )
+　　　　　　if ( <b>tbl[ j ]</b> が <b>data</b> と等しい )
+　　　　　　　　return <b>j</b>
+　　　　　　endif
+　　　　endfor
+　　　　return -1
+　　endif
+　　<b>i</b> ← <b>i</b> + <b>m</b>
+endwhile</pre>
         </div>
         <div class="figure-column">
-            <svg viewBox="0 0 400 350">
-                <text x="200" y="30" fill="#3b82f6" font-size="22" text-anchor="middle">玉突き移動のイメージ</text>
-                
-                <rect x="50" y="80" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
-                <rect x="110" y="80" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
-                <rect x="170" y="80" width="60" height="60" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
-                <rect x="230" y="80" width="60" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
-                <text x="260" y="70" text-anchor="middle" font-size="16" fill="#ef4444">i 番目</text>
-
-                <path d="M 80 150 Q 110 180 140 150" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
-                <path d="M 140 150 Q 170 180 200 150" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
-                <path d="M 200 150 Q 230 180 260 150" stroke="#3b82f6" stroke-width="4" marker-end="url(#arr1)" fill="none"/>
-                
-                <text x="200" y="240" text-anchor="middle" font-size="20" fill="#3b82f6">空き地を作るために</text>
-                <text x="200" y="270" text-anchor="middle" font-size="20" fill="#3b82f6">1つずつ右へ避難させる</text>
-                
-                <defs><marker id="arr1" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#3b82f6"/></marker></defs>
-            </svg>
-        </div>
-    </div>
-    <div class="footer"><div class="footer-text supplement-color">補足：見つかったデータを最前列に置くことで、次回の探索を速くする。</div></div>
-</div>
-
-<div class="slide">
-    <h1>練習42：なぜ「後ろから」処理するのか</h1>
-    <div class="content-area">
-        <div class="text-column">
-            <ul class="explanation">
-                <li>代入式 <b>tbl[ j ] ← tbl[ j - 1 ]</b> は、「左の値を右にコピーする」処理です。</li>
-                <li>もし <b>左から順に</b> やると、コピー先のデータが上書きされ、消えてしまいます。</li>
-                <li><b>後ろ（右）から順に</b> 行うことで、元々あった値を安全に隣へ避難させることができます。</li>
-            </ul>
-        </div>
-        <div class="figure-column">
-            <svg viewBox="0 0 400 400">
-                <text x="200" y="30" fill="#ef4444" font-size="20" text-anchor="middle">【失敗】前から処理</text>
-                
-                <rect x="100" y="50" width="80" height="60" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
-                <rect x="180" y="50" width="80" height="60" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
-                <text x="140" y="90" font-size="30">A</text>
-                <text x="220" y="90" font-size="30" fill="#ef4444">B</text>
-                
-                <path d="M 140 120 Q 180 170 220 120" stroke="#ef4444" stroke-width="5" marker-end="url(#arrBad)" fill="none"/>
-                
-                <text x="200" y="190" text-anchor="middle" font-size="18" fill="#ef4444">Aをコピーすると B が消える！</text>
-
-                <line x1="50" y1="210" x2="350" y2="210" stroke="#cbd5e1" stroke-width="2"/>
-
-                <text x="200" y="240" fill="#10b981" font-size="20" text-anchor="middle">【成功】後ろから処理</text>
-                
-                <rect x="100" y="260" width="80" height="60" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
-                <rect x="180" y="260" width="80" height="60" fill="#d1fae5" stroke="#10b981" stroke-width="3"/>
-                <text x="140" y="300" font-size="30">A</text>
-                <text x="220" y="300" font-size="18" fill="#64748b">空き地</text>
-                
-                <path d="M 140 330 Q 180 370 220 330" stroke="#10b981" stroke-width="5" marker-end="url(#arrGood)" fill="none"/>
-                
+            <svg viewBox="0 0 400 400" width="100%">
                 <defs>
-                    <marker id="arrBad" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#ef4444"/></marker>
-                    <marker id="arrGood" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#10b981"/></marker>
+                    <marker id="arrow" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+                        <path d="M0,0 L24,9 L0,18 Z" fill="#3b82f6" />
+                    </marker>
                 </defs>
+                <!-- 配列のイメージ -->
+                <rect x="10" y="50" width="380" height="60" rx="12" fill="#f9fafb" stroke="#64748b" stroke-width="3"/>
+                <line x1="100" y1="50" x2="100" y2="110" stroke="#64748b" stroke-width="2"/>
+                <line x1="190" y1="50" x2="190" y2="110" stroke="#64748b" stroke-width="2"/>
+                <line x1="280" y1="50" x2="280" y2="110" stroke="#64748b" stroke-width="2"/>
+                <text x="55" y="90" font-size="20" font-weight="900" text-anchor="middle">1</text>
+                <text x="145" y="90" font-size="20" font-weight="900" text-anchor="middle">1+m</text>
+                <text x="235" y="90" font-size="20" font-weight="900" text-anchor="middle">1+2m</text>
+                <!-- ジャンプ矢印 -->
+                <path d="M55,130 Q100,180 145,130" fill="none" stroke="#3b82f6" stroke-width="5" marker-end="url(#arrow)" />
+                <text x="100" y="190" font-size="22" font-weight="900" fill="#3b82f6" text-anchor="middle">幅 m でジャンプ</text>
             </svg>
         </div>
     </div>
-    <div class="footer"><div class="footer-text supplement-color">補足：データの避難順序を間違えないことがアルゴリズムの肝。</div></div>
+    <div class="footer" style="font-size: 21px;">
+        選択肢：ア i-1 から i-m+1 まで 1 増やす / イ i-1 から i-m+1 まで 1 減らす
+    </div>
 </div>
 
+<!-- スライド2：アルゴリズム解説 -->
 <div class="slide">
-    <h1>練習42：解答の導出</h1>
-    <div class="content-area">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>アルゴリズムの目的と構造</h1>
+        <div class="page-num">2 / 5</div>
+    </div>
+    <div class="content">
         <div class="text-column">
-            <pre>for ( j を <b>i</b> から <b>2</b> まで <b>1</b> ずつ減らす )</pre>
-            <ul class="explanation">
-                <li>まず <b>i</b> 番目の空き地へ、その左隣（<b>i-1</b> 番目）の値を避難させます（<b>j = i</b>）。</li>
-                <li>これを繰り返し、最後に <b>2</b> 番目の場所へ <b>1</b> 番目の値を移します（<b>j = 2</b>）。</li>
-                <li>これで <b>tbl[ 1 ]</b> が空くので、見つかったデータを格納できます。</li>
-                <li>減少ループ（step -1）である <b>ウ</b> が正解です。</li>
+            <ul>
+                <li><b>効率的な探索</b>：線形探索より速く、二分探索よりシンプルな中間的アルゴリズムである。</li>
+                <li><b>ジャンプフェーズ</b>：まず幅 <b>m</b> で大きく飛ばして <b>data</b> を超える地点を探す。</li>
+                <li><b>詳細探索フェーズ</b>：行き過ぎたことが分かったら、その「直前の区間」だけを詳しく調べる。</li>
             </ul>
+            <p>この「大股で進んでから少し戻る」動きがジャンプ探索の核心だ。</p>
         </div>
         <div class="figure-column">
-            <svg viewBox="100 0 400 350">
-                <text x="250" y="40" font-size="22" text-anchor="middle" fill="#1e3a8a">ループによる避難の向き</text>
-                
-                <rect x="120" y="80" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
-                <rect x="170" y="80" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
-                <rect x="220" y="80" width="50" height="50" fill="#e2e8f0" stroke="#475569"/>
-                <rect x="270" y="80" width="50" height="50" fill="#cbd5e1" stroke="#475569"/>
-                <rect x="320" y="80" width="50" height="50" fill="#fee2e2" stroke="#ef4444" stroke-dasharray="5,5"/>
-                
-                <text x="145" y="150" font-size="14">1</text>
-                <text x="195" y="150" font-size="14">2</text>
-                <text x="345" y="150" font-size="14" fill="#ef4444">i</text>
-
-                <path d="M 170 105 L 125 105" stroke="#1e3a8a" stroke-width="3" marker-end="url(#arrMove)" fill="none"/>
-                <path d="M 220 105 L 175 105" stroke="#1e3a8a" stroke-width="3" marker-end="url(#arrMove)" fill="none"/>
-                <path d="M 270 105 L 225 105" stroke="#1e3a8a" stroke-width="3" marker-end="url(#arrMove)" fill="none"/>
-                <path d="M 320 105 L 275 105" stroke="#1e3a8a" stroke-width="3" marker-end="url(#arrMove)" fill="none"/>
-
-                <text x="250" y="240" text-anchor="middle" font-size="22" fill="#1e3a8a" font-weight="900">i 番目のデータから</text>
-                <text x="250" y="270" text-anchor="middle" font-size="22" fill="#1e3a8a" font-weight="900">順に右へ「避難」</text>
-                
-                <defs><marker id="arrMove" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="14" refX="20" refY="7" orient="auto"><polygon points="0 0, 20 7, 0 14" fill="#1e3a8a"/></marker></defs>
+            <svg viewBox="0 0 400 350" width="100%">
+                <rect x="50" y="50" width="300" height="200" rx="15" fill="#f0f9ff" stroke="#3b82f6" stroke-width="3"/>
+                <text x="200" y="110" font-size="24" font-weight="900" text-anchor="middle" fill="#1e3a8a">1. ジャンプ(i ← i + m)</text>
+                <text x="200" y="170" font-size="24" font-weight="900" text-anchor="middle" fill="#1e3a8a">2. 比較(tbl[i] > data)</text>
+                <text x="200" y="230" font-size="24" font-weight="900" text-anchor="middle" fill="#ef4444">3. 戻って精査(詳細探索)</text>
             </svg>
         </div>
     </div>
-    <div class="footer"><div class="footer-text answer-color">解答： (1) ウ　i から 2 まで 1 ずつ減らす</div></div>
+    <div class="footer">ヒント：dataを超えた瞬間に、答えはその「手前」にあることが確定する。</div>
 </div>
+
+<!-- スライド3：空欄【 1 】の導出（詳細探索） -->
+<div class="slide">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>空欄【 1 】：戻って精査する範囲</h1>
+        <div class="page-num">3 / 5</div>
+    </div>
+    <div class="content">
+        <div class="text-column">
+            <ul>
+                <li><b>判定条件</b>：<b>tbl[ i ]</b> が <b>data</b> より大きくなった瞬間が合図だ。</li>
+                <li><b>調査の開始点</b>：現在の <b>i</b> は <b>data</b> を超えているため、その一つ手前の <span class="red-text"><b>i - 1</b></span> から調べ始める。</li>
+                <li><b>調査の終着点</b>：前回比較した地点の直後である <span class="red-text"><b>i - m + 1</b></span> まで戻る必要がある。</li>
+            </ul>
+            <p>逆方向に一つずつ調べるため、制御は「<span class="red-text"><b>1 ずつ減らす</b></span>」となる。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350" width="100%">
+                <!-- 区間の図解 -->
+                <rect x="20" y="100" width="360" height="50" rx="8" fill="#f9fafb" stroke="#64748b" stroke-width="3"/>
+                <rect x="200" y="100" width="180" height="50" fill="#fee2e2" stroke="#ef4444" stroke-width="2" opacity="0.5"/>
+                <text x="110" y="80" font-size="18" font-weight="900" text-anchor="middle">前回地点</text>
+                <text x="310" y="80" font-size="18" font-weight="900" text-anchor="middle" fill="#ef4444">現在(超過)</text>
+                <text x="110" y="135" font-size="16" font-weight="900" text-anchor="middle">i-m</text>
+                <text x="310" y="135" font-size="16" font-weight="900" text-anchor="middle">i</text>
+                <!-- バックトラック矢印 -->
+                <path d="M290,170 L130,170" fill="none" stroke="#ef4444" stroke-width="5" marker-end="url(#arrow)" stroke-dasharray="10,5" />
+                <text x="210" y="210" font-size="20" font-weight="900" fill="#ef4444" text-anchor="middle">i-1 から i-m+1 へ</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">正解へのプロセス：超過した地点から、直前の安全な地点まで逆走する。</div>
+</div>
+
+<!-- スライド4：空欄【 2 】の導出（末尾処理） -->
+<div class="slide">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>空欄【 2 】：末尾に残った区間</h1>
+        <div class="page-num">4 / 5</div>
+    </div>
+    <div class="content">
+        <div class="text-column">
+            <ul>
+                <li><b>状況</b>：ジャンプの繰り返しで <b>i</b> が配列の末尾付近（n - m + 1 を超えた先）に到達した。</li>
+                <li><b>開始点</b>：最後のジャンプ地点の直後、つまり <span class="red-text"><b>i - m + 1</b></span> が起点だ。</li>
+                <li><b>終着点</b>：本当の配列末尾である <span class="red-text"><b>n</b></span> までを漏れなく調べる。</li>
+            </ul>
+            <p>最後は前方向に「<span class="red-text"><b>1 ずつ増やす</b></span>」線形探索で完結させる。</p>
+        </div>
+        <div class="figure-column">
+            <svg viewBox="0 0 400 350" width="100%">
+                <rect x="20" y="100" width="360" height="50" rx="8" fill="#f9fafb" stroke="#64748b" stroke-width="3"/>
+                <rect x="180" y="100" width="200" height="50" fill="#ecfdf5" stroke="#10b981" stroke-width="2" opacity="0.5"/>
+                <text x="100" y="135" font-size="16" font-weight="900" text-anchor="middle">i-m</text>
+                <text x="360" y="135" font-size="16" font-weight="900" text-anchor="middle">n</text>
+                <path d="M180,170 L340,170" fill="none" stroke="#10b981" stroke-width="5" marker-end="url(#arrow)" />
+                <text x="260" y="210" font-size="20" font-weight="900" fill="#10b981" text-anchor="middle">i-m+1 から n まで</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">正解へのプロセス：最後のジャンプ地点から、配列の「本当の端」までを網羅する。</div>
+</div>
+
+<!-- スライド5：最終解答 -->
+<div class="slide">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>解答提示：ジャンプ探索</h1>
+        <div class="page-num">5 / 5</div>
+    </div>
+    <div class="content">
+        <div class="text-column">
+            <pre>
+elseif ( <b>tbl[ i ]</b> が <b>data</b> より大きい )
+　　for ( <b>j</b> を <span class="ans-highlight"><b>i - 1 から i - m + 1 まで 1 ずつ減らす</b></span> )
+　　　　/* 中略 */
+　　endfor
+　　return -1
+endif
+/* ループ終了後 */
+for ( <b>j</b> を <span class="ans-highlight"><b>i - m + 1 から n まで 1 ずつ増やす</b></span> )</pre>
+            <p style="margin-top:20px; font-size:26px;">このアルゴリズムは、磁気テープのように「戻る」操作にコストがかかるデバイスで、前進ジャンプを基本にする際に特に有効だ。</p>
+        </div>
+        <div class="figure-column">
+            <div class="ans-box">
+                <h2>最終解答（選択肢）</h2>
+                <div class="ans-item">【 1 】 イ．<b>i - 1 から i - m + 1 まで 1 ずつ減らす</b></div>
+                <div class="ans-item">【 2 】 ウ．<b>i - m + 1 から n まで 1 ずつ増やす</b></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer ans">
+        解答： (1)　イ　i - 1 から i - m + 1 まで 1 ずつ減らす　　(2)　ウ　i - m + 1 から n まで 1 ずつ増やす
+    </div>
+</div>
+
+<script>
+    // 簡易的なスライド切り替え（キー操作用）
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' && currentSlide < slides.length - 1) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide++;
+            slides[currentSlide].classList.add('active');
+        } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide--;
+            slides[currentSlide].classList.add('active');
+        }
+    });
+</script>
 
 </body>
 </html>
+<!-- slide43.html 練習43 ジャンプ探索（空欄導出） -->

@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習42 解説スライド - 1400px版</title>
+    <title>練習42 解説スライド - ガードレール版</title>
     <style>
         :root {
             --canvas-width: 1400px;
             --canvas-height: 800px;
-            --side-margin: 50px;
+            --guard-rail: 20px; /* 上下左右20px */
             --primary: #2563eb;
             --success: #059669;
             --accent: #d97706;
             --danger: #ef4444;
-            --bg-side: #f1f5f9;    /* 左右端の薄い灰色 */
-            --bg-content: #ffffff; /* コンテンツ領域の白 */
+            --bg-rail: #f1f5f9;    /* ガードレールの色 */
+            --bg-content: #ffffff; /* メイン領域の白 */
             --border: #cbd5e1;
             --code-bg: #1e293b;
         }
@@ -22,36 +22,37 @@
         .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
         
-        /* スライド外枠 */
+        /* スライド外枠（1400x800） */
         .slide { 
             width: var(--canvas-width); 
             height: var(--canvas-height); 
-            background: var(--bg-side); 
+            background: var(--bg-rail); 
+            padding: var(--guard-rail); /* ここで上下左右に隙間を作る */
+            box-sizing: border-box; 
             display: flex; 
             box-shadow: 0 10px 40px rgba(0,0,0,0.3); 
             position: relative; 
             overflow: hidden; 
         }
 
-        /* 左右50pxを空けたメイン領域 */
+        /* ホワイトキャンバス領域 */
         .slide-content {
-            margin: 0 var(--side-margin);
-            width: calc(var(--canvas-width) - (var(--side-margin) * 2));
+            width: 100%;
             height: 100%;
             background: var(--bg-content);
             padding: 40px 50px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            border-left: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
+            box-shadow: inset 0 0 0 1px #e2e8f0;
+            border-radius: 4px; /* 微かに角を丸めて柔らかく */
         }
 
         .header { border-bottom: 4px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; }
         .prob-num { background: var(--primary); color: white; padding: 5px 20px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 24px; }
         h1 { font-size: 32px; margin: 0; color: #1e293b; }
 
-        /* Array Styles */
+        /* Array UI */
         .array-container { display: flex; align-items: flex-start; gap: 8px; margin: 15px 0; }
         .array-cell-wrapper { display: flex; flex-direction: column; align-items: center; }
         .array-index { font-size: 15px; color: #64748b; margin-bottom: 5px; font-weight: bold; font-family: sans-serif; }
@@ -63,7 +64,6 @@
         /* Layout Grid */
         .split-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; flex-grow: 1; min-height: 0; }
         
-        /* Cards */
         .theory-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
         .theory-card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
         .theory-card p { font-size: 16px; line-height: 1.6; color: #334155; margin: 0; }
@@ -84,15 +84,18 @@
                 <div class="header"><span class="prob-num">練習42</span><h1>先頭移動法（自己組織化探索）の概要</h1></div>
                 
                 <div class="theory-card" style="background: #eff6ff; border-left: 8px solid var(--primary);">
-                    <h3 style="border:none; padding:0;">アルゴリズムの目的：探索の高速化</h3>
+                    <h3 style="border:none; padding:0;">探索効率の最適化</h3>
                     <p style="font-size: 18px;">
-                        一度見つかったデータは<b>「再び探索される可能性が高い」</b>という性質を利用します。見つかったデータを<b>配列の先頭</b>へ移動させることで、頻繁に使うデータへのアクセス速度を自動的に向上させます。
+                        一度見つかったデータは<b>「近い将来、再び探索される可能性が高い」</b>という性質を利用します。探索のたびにデータを先頭（添字1）へ移動させ、他を後ろへずらすことで、よく使うデータが前方に集まり、平均探索回数が減少します。
                     </p>
                 </div>
 
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f8fafc; border-radius: 15px; border: 1px solid var(--border);">
-                    <div style="width: 90%;">
-                        <div style="font-weight: bold; color: #64748b; margin-bottom: 5px;">【探索前】 data = 4 を探す</div>
+                    <div style="width: 85%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: #64748b;">【探索前】 data = 4 を探す</span>
+                            <span style="font-size: 14px; color: #94a3b8;">i=1から順にチェック... i=5で発見！</span>
+                        </div>
                         <div class="array-container">
                             <div class="array-cell-wrapper"><span class="array-index">1</span><div class="array-cell">3</div></div>
                             <div class="array-cell-wrapper"><span class="array-index">2</span><div class="array-cell">8</div></div>
@@ -102,7 +105,7 @@
                             <div class="array-cell-wrapper"><span class="array-index">6</span><div class="array-cell">6</div></div>
                         </div>
                         <div class="arrow-down">↓</div>
-                        <div style="font-weight: bold; color: var(--danger); margin-bottom: 5px;">【探索後】 見つかった 4 を先頭へ、他を右へずらす</div>
+                        <div style="font-weight: bold; color: var(--danger); margin-bottom: 5px;">【探索後】 4 を先頭に挿入し、3, 8, 2, 1 を右へシフト</div>
                         <div class="array-container">
                             <div class="array-cell-wrapper"><span class="array-index">1</span><div class="array-cell new-front">4</div></div>
                             <div class="array-cell-wrapper"><span class="array-index">2</span><div class="array-cell shifted">3</div></div>
@@ -120,34 +123,36 @@
     <div class="slide-wrapper">
         <div class="slide">
             <div class="slide-content">
-                <div class="header"><span class="prob-num">理論</span><h1>ずらし処理の核心：コピーの順序</h1></div>
+                <div class="header"><span class="prob-num">核心</span><h1>ずらし処理の論理：データ破壊を防ぐ</h1></div>
                 
+                <p style="margin: 0 0 20px 0; font-size: 18px;">移動先の空きを作るために、既存の要素を「1つ後ろ」にコピーします。この際、処理の方向に注意が必要です。</p>
+
                 <div class="split-container">
                     <div style="background: #fff5f5; border: 2px solid #fca5a5; padding: 25px; border-radius: 15px;">
-                        <h3 style="color: var(--danger); text-align: center; margin-top: 0;">❌ 前（2）から順にコピー</h3>
-                        <p style="font-size: 15px; color: #7f1d1d;">tbl[j] ← tbl[j-1] を 2 から増やすと...</p>
+                        <h3 style="color: var(--danger); text-align: center; margin-top: 0;">❌ 前から順に処理 (2 → i)</h3>
+                        <p style="font-size: 14px; color: #7f1d1d;">tbl[2]=tbl[1]、次にtbl[3]=tbl[2]...</p>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
                             <div class="array-container"><div class="array-cell">3</div><div class="array-cell new-front">3</div><div class="array-cell">2</div></div>
                             <div class="arrow-down" style="font-size: 20px;">↓</div>
                             <div class="array-container"><div class="array-cell">3</div><div class="array-cell">3</div><div class="array-cell new-front">3</div></div>
-                            <p style="font-weight: bold; color: var(--danger); margin-top: 15px;">同じ値で塗りつぶされてしまう！</p>
+                            <p style="font-weight: bold; color: var(--danger); text-align: center; font-size: 15px;">上書きされた「3」が連続してコピーされ、他のデータが消えてしまう！</p>
                         </div>
                     </div>
 
                     <div style="background: #f0fdf4; border: 2px solid #86efac; padding: 25px; border-radius: 15px;">
-                        <h3 style="color: var(--success); text-align: center; margin-top: 0;">✅ 後ろ（i）から順にコピー</h3>
-                        <p style="font-size: 15px; color: #14532d;">tbl[j] ← tbl[j-1] を i から減らすと...</p>
+                        <h3 style="color: var(--success); text-align: center; margin-top: 0;">✅ 後ろから順に処理 (i → 2)</h3>
+                        <p style="font-size: 14px; color: #14532d;">tbl[5]=tbl[4]、次にtbl[4]=tbl[3]...</p>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
                             <div class="array-container"><div class="array-cell">2</div><div class="array-cell">1</div><div class="array-cell shifted">1</div></div>
                             <div class="arrow-down" style="font-size: 20px;">↓</div>
                             <div class="array-container"><div class="array-cell">2</div><div class="array-cell shifted">2</div><div class="array-cell">1</div></div>
-                            <p style="font-weight: bold; color: var(--success); margin-top: 15px;">データを壊さずに右へ移動できる</p>
+                            <p style="font-weight: bold; color: var(--success); text-align: center; font-size: 15px;">後ろから順に行うことで、各データが消える前に「退避」できる！</p>
                         </div>
                     </div>
                 </div>
                 
-                <div style="margin-top: 25px; padding: 20px; background: #f1f5f9; border-radius: 10px; text-align: center; font-size: 18px; border-left: 5px solid var(--primary);">
-                    代入文が <b>tbl[j] ← tbl[j-1]</b> なので、添字 <b>j</b> は <b>発見位置 i から 2 まで</b> 減らす。
+                <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border: 1px dashed var(--primary); border-radius: 10px; text-align: center;">
+                    <span style="font-size: 18px; font-weight: bold;">結論：<span style="color:var(--primary)">j を i から 2 まで 1 ずつ減らす</span> 制御が必要</span>
                 </div>
             </div>
         </div>
@@ -156,39 +161,40 @@
     <div class="slide-wrapper">
         <div class="slide">
             <div class="slide-content">
-                <div class="header"><span class="prob-num">実装</span><h1>疑似言語プログラム</h1></div>
+                <div class="header"><span class="prob-num">実装</span><h1>疑似言語プログラム解説</h1></div>
                 
                 <div class="split-container">
                     <div class="code-block">
 ○ search (整数型の配列：tbl, n, data)
 i ← 1
-<span class="cmt">/* 探索：dataがある位置 i を特定 */</span>
+<span class="cmt">/* 探索フェーズ */</span>
 while ((i ≦ n) and (tbl[i] ≠ data))
     i ← i + 1
 endwhile
 
-if (i ≦ n)  <span class="cmt">/* 見つかった場合 */</span>
-    <span class="cmt">/* 後ろから順にずらす */</span>
+<span class="cmt">/* 移動フェーズ */</span>
+if (i ≦ n)
+    <span class="cmt">/* 後ろから順にずらし、空きを作る */</span>
     for (<span class="hl">j を i から 2 まで 1 ずつ減らす</span>)
-        tbl[j] ← tbl[j-1]
+        tbl[j] ← tbl[j - 1]
     endfor
     
-    <span class="cmt">/* 空いた先頭に格納 */</span>
+    <span class="cmt">/* 空いた先頭に発見したデータを格納 */</span>
     <span class="hl">tbl[1] ← data</span>
 endif</div>
 
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <div class="theory-card" style="border-left: 6px solid var(--accent);">
-                            <h3>1. 線形探索</h3>
-                            <p>配列の先頭から <code>data</code> を探します。見つかった時の添字 <code>i</code> が処理の起点になります。</p>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="theory-card" style="border-left: 6px solid var(--accent); margin-bottom: 0;">
+                            <h3>Step 1: 逐次探索</h3>
+                            <p>配列 <code>tbl</code> を先頭から順に走査し、見つかった位置 <code>i</code> を確定させます。見つからなかった場合は <code>i > n</code> となります。</p>
                         </div>
-                        <div class="theory-card" style="border-left: 6px solid var(--danger);">
-                            <h3>2. ずらし処理 (i → 2)</h3>
-                            <p><code>tbl[j] ← tbl[j-1]</code>。この1行で「1つ前を自分にコピー」しています。これを後ろから順に行うのがポイントです。</p>
+                        <div class="theory-card" style="border-left: 6px solid var(--danger); margin-bottom: 0;">
+                            <h3>Step 2: 退避とシフト</h3>
+                            <p><code>for</code> ループの制御変数 <code>j</code> を <code>i</code> から開始します。<code>tbl[j] ← tbl[j-1]</code> によって、1つ前の要素が現在の位置に安全にコピーされます。</p>
                         </div>
-                        <div class="theory-card" style="border-left: 6px solid var(--success);">
-                            <h3>3. 先頭へのセット</h3>
-                            <p>最後に <code>tbl[1]</code> に探索データを上書きして完了。これで「4」が先頭に来た新しい配列が完成します。</p>
+                        <div class="theory-card" style="border-left: 6px solid var(--success); margin-bottom: 0;">
+                            <h3>Step 3: 先頭挿入</h3>
+                            <p>全てのシフトが終わると、<code>tbl[1]</code> の旧データは <code>tbl[2]</code> に移動済みです。最後に <code>tbl[1]</code> を <code>data</code> で上書きして完了です。</p>
                         </div>
                     </div>
                 </div>
