@@ -1,221 +1,199 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>練習53：二分探索木からのデータ探索(treesearch)</title>
-    <style>
-        /* ■ 1. 画面構成と基本レイアウト */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-        }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>練習53 解説スライド（図解追加版）</title>
+<style>
+  /* 基本設定 */
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e9ecef;
+  }
 
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+  /* スクロールスナップのコンテナ */
+  .presentation-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .presentation-container::-webkit-scrollbar { display: none; }
 
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+  /* 各スライドの外枠 */
+  .slide-wrapper {
+    height: 100vh;
+    scroll-snap-align: start;
+    display: flex; justify-content: center; align-items: center;
+  }
 
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 62%; }
-        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: flex-start; }
+  /* スライドの内容（白いカード） */
+  .slide-content {
+    width: 900px; height: 600px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    padding: 50px; box-sizing: border-box;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
 
-        /* 文字・装飾・インデントルール */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
+  /* 装飾とタイポグラフィ */
+  h1 { color: #343a40; font-size: 2.3em; text-align: center; margin-bottom: 20px; }
+  h2 { color: #0056b3; font-size: 1.8em; border-bottom: 3px solid #0056b3; padding-bottom: 10px; margin-top: 0; }
+  p, li { font-size: 1.3em; line-height: 1.6; color: #495057; }
+  ul { margin-top: 10px; }
+  pre {
+    background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1.1em;
+    border-left: 5px solid #28a745; overflow-x: auto; margin-top: 10px;
+  }
+  .highlight { font-weight: bold; color: #dc3545; background: #ffe6e6; padding: 0 5px; border-radius: 3px; }
+  .badge { display: inline-block; padding: 5px 10px; background: #17a2b8; color: white; border-radius: 5px; font-size: 0.9em; margin-bottom: 15px; }
+  .center-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .page-number { position: absolute; bottom: 20px; right: 30px; font-size: 1.2em; color: #adb5bd; font-weight: bold; }
 
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 23px; 
-            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-        }
-
-        .desc-text { font-size: 26px; line-height: 1.6; margin: 0; color: #000000; }
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
-
-        /* ■ 4. 図式（SVG）実装ルール */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .node-circle { fill: #ffffff; stroke: #334155; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
-        .arrow-loop { stroke: #1e3a8a; stroke-width: 5; stroke-dasharray: 10,10; fill: none; }
-    </style>
+  /* --- ハッシュ図解用のCSS --- */
+  .diagram-container {
+    margin-top: 20px; background: #f8f9fa; border-radius: 8px;
+    padding: 20px; border: 1px solid #dee2e6;
+  }
+  .diagram-step { margin-bottom: 20px; }
+  .diagram-step:last-child { margin-bottom: 0; }
+  .diagram-title { font-weight: bold; color: #495057; font-size: 1.2em; margin-bottom: 10px; }
+  
+  .array-container { display: flex; justify-content: center; gap: 5px; margin-top: 15px; }
+  .array-cell {
+    width: 70px; height: 70px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 2px solid #adb5bd; background: white; border-radius: 6px; position: relative;
+  }
+  .array-index { font-size: 0.8em; color: #6c757d; position: absolute; top: 3px; left: 5px; }
+  .array-value { font-size: 1.4em; font-weight: bold; color: #212529; }
+  .array-ellipsis { font-size: 1.5em; color: #adb5bd; align-self: center; margin: 0 10px; }
+  
+  /* 状態カラー */
+  .cell-empty { background: #f8f9fa; color: #adb5bd; }
+  .cell-stored { background: #e8f5e9; border-color: #4caf50; }
+  .cell-collision { background: #ffebee; border-color: #f44336; }
+  .cell-target { border: 3px solid #ff9800; }
+  
+  .process-text { font-size: 1.1em; color: #343a40; margin-left: 10px; }
+  .arrow { color: #007bff; font-weight: bold; margin: 0 10px; }
+</style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習53：データの探索（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">
-        <p>二分探索木から値 <b>num</b> を探す関数 <b>treesearch</b> である。空欄 <b>【 1 】</b> 〜 <b>【 4 】</b> を埋めよ。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ treesearch(整数型: <b>num</b> )
-　　<b>node</b> ← <b>Root</b>
-　　while ( <span class="blank">【　　 1 　　】</span> )
-　　　　if (<b>node.data</b> ＞ <b>num</b> )
-　　　　　　<span class="blank">【　　 2 　　】</span>
-　　　　else
-　　　　　　<span class="blank">【　　 3 　　】</span>
-　　　　endif
-　　endwhile
-　　if ( <span class="blank">【　　 4 　　】</span> )
-　　　　"発見" を表示
-　　else
-　　　　"未登録" を表示
-　　endif</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <defs>
-                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
-                        <path d="M0,0 L24,9 L0,18 Z" fill="#3b82f6" />
-                    </marker>
-                </defs>
-                <circle cx="200" cy="100" r="40" class="node-circle" />
-                <text x="200" y="100" font-size="20">15</text>
-                <path d="M 170,130 L 100,200" class="arrow-line" marker-end="url(#head)" />
-                <path d="M 230,130 L 300,200" class="arrow-line" marker-end="url(#head)" />
-                <text x="80" y="230" font-size="16">小さい値</text>
-                <text x="320" y="230" font-size="16">大きい値</text>
-                <text x="200" y="300" font-size="18" fill="#64748b">目的の値まで木を下りる</text>
-            </svg>
-        </div>
-    </div>
-</div>
+<div class="presentation-container">
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習53：解説（探索の仕組み）</h1></div>
-        <div class="page-num">2/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <div class="center-content">
+        <span class="badge" style="align-self: center;">アルゴリズム解説</span>
+        <h1>練習５３：ハッシュ法によるデータ探索</h1>
+        <p style="text-align: center;">ハッシュ値の計算と衝突時の「オープンアドレス法」を理解する</p>
+      </div>
+      <div class="page-number">1 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>二分探索木における効率的な探索の仕組みを理解しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>node ← Root</b>：<br>探索は常に根（一番上の節）からスタートする。</li>
-                <li><b>探索を続ける条件</b>：<br>「まだ節が存在する」かつ「目的の値が見つかっていない」状態である。</li>
-                <li><b>終了した後の判定</b>：<br>ループが終わったときに、<b>node</b> が空でなければ「見つかった」と判断できる。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <circle cx="200" cy="80" r="40" class="node-circle" stroke="#ef4444" stroke-width="5" />
-                <text x="200" y="80" font-size="18">Root</text>
-                <path d="M 200,120 L 200,180" class="arrow-loop" marker-end="url(#head)" />
-                <rect x="120" y="200" width="160" height="60" rx="10" fill="#e2e8f0" stroke="#334155" />
-                <text x="200" y="230" font-size="20">node.data == num?</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習53：解説（探索の継続と移動）</h1></div>
-        <div class="page-num">3/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>1. 問題の概要</h2>
+      <p>配列 <code>tbl</code> の中から、目的の値 <code>num</code> を探索するアルゴリズムです。</p>
+      <ul>
+        <li><strong>格納ルール：</strong> ハッシュ関数 <code>データ mod 100 + 1</code> で求めた値を要素番号（添字 1〜100）とする。</li>
+        <li><strong>衝突の発生：</strong> 算出された場所に既に別のデータがあることを「衝突（コリジョン）」と呼ぶ。</li>
+        <li><strong>回避策：</strong> 衝突時は、空き領域が見つかるまで順次「次の位置」を探す（末尾からは先頭に戻る）。</li>
+      </ul>
+      <div class="page-number">2 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>探索ループを制御する条件と、ポインタの更新ルールを整理しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>探索を続ける条件（while）</b>：<br>「<b>node</b> が行き止まり（未定義）でない」かつ「目的の値が見つかっていない（<b>node.data ≠ num</b>）」間、下への移動を繰り返す。</li>
-                <li><b>ポインタの更新（移動）</b>：<br>「移動する」とは <b>node</b> の中身を書き換えることである。</li>
-                <li><b>(1) 左へ行く場合</b>：<br><b>node ← node.left</b> を実行し、左の子に注目を移す。</li>
-                <li><b>(2) 右へ行く場合</b>：<br><b>node ← node.right</b> を実行し、右の子に注目を移す。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <defs>
-                    <marker id="head-red" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
-                        <path d="M0,0 L24,9 L0,18 Z" fill="#ef4444" />
-                    </marker>
-                </defs>
-                <circle cx="200" cy="100" r="45" fill="#ffffff" stroke="#334155" stroke-width="3" />
-                <text x="200" y="100" font-size="24">node</text>
-                <path d="M 160,135 L 100,200" class="arrow-red" marker-end="url(#head-red)" />
-                <path d="M 240,135 L 300,200" class="arrow-red" marker-end="url(#head-red)" />
-                <text x="80" y="240" font-size="18" fill="#ef4444">1: node.left</text>
-                <text x="320" y="240" font-size="18" fill="#ef4444">2: node.right</text>
-                <text x="200" y="300" font-size="20" fill="#3b82f6">ポインタを書き換えて移動！</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習53：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>二分探索木からの探索（treesearch）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ treesearch(整数型: <b>num</b> )
-　　<b>node</b> ← <b>Root</b>
-　　while ( <b class="important">(node が 未定義でない ) and
-　　　　　　(node.data ≠ num )</b> )
-　　　　if (<b>node.data</b> ＞ <b>num</b> )
-　　　　　　<b class="important">node ← node.left</b>
-　　　　else
-　　　　　　<b class="important">node ← node.right</b>
-　　　　endif
-　　endwhile
-　　if ( <b class="important">node が 未定義でない</b> )
-　　　　"発見" を表示</pre>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>2. ハッシュ処理と衝突の具体例</h2>
+      <p style="margin-top:0; font-size:1.1em;">ハッシュ関数：<code>データ mod 100 + 1</code></p>
+      
+      <div class="diagram-container">
+        <div class="diagram-step">
+          <div class="diagram-title">① データ「105」を格納する場合</div>
+          <div class="process-text">105 mod 100 + 1 <span class="arrow">＝</span> <span class="highlight" style="background: #e8f5e9; color: #2e7d32;">要素番号「6」</span> (空き領域なので格納)</div>
         </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 ア．(node が 未定義でない ) and (node.data ≠ num )</span>
-                    <span class="ans-item">【２】 ウ．node ← node.left</span>
-                    <span class="ans-item">【３】 エ．node ← node.right</span>
-                    <span class="ans-item">【４】 イ．node が 未定義でない</span>
-                </div>
-            </div>
+        
+        <div class="diagram-step">
+          <div class="diagram-title">② 続いてデータ「205」を格納する場合</div>
+          <div class="process-text">205 mod 100 + 1 <span class="arrow">＝</span> <span class="highlight" style="background: #ffebee; color: #c62828;">要素番号「6」</span> <strong>(※衝突発生！)</strong></div>
+          <div class="process-text" style="margin-top: 5px;">➔ 空き領域を探して次の位置へ： <span class="highlight" style="background: #e8f5e9; color: #2e7d32;">要素番号「7」</span> に格納</div>
         </div>
+
+        <div class="array-container">
+          <div class="array-ellipsis">...</div>
+          <div class="array-cell cell-empty"><span class="array-index">5</span><span class="array-value">-</span></div>
+          <div class="array-cell cell-stored cell-collision"><span class="array-index">6</span><span class="array-value">105</span></div>
+          <div class="array-cell cell-stored cell-target"><span class="array-index">7</span><span class="array-value">205</span></div>
+          <div class="array-cell cell-empty"><span class="array-index">8</span><span class="array-value">-</span></div>
+          <div class="array-cell cell-empty"><span class="array-index">9</span><span class="array-value">-</span></div>
+          <div class="array-ellipsis">...</div>
+        </div>
+        <p style="text-align: center; font-size: 0.9em; color: #6c757d; margin-top: 10px;">赤枠(6)で衝突が起き、隣のオレンジ枠(7)へ退避した状態</p>
+      </div>
+      <div class="page-number">3 / 6</div>
     </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>3. 衝突発生時の「循環」処理（空欄【１】）</h2>
+      <p>衝突が起きた際、単純に <code>h ← h + 1</code> とすると、h が 100 の次に 101 となり配列の範囲外を参照してしまいます。</p>
+      <ul>
+        <li><strong>解決策：</strong> <code>h + 1</code> の値を再びハッシュ関数に通す。</li>
+        <li>これにより、100 の次は 1 に戻る<strong>「循環」</strong>の動きをスマートに実現できます。</li>
+      </ul>
+      <pre>
+while ( (num が tbl[h] と等しくない) and (i が n 以下) )
+　　/* 【 １ 】：次の位置（循環対応）へ */
+　　h ← hash(h + 1)
+　　i ← i + 1
+endwhile</pre>
+      <p>➔ 【１】の解答： <span class="highlight">ウ　h ← hash(h + 1)</span></p>
+      <div class="page-number">4 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>4. 無限ループ防止と終了判定（空欄【２】）</h2>
+      <p>データが存在しない場合、永遠に探し続けるのを防ぐため、探索回数 <code>i</code> が要素数 <code>n</code> を超えたらループを打ち切ります。</p>
+      <ul>
+        <li><strong>ループ後の判定：</strong> ループを抜けた理由が「発見」か「未発見（上限到達）」かを切り分ける必要があります。</li>
+        <li>直前の while 文の条件 <code>i が n 以下</code> を満たしたままループを抜けたということは、<strong>途中でデータを発見した</strong>証拠です。</li>
+      </ul>
+      <pre>
+if ( num が tbl[h] と等しい )  /* もしくは i が n 以下 【 ２ 】 */
+　　return h</pre>
+      <p>➔ 【２】の解答： <span class="highlight">カ　i が n 以下</span></p>
+      <div class="page-number">5 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>5. 解答まとめ</h2>
+      <div class="center-content" style="align-items: center;">
+        <h3 style="font-size: 2em; color: #28a745;">正解</h3>
+        <ul style="font-size: 1.5em; list-style-type: none; padding: 0;">
+          <li><strong>【 １ 】：</strong> (1) ウ</li>
+          <li><strong>【 ２ 】：</strong> (2) カ</li>
+        </ul>
+        <p style="margin-top: 20px; font-size: 1.1em; max-width: 800px; text-align: justify;">
+          ハッシュ法は理論上 O(1) での高速な探索が可能ですが、衝突時には線形探索に近づき効率が低下します。本プログラムの「循環の制御」や「探索回数による打ち切り」は、堅牢な検索システムを構築するための重要な基礎知識です。
+        </p>
+      </div>
+      <div class="page-number">6 / 6</div>
+    </div>
+  </div>
+
 </div>
 
 </body>

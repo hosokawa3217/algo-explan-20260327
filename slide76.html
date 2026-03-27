@@ -1,195 +1,147 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>練習76：スタック教材</title>
-    <style>
-        /* ■ 1. 画面構成 (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            font-weight: 900;
-        }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>練習76 解説スライド（スクロール版）</title>
+<style>
+  /* 基本設定：余白をなくし、画面全体を使用 */
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e9ecef;
+  }
 
-        /* ヘッダー */
-        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
-        .title-group { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+  /* スクロールスナップのコンテナ */
+  .presentation-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory; /* 縦方向のスクロール時に要素へピタッと止まるようにする */
+    -ms-overflow-style: none; /* IE, Edge向けスクロールバー非表示 */
+    scrollbar-width: none; /* Firefox向けスクロールバー非表示 */
+  }
+  .presentation-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari向けスクロールバー非表示 */
+  }
 
-        /* コンテンツエリア */
-        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
-        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
-        .left-content { flex: 0 0 62%; }
-        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
+  /* 各スライドの外枠（画面全体サイズ・ここでスナップさせる） */
+  .slide-wrapper {
+    height: 100vh;
+    scroll-snap-align: start; /* スクロール時にこの要素の上端で止まる */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-        /* 疑似言語表示 */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
-            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-            font-weight: 900;
-        }
-        b { font-weight: 900; }
-        .blank { color: #a52a2a; font-weight: 900; }
-        .correct { color: #ef4444; font-weight: 900; }
+  /* 実際のスライドの内容（白いカード部分） */
+  .slide-content {
+    width: 900px; height: 600px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    padding: 50px; box-sizing: border-box;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
 
-        /* 説明用リスト */
-        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
-        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
-            border-radius: 15px; width: 100%; margin-top: auto;
-        }
-        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
-        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
-
-        /* SVG共通設定 */
-        svg { 
-            width: 100%; height: auto; 
-            border: 2px solid #64748b; border-radius: 12px; 
-            background: #ffffff;
-        }
-        .stack-container { fill: none; stroke: #334155; stroke-width: 4; }
-        .data-box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
-        .data-focus { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
-        .arrow-action { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
-        svg text { font-size: 22px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
-    </style>
+  /* 装飾とタイポグラフィ */
+  h1 { color: #343a40; font-size: 2.5em; text-align: center; margin-bottom: 20px; }
+  h2 { color: #0056b3; font-size: 1.8em; border-bottom: 3px solid #0056b3; padding-bottom: 10px; margin-top: 0; }
+  p, li { font-size: 1.3em; line-height: 1.6; color: #495057; }
+  ul { margin-top: 10px; }
+  pre {
+    background: #f8f9fa; padding: 15px;
+    border-radius: 8px; font-size: 1em;
+    border-left: 5px solid #28a745;
+    overflow-x: auto; margin-top: 10px;
+  }
+  .highlight { font-weight: bold; color: #dc3545; background: #ffe6e6; padding: 0 5px; border-radius: 3px; }
+  .badge { display: inline-block; padding: 5px 10px; background: #007bff; color: white; border-radius: 5px; font-size: 0.9em; margin-bottom: 15px; }
+  .center-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  
+  /* 右下のページ番号 */
+  .page-number { position: absolute; bottom: 20px; right: 30px; font-size: 1.2em; color: #adb5bd; font-weight: bold; }
+</style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習76：スタック（問題）</h1></div>
-        <div class="page-num">1/4</div>
+<div class="presentation-container">
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <div class="center-content">
+        <span class="badge" style="align-self: center;">アルゴリズム解説</span>
+        <h1>練習７６：余分な１文字の特定</h1>
+        <p style="text-align: center;">英小文字の配列から、差分となる「1文字」を見つけ出す</p>
+      </div>
+      <div class="page-number">1 / 5</div>
     </div>
-    <div class="problem-text">データを1つ格納する <b>push</b> 処理のアルゴリズムを完成させよ。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-// topは次にデータを入れる位置を指す
-procedure <b>push</b>(<b>data</b>)
-　　if ( <b>top</b> ≧ <b>MAX_SIZE</b> )
-　　　　// スタックが満杯（オーバーフロー）
-　　else
-　　　　<span class="blank">【　　 1 　　】</span>
-　　　　<b>top</b> ← <b>top</b> + 1
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>1. 問題の概要</h2>
+      <p>二つの文字型配列 <strong>a</strong> と <strong>b</strong> が与えられます。</p>
+      <ul>
+        <li><strong>条件1：</strong> どちらも英小文字のみ格納。</li>
+        <li><strong>条件2：</strong> bの長さは、aより <span class="highlight">1文字分長い</span>。</li>
+        <li><strong>条件3：</strong> bはaの文字をすべて含み、さらにaにない文字を <span class="highlight">ちょうど1文字</span> 含む。</li>
+      </ul>
+      <p><strong>目的：</strong> bのみに格納されている、その「余分な1文字」を表示すること。</p>
+      <div class="page-number">2 / 5</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>2. カウンタによる収支の管理（空欄【１】【２】）</h2>
+      <p>このアルゴリズムは、配列を直接突き合わせず、<strong>「個数の収支」</strong>を管理するハッシュマップ的発想に基づきます。</p>
+      <ul>
+        <li><strong>配列bの走査：</strong> 長い方(b)の文字を数え、カウンタを増やす。<br>
+          ➔ 【１】の解答： <span class="highlight">カ n[ k ] ← n[ k ] + 1</span>
+        </li>
+        <li><strong>配列aの走査：</strong> 短い方(a)の文字を数え、カウンタを減らす。<br>
+          ➔ 【２】の解答： <span class="highlight">オ n[ k ] ← n[ k ] - 1</span>
+        </li>
+      </ul>
+      <p>※共通する文字はプラスマイナスで相殺され、最終的に <strong>0</strong> になります。</p>
+      <div class="page-number">3 / 5</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>3. 特定と表示（空欄【３】）</h2>
+      <p>走査完了後、配列 <code>n</code> を調べます。</p>
+      <pre>
+for ( i を 1 から 26 まで 1 ずつ増やす )
+　　if ( n[ i ] が 0 でない )
+　　　　c[ i ] を表示      /* 【 ３ 】：残った1文字を表示 */
+　　　　break
 　　endif
-endproc</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <path d="M 150,50 L 150,300 L 250,300 L 250,50" class="stack-container" />
-                <rect x="155" y="240" width="90" height="50" class="data-box" /><text x="200" y="265">Data A</text>
-                <rect x="155" y="185" width="90" height="50" class="data-box" /><text x="200" y="210">Data B</text>
-                <rect x="155" y="20" width="90" height="50" class="data-focus" /><text x="200" y="45">New!</text>
-                <path d="M 200,75 L 200,120" class="arrow-action" marker-end="url(#push-head)"/>
-                <defs><marker id="push-head" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
-                <text x="200" y="325">LIFO (Last-In, First-Out)</text>
-            </svg>
-        </div>
+endfor</pre>
+      <p>bにだけ含まれていた文字に対応する要素だけが <strong>1</strong> として残ります。その添字 <code>i</code> に対応する文字 <code>c[i]</code> を表示します。</p>
+      <p>➔ 【３】の解答： <span class="highlight">ア c[ i ]</span></p>
+      <div class="page-number">4 / 5</div>
     </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習76：解説（ポインタの役割）</h1></div>
-        <div class="page-num">2/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>4. 解答まとめ</h2>
+      <div class="center-content" style="align-items: center;">
+        <h3 style="font-size: 2em; color: #28a745;">正解</h3>
+        <ul style="font-size: 1.5em; list-style-type: none; padding: 0;">
+          <li><strong>【 １ 】：</strong> (1) カ</li>
+          <li><strong>【 ２ 】：</strong> (2) オ</li>
+          <li><strong>【 ３ 】：</strong> (3) ア</li>
+        </ul>
+        <p style="margin-top: 20px;">文字情報を配列の「添字（場所）」にマッピングし、計算量 O(n) で極めて高速に機能する合理的なアルゴリズムです。</p>
+      </div>
+      <div class="page-number">5 / 5</div>
     </div>
-    <div class="problem-text">変数 <b>top</b> は何を管理しているか？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>格納位置</b>：配列の何番目に次のデータを入れるかを指し示す。初期値は 0。</li>
-                <li><b>順番の重要性</b>：データを入れる前にまず「今の <b>top</b> の場所」に書き込み、その後に <b>top</b> を 1 増やす。</li>
-                <li><b>物理的な動き</b>：底から順番に積み上げていくイメージで配列を扱う。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="100" y="280" width="200" height="60" class="box" /><text x="130" y="310">0</text>
-                <rect x="100" y="220" width="200" height="60" class="box" /><text x="130" y="250">1</text>
-                <rect x="100" y="160" width="200" height="60" class="data-focus" /><text x="130" y="190">2</text>
-                <text x="200" y="190">← top</text>
-                
-                <text x="200" y="100" font-size="24" fill="#ca8a04">ここに格納せよ！</text>
-                <path d="M 200,115 L 200,150" class="arrow-action" />
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習76：解説（オーバーフロー判定）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">これ以上データが入らない状態をどう判定するか？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>限界点</b>：配列のサイズ（<b>MAX_SIZE</b>）と <b>top</b> が同じになったとき、スタックは満杯。</li>
-                <li><b>安全策</b>：満杯の状態で <b>push</b> しようとするとエラーになるため、事前に <b>if</b> 文でチェックが必要。</li>
-                <li><b>判定式</b>：<b>top ≧ MAX_SIZE</b> が成立したら「これ以上入らない」という合図。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <path d="M 150,50 L 150,300 L 250,300 L 250,50" class="stack-container" />
-                <rect x="155" y="240" width="90" height="50" class="data-box" />
-                <rect x="155" y="185" width="90" height="50" class="data-box" />
-                <rect x="155" y="130" width="90" height="50" class="data-box" />
-                <rect x="155" y="75" width="90" height="50" class="data-box" />
-                
-                <text x="200" y="40" font-size="30" fill="#ef4444">MAX!</text>
-                <path d="M 100,75 L 300,75" stroke="#ef4444" stroke-width="4" stroke-dasharray="5"/>
-                <text x="200" y="340" font-size="22">これ以上は溢れてしまう</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習76：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">スタック（push処理）完成プログラム</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-procedure <b>push</b>(<b>data</b>)
-　　if ( <b>top</b> ≧ <b>MAX_SIZE</b> )
-　　　　print "Overflow"
-　　else
-　　　　<b class="correct">stack[top] ← data</b>
-　　　　<b>top</b> ← <b>top</b> + 1
-　　endif
-endproc</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答</h2>
-                <div class="ans-text">
-                    【１】 イ．stack[top] ← data
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 </body>
