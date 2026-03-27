@@ -1,213 +1,239 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>練習58：二分探索(binarysearch)</title>
-    <style>
-        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-        }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>練習58 解説スライド（コムソート）</title>
+<style>
+  /* 基本設定 */
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e9ecef;
+  }
 
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+  /* スクロールスナップのコンテナ */
+  .presentation-container {
+    height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .presentation-container::-webkit-scrollbar { display: none; }
 
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+  /* スライド外枠と内容 */
+  .slide-wrapper {
+    height: 100vh; scroll-snap-align: start;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .slide-content {
+    width: 1300px; height: 800px; /* 大画面サイズ固定 */
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 16px;
+    padding: 70px; box-sizing: border-box;
+    display: flex; flex-direction: column; position: relative;
+  }
 
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 65%; }
-        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+  /* タイポグラフィ */
+  h1 { color: #343a40; font-size: 3em; text-align: center; margin-bottom: 25px; }
+  h2 { color: #fd7e14; font-size: 2.2em; border-bottom: 4px solid #fd7e14; padding-bottom: 15px; margin-top: 0; }
+  p, li { font-size: 1.5em; line-height: 1.6; color: #495057; }
+  
+  .badge { display: inline-block; padding: 8px 15px; background: #fd7e14; color: white; border-radius: 8px; font-size: 1.1em; margin-bottom: 20px; }
+  .center-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .page-number { position: absolute; bottom: 30px; right: 40px; font-size: 1.5em; color: #adb5bd; font-weight: bold; }
 
-        /* 文字装飾ルール */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
+  /* --- ソート図解用のCSS --- */
+  .sort-step { margin-bottom: 25px; padding: 20px 30px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6; }
+  .step-title { font-weight: bold; color: #343a40; font-size: 1.5em; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;}
+  .array-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px; }
+  
+  /* 配列の箱 */
+  .box {
+    width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;
+    font-size: 2em; font-weight: bold; color: #343a40; background: white;
+    border: 3px solid #adb5bd; border-radius: 8px; position: relative;
+  }
+  
+  /* 添字の表示 */
+  .box::after {
+    content: attr(data-index);
+    position: absolute; top: -25px; font-size: 0.6em; color: #6c757d; font-weight: normal;
+  }
+  
+  /* 状態別の色 */
+  .box.comparing { border-color: #ffc107; background: #fff8e1; color: #d32f2f; }
+  .box.swapping { border-color: #dc3545; background: #ffebee; color: #c62828; }
+  .box.fixed { border-color: #28a745; background: #e8f5e9; color: #2e7d32; }
+  
+  .m-status { padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 1.1em; background: #e0f7fa; color: #00838f; border: 2px solid #17a2b8; }
 
-        /* 疑似言語(pre)：全角スペース2個インデント */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-        }
-
-        /* 説明文・箇条書き */
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
-
-        /* SVG図式 */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .array-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .arrow-red { stroke: #ef4444; stroke-width: 5; fill: none; }
-        .marker-head { fill: #3b82f6; }
-    </style>
+  /* --- 疑似言語コード用のCSS --- */
+  pre.pseudo-code {
+    background: #f8f9fa; padding: 25px 40px; border-radius: 10px; 
+    font-size: 1.6em; line-height: 1.8;
+    border-left: 8px solid #fd7e14; overflow-x: auto; margin-top: 10px;
+    font-family: 'Consolas', 'Monaco', monospace; color: #343a40;
+  }
+  .code-keyword { color: #0056b3; font-weight: bold; }
+  .code-comment { color: #28a745; font-style: italic; }
+  .code-highlight-line { 
+    background-color: #fff3cd; display: inline-block; width: 100%;
+    border-radius: 6px; padding: 0 10px; border: 2px dashed #ffc107; box-sizing: border-box;
+  }
+</style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習58：二分探索（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">
-        <p>昇順に整列された要素数 <b>n</b> の配列 <b>A</b> から値 <b>num</b> を探す。空欄を埋めよ。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ binarysearch(整数型: <b>num</b> )
-　　<b>left</b> ← 0,  <b>right</b> ← <b>n - 1</b>
-　　while ( <span class="blank">【　　 1 　　】</span> )
-　　　　<b>mid</b> ← ( <b>left</b> + <b>right</b> ) ÷ 2 （整数部）
-　　　　if ( <b>A[mid]</b> == <b>num</b> )
-　　　　　　return <b>mid</b>
-　　　　elseif ( <b>A[mid]</b> ＞ <b>num</b> )
-　　　　　　<b>right</b> ← <span class="blank">【　　 2 　　】</span>
-　　　　else
-　　　　　　<b>left</b> ← <span class="blank">【　　 3 　　】</span>
-　　　　endif
-　　endwhile
-　　return -1</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="20" y="150" width="360" height="50" class="array-box" />
-                <line x1="140" y1="150" x2="140" y2="200" stroke="#334155" stroke-width="2" />
-                <line x1="260" y1="150" x2="260" y2="200" stroke="#334155" stroke-width="2" />
-                <text x="80" y="175" font-size="16">left</text>
-                <text x="200" y="175" font-size="16">mid</text>
-                <text x="320" y="175" font-size="16">right</text>
-                <text x="200" y="280" font-size="20" fill="#3b82f6">範囲を半分に絞り込む</text>
-            </svg>
-        </div>
-    </div>
-</div>
+<div class="presentation-container">
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習58：解説（二分探索の原理）</h1></div>
-        <div class="page-num">2/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <div class="center-content">
+        <span class="badge" style="align-self: center;">アルゴリズム図解</span>
+        <h1>練習５８：コムソート（櫛削りソート）</h1>
+        <p style="text-align: center; font-size: 1.8em;">バブルソートを劇的に高速化する「間隔」の魔法</p>
+      </div>
+      <div class="page-number">1 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>二分探索は、中央の値と比較して「左半分」か「右半分」かを捨てていく手法である。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>前提条件</b>：<br>データが必ず「昇順（または降順）」に並んでいなければならない。</li>
-                <li><b>中央との比較</b>：<br><b>A[mid]</b> が <b>num</b> より大きいなら、<b>num</b> は左側にあるはずである。</li>
-                <li><b>探索範囲の更新</b>：<br>一回の比較ごとに、探索対象のデータ数が半分になるため、非常に高速である。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="50" y="100" width="140" height="80" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
-                <rect x="210" y="100" width="140" height="80" fill="#fee2e2" stroke="#ef4444" stroke-width="3" stroke-dasharray="5,5" />
-                <text x="120" y="140" font-size="18">残す</text>
-                <text x="280" y="140" font-size="18">捨てる</text>
-                <text x="200" y="240" font-size="20">A[mid] > num の場合</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習58：解説（ポインタの計算）</h1></div>
-        <div class="page-num">3/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>1. ポイント：なぜバブルソートより速いのか？</h2>
+      <ul style="margin-top: 40px; gap: 30px; display: flex; flex-direction: column;">
+        <li><strong>バブルソートの弱点：</strong> 小さな値が前に移動するのに何度も交換が必要（通称：亀のデータ）。</li>
+        <li><strong>コムソートの解決策：</strong> <span style="color:#dc3545; font-weight:bold;">最初は大きく離れた要素同士を比較・交換する。</span></li>
+        <li><strong>処理の流れ：</strong>
+          <ul>
+            <li>比較する間隔 <code>m</code> を、配列の要素数からスタート。</li>
+            <li>1周するごとに <code>m = m ÷ 2</code> と間隔を狭めていく。（櫛の目を細かくするイメージ）</li>
+            <li>最後に <code>m = 1</code> になった時、仕上げのバブルソートを行って完了！</li>
+          </ul>
+        </li>
+      </ul>
+      <div class="page-number">2 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>探索をいつまで続けるか、どうやって範囲を狭めるかを考えよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>継続条件（空欄1）</b>：<br><b>left</b> が <b>right</b> を追い越さない間（<b>left ≤ right</b>）は、まだ調べる場所がある。</li>
-                <li><b>右端を動かす（空欄2）</b>：<br><b>num</b> が中央より左にあるなら、右端を中央のすぐ左へ持ってくる。つまり <b>mid - 1</b>。</li>
-                <li><b>左端を動かす（空欄3）</b>：<br><b>num</b> が中央より右にあるなら、左端を中央のすぐ右へ持ってくる。つまり <b>mid + 1</b>。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <defs>
-                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
-                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
-                    </marker>
-                </defs>
-                <text x="200" y="80" font-size="24">探索範囲の更新</text>
-                <path d="M 300,150 L 220,150" class="arrow-red" marker-end="url(#head)" stroke="#ef4444" />
-                <text x="250" y="130" font-size="18" fill="#ef4444">right = mid - 1</text>
-                <path d="M 100,220 L 180,220" class="arrow-line" marker-end="url(#head)" stroke="#3b82f6" />
-                <text x="150" y="250" font-size="18" fill="#3b82f6">left = mid + 1</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習58：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>二分探索（binarysearch）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ binarysearch(整数型: <b>num</b> )
-　　<b>left</b> ← 0,  <b>right</b> ← <b>n - 1</b>
-　　while ( <b class="important">left ≦ right</b> )
-　　　　<b>mid</b> ← ( <b>left</b> + <b>right</b> ) ÷ 2 （整数部）
-　　　　if ( <b>A[mid]</b> == <b>num</b> )
-　　　　　　return <b>mid</b>
-　　　　elseif ( <b>A[mid]</b> ＞ <b>num</b> )
-　　　　　　<b>right</b> ← <b class="important">mid - 1</b>
-　　　　else
-　　　　　　<b>left</b> ← <b class="important">mid + 1</b>
-　　　　endif
-　　endwhile
-　　return -1</pre>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>2. 図解：第1パス（間隔が広い状態での大移動）</h2>
+      <p style="margin-top: 0;">要素数 n = 8 の配列を整列します。<span class="m-status">間隔 m = 8 ÷ 2 = 4</span></p>
+
+      <div class="sort-step">
+        <div class="step-title">
+          <span>4つ離れた要素同士を比較し、逆順なら交換！</span>
         </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 ア．left ≦ right</span>
-                    <span class="ans-item">【２】 ウ．mid - 1</span>
-                    <span class="ans-item">【３】 イ．mid + 1</span>
-                </div>
-            </div>
+        <p style="margin: 0 0 10px 0; font-size: 1.1em; color: #6c757d;">【交換前】 添字2と6、添字3と7が逆順なので交換対象</p>
+        <div class="array-row">
+          <div class="box" data-index="1">85</div>
+          <div class="box comparing" data-index="2">42</div>
+          <div class="box comparing" data-index="3">73</div>
+          <div class="box" data-index="4">19</div>
+          <div class="box" data-index="5">91</div>
+          <div class="box comparing" data-index="6">34</div>
+          <div class="box comparing" data-index="7">56</div>
+          <div class="box" data-index="8">28</div>
         </div>
+        
+        <p style="margin: 15px 0 10px 0; font-size: 1.1em; color: #c62828; font-weight: bold;">【交換後】 小さな値(34, 56)が一気に前へワープ！</p>
+        <div class="array-row">
+          <div class="box" data-index="1">85</div>
+          <div class="box swapping" data-index="2">34</div>
+          <div class="box swapping" data-index="3">56</div>
+          <div class="box" data-index="4">19</div>
+          <div class="box" data-index="5">91</div>
+          <div class="box swapping" data-index="6">42</div>
+          <div class="box swapping" data-index="7">73</div>
+          <div class="box" data-index="8">28</div>
+        </div>
+      </div>
+      <div class="page-number">3 / 6</div>
     </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>3. 図解：第2パス（間隔を狭めてさらに整頓）</h2>
+      <p style="margin-top: 0;"><span class="m-status">間隔 m = 4 ÷ 2 = 2</span></p>
+
+      <div class="sort-step">
+        <div class="step-title">
+          <span>2つ離れた要素同士を比較し、逆順なら交換！</span>
+        </div>
+        <p style="margin: 0 0 10px 0; font-size: 1.1em; color: #6c757d;">【交換前】 前回の結果からスタート</p>
+        <div class="array-row">
+          <div class="box comparing" data-index="1">85</div><div class="box comparing" data-index="2">34</div>
+          <div class="box comparing" data-index="3">56</div><div class="box comparing" data-index="4">19</div>
+          <div class="box" data-index="5">91</div><div class="box comparing" data-index="6">42</div>
+          <div class="box comparing" data-index="7">73</div><div class="box comparing" data-index="8">28</div>
+        </div>
+        
+        <p style="margin: 15px 0 10px 0; font-size: 1.1em; color: #c62828; font-weight: bold;">【交換後】 だいぶ値が小さい順に寄ってきました</p>
+        <div class="array-row">
+          <div class="box swapping" data-index="1">56</div><div class="box swapping" data-index="2">19</div>
+          <div class="box swapping" data-index="3">85</div><div class="box swapping" data-index="4">34</div>
+          <div class="box swapping" data-index="5">73</div><div class="box swapping" data-index="6">28</div>
+          <div class="box swapping" data-index="7">91</div><div class="box swapping" data-index="8">42</div>
+        </div>
+      </div>
+      <div class="page-number">4 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>4. 図解：最終パス（仕上げの微調整）</h2>
+      <p style="margin-top: 0;"><span class="m-status">間隔 m = 2 ÷ 2 = 1</span> （隣接比較＝バブルソートと同じ動き）</p>
+
+      <div class="sort-step" style="border-color: #28a745; background: #e8f5e9;">
+        <div class="step-title" style="color: #2e7d32; margin-bottom: 10px;">
+          <span>隣同士を交換して、完全な昇順へ！</span>
+        </div>
+        <p style="margin: 0 0 15px 0; font-size: 1.1em; color: #2e7d32;">事前のパスで大まかに整列されているため、無駄な交換が少なく高速に完了します。</p>
+        <div class="array-row">
+          <div class="box fixed" data-index="1">19</div>
+          <div class="box fixed" data-index="2">28</div>
+          <div class="box fixed" data-index="3">34</div>
+          <div class="box fixed" data-index="4">42</div>
+          <div class="box fixed" data-index="5">56</div>
+          <div class="box fixed" data-index="6">73</div>
+          <div class="box fixed" data-index="7">85</div>
+          <div class="box fixed" data-index="8">91</div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; font-weight: bold; color: #2e7d32; font-size: 1.4em; margin-top: 20px;">
+        ➔ 整列完了！「mが1になり、かつ交換が起きなくなったら」終了です。
+      </p>
+      <div class="page-number">5 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>5. 疑似言語プログラムと空欄の導出</h2>
+      
+      <pre class="pseudo-code">
+<span class="code-keyword">while</span> ( <span class="code-highlight-line">【 １ 】 ( m が 1 より大きい ) or ( flg が 1 と等しい )</span> )
+　　m ← m ÷ 2    <span class="code-comment">/* 間隔を半分に */</span>
+　　i ← 1
+　　<span class="code-keyword">while</span> ( <span class="code-highlight-line">【 ２ 】 i が ( n - m ) 以下</span> )
+　　　　<span class="code-keyword">if</span> ( tbl[ i ] が tbl[ i + m ] より大きい )
+　　　　　　tbl[ i ] と tbl[ i + m ] を交換
+　　　　　　flg ← 1
+　　　　<span class="code-keyword">endif</span>
+　　　　i ← i + 1
+　　<span class="code-keyword">endwhile</span>
+<span class="code-keyword">endwhile</span></pre>
+      
+      <ul style="font-size: 1.3em; margin-top: 20px;">
+        <li><strong>【１】（エ）：</strong> 「間隔が1より大きい」または「交換が発生した(flg=1)」の<strong>どちらか一方でも</strong>満たせば、まだ整列が必要なので <code>or</code> でループを継続します。</li>
+        <li><strong>【２】（キ）：</strong> <code>tbl[ i + m ]</code> が配列の末尾 <code>n</code> を超えないよう、<code>i + m ≤ n</code> を変形して <code>i ≤ n - m</code> が比較の限界位置となります。</li>
+      </ul>
+      <div class="page-number">6 / 6</div>
+    </div>
+  </div>
+
 </div>
 
 </body>
