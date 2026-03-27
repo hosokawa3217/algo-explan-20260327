@@ -1,208 +1,328 @@
+<!-- slide61.html 練習61 ストゥージソート（再帰と範囲分割の論理） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習61：基本交換法(bubble_sort)</title>
     <style>
-        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        /* 物理的制約：1280x720px固定 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
         }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
-
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
-
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 65%; }
-        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
-
-        /* 文字装飾ルール */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
-
-        /* 疑似言語(pre)：全角スペース2個インデント */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 21px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        .slide {
+            width: 1280px;
+            height: 720px;
+            background-color: #ffffff;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            padding: 40px 80px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* 説明文・箇から書き */
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
+        /* ヘッダー領域 */
+        .header {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            margin-bottom: 25px;
+        }
+        .blue-bar {
+            width: 20px;
+            height: 50px;
+            background-color: #3b82f6;
+            margin-right: 15px;
+        }
+        h1 {
+            font-size: 38px;
+            font-weight: 900;
+            margin: 0;
+            color: #111827;
+        }
+        .page-num {
+            margin-left: auto;
+            font-size: 24px;
+            color: #64748b;
+        }
+
+        /* メインコンテンツ領域 */
+        .problem-text {
+            font-size: 28px;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            color: #1f2937;
+            width: 100%;
+        }
+        .content-wrap {
+            display: flex;
+            gap: 25px;
+            flex: 1;
+        }
+        .left-col {
+            flex: 0 0 65%; /* 65% 説明文・コード */
+        }
+        .right-col {
+            flex: 0 0 35%; /* 35% 図解・解答ボックス */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        /* 疑似言語装飾 (pre) */
+        pre {
+            background-color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 500;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        pre b { font-weight: 900; color: #000; }
+        .blank { color: #a52a2a; font-weight: 900; background-color: #fee2e2; padding: 0 5px; }
+        .ans-red { color: #ef4444; font-weight: 900; }
+
+        /* フッター領域 */
+        .footer {
+            height: 63px;
+            border-top: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            color: #4b5563;
+            margin-top: auto;
+        }
+        .footer.ans { color: #ea580c; font-weight: 900; }
+        .footer .choices { font-size: 21px; font-weight: normal; margin-left: 20px; }
 
         /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .ans-box {
+            background-color: #fffaf4;
+            border: 3px solid #ea580c;
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
         }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
+        .ans-box h2 {
+            font-size: 28px;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid #ea580c;
+            padding-bottom: 5px;
+        }
+        .choice-item {
+            font-size: 26px;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
 
-        /* SVG図式 */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .array-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .marker-head { fill: #3b82f6; }
+        /* SVG共通 */
+        svg text { font-weight: 900; font-size: 22px; }
+        .node-rect { fill: #f9fafb; stroke: #64748b; stroke-width: 3; }
+        .highlight-rect { fill: #dcfce7; stroke: #16a34a; stroke-width: 3; }
+        .overlap-rect { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; opacity: 0.8; }
+
+        ul { padding-left: 30px; margin: 0; }
+        li { font-size: 28px; margin-bottom: 15px; line-height: 1.5; color: #374151; }
+        .red-text { color: #ef4444; font-weight: 900; }
     </style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習61：基本交換法（問題）</h1></div>
-        <div class="page-num">1/4</div>
+<!-- Slide 1: 問題提示 -->
+<div class="slide" id="p1">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>練習６１：ストゥージソート（問題）</h1>
+        <div class="page-num">1/5</div>
     </div>
     <div class="problem-text">
-        <p>要素数 <b>n</b> の配列 <b>A</b> を昇順に整列させる基本交換法のアルゴリズムである。末尾から順に比較する場合、空欄を埋めよ。</p>
+        要素数が3以上のとき、範囲を3分割し、<b>重なり合う2/3ずつ</b>を3回再帰的に整列せよ。
     </div>
-    <div class="content-area">
-        <div class="left-content">
+    <div class="content-wrap">
+        <div class="left-col">
             <pre>
-for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
-　　for ( <b>j</b> を <span class="blank">【　　 1 　　】</span> から <b>i + 1</b> まで 1 ずつ減らす )
-　　　　if ( <b>A[j - 1]</b> ＞ <b>A[j]</b> )
-　　　　　　<b>tmp</b> ← <b>A[j - 1]</b>
-　　　　　　<b>A[j - 1]</b> ← <span class="blank">【　　 2 　　】</span>
-　　　　　　<b>A[j]</b> ← <b>tmp</b>
-　　　　endif
-　　endfor
-endfor</pre>
+○ stooge_sort(整数型の配列: <b>tbl</b> , 整数型: <b>i</b> , 整数型: <b>j</b> )
+　　<b>wk</b> , <b>t</b>
+　　<span class="keyword">if</span> ( <b>tbl[ i ]</b> が <b>tbl[ j ]</b> より大きい )
+　　　　<b>wk</b> ← <b>tbl[ i ]</b> ; <b>tbl[ i ]</b> ← <b>tbl[ j ]</b> ; <b>tbl[ j ]</b> ← <b>wk</b>
+　　<span class="keyword">endif</span>
+　　<span class="keyword">if</span> ( ( <b>j</b> - <b>i</b> + 1 ) が 3 以上 )
+　　　　<b>t</b> ← ( <b>j</b> - <b>i</b> + 1 ) ÷ 3   <span class="comment">/* 1/3の長さ */</span>
+　　　　stooge_sort( <b>tbl</b> , <span class="blank">【 １ 】</span> ) <span class="comment">/* 先頭 2/3 */</span>
+　　　　stooge_sort( <b>tbl</b> , <span class="blank">【 ２ 】</span> ) <span class="comment">/* 末尾 2/3 */</span>
+　　　　stooge_sort( <b>tbl</b> , <span class="blank">【 １ 】</span> ) <span class="comment">/* 再度先頭 2/3 */</span>
+　　<span class="keyword">endif</span></pre>
         </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
+        <div class="right-col">
+            <svg viewBox="0 0 400 300" width="100%">
+                <rect x="20" y="80" width="360" height="60" class="node-rect" rx="8" />
+                <line x1="140" y1="80" x2="140" y2="140" stroke="#64748b" stroke-width="2" />
+                <line x1="260" y1="80" x2="260" y2="140" stroke="#64748b" stroke-width="2" />
+                <text x="80" y="115" text-anchor="middle">1/3</text>
+                <text x="200" y="115" text-anchor="middle">1/3</text>
+                <text x="320" y="115" text-anchor="middle">1/3</text>
+                <text x="20" y="70" text-anchor="middle" fill="#3b82f6">i</text>
+                <text x="380" y="70" text-anchor="middle" fill="#3b82f6">j</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">
+        <span class="choices">選択肢： ア. i , j  イ. i , i + t  ウ. i + t , j  エ. i , j + t  オ. i - t , j  カ. i , j - t</span>
+    </div>
+</div>
+
+<!-- Slide 2: アルゴリズムの構造 -->
+<div class="slide" id="p2">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>基本戦略と停止条件</h1>
+        <div class="page-num">2/5</div>
+    </div>
+    <div class="content-wrap">
+        <div class="left-col">
+            <ul>
+                <li><b>分割統治法</b>：範囲を細かく分け、自分自身を呼び出す（再帰）。</li>
+                <li><b>停止条件</b>：要素数が 3 未満（j - i + 1 < 3）になれば終了。</li>
+                <li><b>3段階の再帰</b>：
+                    <br>(1) 先頭 2/3 
+                    <br>→ (2) 末尾 2/3 
+                    <br>→ (3) 再度先頭 2/3 を処理。
+                </li>
+            </ul>
+        </div>
+        <div class="right-col">
+            <svg viewBox="0 0 400 300" width="100%">
+                <path d="M50,50 L350,50 L200,150 Z" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+                <text x="200" y="40" text-anchor="middle">全体の問題</text>
+                <circle cx="120" cy="180" r="35" class="highlight-rect" fill="#dcfce7"/>
+                <circle cx="200" cy="180" r="35" class="highlight-rect" fill="#dcfce7"/>
+                <circle cx="280" cy="180" r="35" class="highlight-rect" fill="#dcfce7"/>
+                <text x="200" y="250" text-anchor="middle" font-size="18">小さな問題へ再帰的に分解</text>
+            </svg>
+        </div>
+    </div>
+    <div class="footer">ヒント：3分割したブロックの「2つ分」をどう指定するかが鍵。</div>
+</div>
+
+<!-- Slide 3: 変数 t (1/3) の論理 -->
+<div class="slide" id="p3">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>1/3 の単位「t」の計算</h1>
+        <div class="page-num">3/5</div>
+    </div>
+    <div class="content-wrap">
+        <div class="left-col">
+            <ul>
+                <li><b>t ← ( j - i + 1 ) ÷ 3</b></li>
+                <li>この式は、現在の整列範囲を3等分した時の<span class="red-text">「1ブロック分の長さ」</span>を算出している。</li>
+                <li>整数演算のため、端数は切り捨てられる。</li>
+                <li>この <b>t</b> を基準にして「どこまでが2/3か」を決定する。</li>
+            </ul>
+        </div>
+        <div class="right-col">
+            <svg viewBox="0 0 400 300" width="100%">
+                <!-- 3ブロックの図 -->
+                <rect x="20" y="100" width="120" height="80" class="node-rect" />
+                <rect x="140" y="100" width="120" height="80" class="node-rect" />
+                <rect x="260" y="100" width="120" height="80" class="node-rect" />
+                <text x="80" y="145" text-anchor="middle">t</text>
+                <text x="200" y="145" text-anchor="middle">t</text>
+                <text x="320" y="145" text-anchor="middle">t</text>
+                <!-- 矢印 -->
+                <path d="M20,200 L140,200" stroke="#3b82f6" stroke-width="4" marker-end="url(#arrow)" />
                 <defs>
-                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
-                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
+                    <marker id="arrow" viewBox="0 0 24 24" refX="12" refY="12" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse">
+                        <path d="M2,2 L22,12 L2,22 Z" fill="#3b82f6" />
                     </marker>
                 </defs>
-                <rect x="20" y="120" width="60" height="60" class="array-box" fill="#e2e8f0" />
-                <rect x="80" y="120" width="60" height="60" class="array-box" />
-                <rect x="140" y="120" width="60" height="60" class="array-box" />
-                <rect x="250" y="120" width="60" height="60" class="array-box" stroke="#ef4444" stroke-width="4" />
-                <rect x="310" y="120" width="60" height="60" class="array-box" stroke="#ef4444" stroke-width="4" />
-                <text x="50" y="100" font-size="14">i 番目</text>
-                <text x="280" y="210" font-size="16">A[j-1] と A[j] を比較</text>
-                <path d="M 310,230 Q 280,260 250,230" class="arrow-line" marker-end="url(#head)" stroke="#ef4444" />
-                <text x="200" y="300" font-size="18">末尾から順に比較・交換</text>
+                <text x="80" y="230" text-anchor="middle" font-size="18">長さ t</text>
             </svg>
         </div>
     </div>
+    <div class="footer">範囲は [ i ] から [ j ] まで。全体の長さは j - i + 1。</div>
 </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習61：解説（隣り合う比較）</h1></div>
-        <div class="page-num">2/4</div>
+<!-- Slide 4: 解答導出（範囲の特定） -->
+<div class="slide" id="p4">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>空欄の導出：2/3 範囲の指定</h1>
+        <div class="page-num">4/5</div>
     </div>
-    <div class="problem-text">
-        <p>基本交換法（バブルソート）は、隣り合う要素の大小関係を正していく手法である。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>i の役割</b>：<br>外側のループ <b>i</b> は、整列が完了する位置を示す。<b>i=0</b> のときは、配列全体の最小値を 0 番目に持ってくる。</li>
-                <li><b>j の役割（内側ループ）</b>：<br>末尾から <b>i</b> の位置に向かって、隣り合う <b>A[j-1]</b> と <b>A[j]</b> を比較し、逆順なら入れ替える。</li>
-                <li><b>泡のような動き</b>：<br>この操作により、最小値が先頭（<b>i</b> 番目）に向かって浮き上がってくる。</li>
+    <div class="content-wrap">
+        <div class="left-col">
+            <ul>
+                <li><span class="red-text">【 １ 】先頭 2/3 の範囲</span>：
+                    <br>全体の右端 <b>j</b> から 1/3分（<b>t</b>）を引いた地点まで。
+                    <br>→ 開始：<b>i</b> ／ 終了：<b>j - t</b>
+                </li>
+                <li><span class="red-text">【 ２ 】末尾 2/3 の範囲</span>：
+                    <br>全体の左端 <b>i</b> から 1/3分（<b>t</b>）進んだ地点から最後。
+                    <br>→ 開始：<b>i + t</b> ／ 終了：<b>j</b>
+                </li>
             </ul>
         </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <circle cx="200" cy="100" r="30" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
-                <circle cx="220" cy="180" r="20" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
-                <circle cx="180" cy="240" r="15" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
-                <text x="200" y="300" font-size="20">最小値が浮上する</text>
-                <path d="M 200,280 L 200,40" class="arrow-line" marker-end="url(#head)" />
+        <div class="right-col">
+            <svg viewBox="0 0 400 300" width="100%">
+                <rect x="20" y="50" width="360" height="40" fill="#f3f4f6" stroke="#9ca3af"/>
+                <!-- Top 2/3 -->
+                <rect x="20" y="110" width="240" height="40" class="overlap-rect" />
+                <text x="140" y="135" text-anchor="middle" font-size="16">先頭 2/3 (i ～ j-t)</text>
+                <!-- Bottom 2/3 -->
+                <rect x="140" y="170" width="240" height="40" class="overlap-rect" style="fill: #dcfce7; stroke: #16a34a;"/>
+                <text x="260" y="195" text-anchor="middle" font-size="16">末尾 2/3 (i+t ～ j)</text>
+                
+                <text x="20" y="40" text-anchor="middle" font-size="14">i</text>
+                <text x="140" y="40" text-anchor="middle" font-size="14">i+t</text>
+                <text x="260" y="40" text-anchor="middle" font-size="14">j-t</text>
+                <text x="380" y="40" text-anchor="middle" font-size="14">j</text>
             </svg>
         </div>
     </div>
+    <div class="footer">中央の 1/3（i+t ～ j-t）は、どちらの再帰でも処理される「重なり」部分。</div>
 </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習61：解説（探索範囲とスワップ）</h1></div>
-        <div class="page-num">3/4</div>
+<!-- Slide 5: 解答提示 -->
+<div class="slide" id="p5">
+    <div class="header">
+        <div class="blue-bar"></div>
+        <h1>解答提示：ストゥージソート</h1>
+        <div class="page-num">5/5</div>
     </div>
-    <div class="problem-text">
-        <p>末尾から <b>i+1</b> まで戻るループの構成と、値の交換に注目しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>空欄1（j の開始位置）</b>：<br>末尾から比較を開始するため、配列の最後の添字である <b>n - 1</b> を指定する。</li>
-                <li><b>空欄2（入れ替え）</b>：<br><b>A[j-1]</b> の値を <b>tmp</b> に逃がした後、<b>A[j-1]</b> に <b>A[j]</b> の値を上書きする。</li>
-                <li><b>境界の確認</b>：<br><b>j</b> が <b>i + 1</b> のとき、比較対象は <b>A[i]</b> と <b>A[i+1]</b> になり、正しく <b>i</b> 番目の値が確定する。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <text x="200" y="80" font-size="24">スワップ（入れ替え）</text>
-                <rect x="100" y="120" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
-                <text x="200" y="145" font-size="18">tmp = A[j - 1]</text>
-                <rect x="100" y="180" width="200" height="50" fill="#fee2e2" stroke="#ef4444" />
-                <text x="200" y="205" font-size="18">A[j - 1] = A[j]</text>
-                <rect x="100" y="240" width="200" height="50" fill="#e2e8f0" stroke="#334155" />
-                <text x="200" y="265" font-size="18">A[j] = tmp</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習61：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>基本交換法（bubble_sort）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
+    <div class="content-wrap">
+        <div class="left-col">
             <pre>
-for ( <b>i</b> を 0 から <b>n - 2</b> まで 1 ずつ増やす )
-　　for ( <b>j</b> を <b class="important">n - 1</b> から <b>i + 1</b> まで 1 ずつ減らす )
-　　　　if ( <b>A[j - 1]</b> ＞ <b>A[j]</b> )
-　　　　　　<b>tmp</b> ← <b>A[j - 1]</b>
-　　　　　　<b>A[j - 1]</b> ← <b class="important">A[j]</b>
-　　　　　　<b>A[j]</b> ← <b>tmp</b>
-　　　　endif
-　　endfor
-endfor</pre>
+○ stooge_sort(整数型の配列: <b>tbl</b> , 整数型: <b>i</b> , 整数型: <b>j</b> )
+　　... (中略) ...
+　　<span class="keyword">if</span> ( ( <b>j</b> - <b>i</b> + 1 ) が 3 以上 )
+　　　　<b>t</b> ← ( <b>j</b> - <b>i</b> + 1 ) ÷ 3
+　　　　stooge_sort( <b>tbl</b> , <span class="ans-red"><b>i , j - t</b></span> )
+　　　　stooge_sort( <b>tbl</b> , <span class="ans-red"><b>i + t , j</b></span> )
+　　　　stooge_sort( <b>tbl</b> , <span class="ans-red"><b>i , j - t</b></span> )
+　　<span class="keyword">endif</span></pre>
         </div>
-        <div class="right-content">
+        <div class="right-col">
             <div class="ans-box">
                 <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 イ．n - 1</span>
-                    <span class="ans-item">【２】 ア．A[j]</span>
-                </div>
+                <div class="choice-item">【 １ 】 カ．<b>i , j - t</b></div>
+                <div class="choice-item">【 ２ 】 ウ．<b>i + t , j</b></div>
             </div>
         </div>
+    </div>
+    <div class="footer ans">
+        解答： (1)　カ　i , j - t　　(2)　ウ　i + t , j
     </div>
 </div>
 
 </body>
 </html>
+<!-- slide61.html 練習61 ストゥージソート（再帰と範囲分割の論理） -->
+スライドの設計ポイント
