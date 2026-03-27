@@ -2,205 +2,221 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習75：文字列探索教材</title>
+    <title>練習75：16進数文字列の加算</title>
     <style>
-        /* ■ 1. 画面構成 (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            font-weight: 900;
+        :root {
+            --canvas-width: 1400px; --canvas-height: 800px; --guard-rail: 20px;
+            --primary: #0ea5e9; --success: #10b981; --accent: #f59e0b; --danger: #ef4444;
+            --bg-rail: #f1f5f9; --bg-content: #ffffff; --border: #cbd5e1; --code-bg: #1e293b;
+            --color-x: #8b5cf6; --bg-x: #f5f3ff;
+            --color-y: #ec4899; --bg-y: #fdf2f8;
+            --color-z: #06b6d4; --bg-z: #ecfeff;
+        }
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", "Meiryo", sans-serif; overflow: hidden; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        .slide { width: var(--canvas-width); height: var(--canvas-height); background: var(--bg-rail); padding: var(--guard-rail); box-sizing: border-box; display: flex; }
+        
+        .slide-content { 
+            width: 100%; height: 100%; background: var(--bg-content); 
+            padding: 30px 50px; box-sizing: border-box; 
+            display: flex; flex-direction: column; border-radius: 12px; position: relative; 
         }
         
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        .header { border-bottom: 4px solid var(--primary); padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; }
+        .prob-num { background: var(--primary); color: white; padding: 5px 20px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 24px; }
+        h1 { font-size: 32px; margin: 0; color: #1e293b; }
+
+        /* Code Block Optimization */
+        .code-block { 
+            background: var(--code-bg); color: #f8fafc; padding: 20px 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 18px; line-height: 1.5; 
+            white-space: pre; overflow: hidden; height: 100%; box-sizing: border-box;
         }
+        .ans-hl { color: #fde047; font-weight: bold; border-bottom: 2px solid #fde047; padding: 0 4px; }
+        .cmt { color: #94a3b8; font-style: italic; font-size: 16px; }
 
-        /* ヘッダー */
-        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
-        .title-group { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
-
-        /* コンテンツエリア */
-        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
-        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
-        .left-content { flex: 0 0 62%; }
-        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
-
-        /* 疑似言語表示 */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 20px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-            font-weight: 900;
+        /* Step Cards for Page 2 */
+        .step-card { 
+            background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; 
+            padding: 20px 25px; display: flex; flex-direction: column; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: 100%; box-sizing: border-box;
         }
-        b { font-weight: 900; }
-        .blank { color: #a52a2a; font-weight: 900; }
-        .correct { color: #ef4444; font-weight: 900; }
-
-        /* 説明用リスト */
-        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
-        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
-            border-radius: 15px; width: 100%; margin-top: auto;
-        }
-        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
-        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
-
-        /* SVG共通設定 */
-        svg { 
-            width: 100%; height: auto; 
-            border: 2px solid #64748b; border-radius: 12px; 
-            background: #ffffff;
-        }
-        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
-        .box-match { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
-        .arrow-slide { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
-        svg text { font-size: 22px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+        .step-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; margin-bottom: 15px; width: fit-content; }
+        
+        /* Flex Layouts */
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 85%; }
+        .grid-code-desc { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 35px; height: 85%; }
+        .col-flex { display: flex; flex-direction: column; gap: 20px; }
     </style>
 </head>
 <body>
+<div class="viewport">
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習75：文字列探索（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">テキストから特定の文字列（パターン）を探し出すプログラムを完成させよ。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-<b>text_len</b> ← テキストの長さ, <b>pat_len</b> ← パターンの長さ
-for ( <b>i</b> ← 0 to <span class="blank">【　　 1 　　】</span> )
-　　<b>j</b> ← 0
-　　while ( <b>j</b> ＜ <b>pat_len</b> and <b>text[i + j]</b> ＝ <b>pat[j]</b> )
-　　　　<b>j</b> ← <b>j</b> + 1
-　　endwhile
-　　if ( <b>j</b> ＝ <b>pat_len</b> ) return <b>i</b> // 発見
-endfor
-return -1 // 不一致</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="40" y="80" width="60" height="60" class="box" /><text x="70" y="110">A</text>
-                <rect x="100" y="80" width="60" height="60" class="box" /><text x="130" y="110">B</text>
-                <rect x="160" y="80" width="60" height="60" class="box" /><text x="190" y="110">C</text>
-                <rect x="220" y="80" width="60" height="60" class="box" /><text x="250" y="110">D</text>
-                
-                <rect x="40" y="160" width="60" height="60" class="box-match" /><text x="70" y="190">B</text>
-                <rect x="100" y="160" width="60" height="60" class="box-match" /><text x="130" y="190">C</text>
-                
-                <path d="M 40,240 L 220,240" class="arrow-slide" marker-end="url(#slide-head)"/>
-                <defs><marker id="slide-head" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
-                <text x="200" y="280" font-size="20" fill="#3b82f6">パターンを1文字ずつ</text>
-                <text x="200" y="310" font-size="20" fill="#3b82f6">右へずらして照合する</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習75：解説（探索の終了地点）</h1></div>
-        <div class="page-num">2/4</div>
-    </div>
-    <div class="problem-text">なぜ <b>text_len - pat_len</b> まで調べれば良いのか？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>残り文字数</b>：パターンの長さ（<b>pat_len</b>）よりも、テキストの残り文字数が短くなれば、絶対に一致することはない。</li>
-                <li><b>効率化</b>：無駄な比較を避けるため、最後のパターンがテキストの末尾にちょうど重なる位置で探索を止める。</li>
-                <li><b>式</b>：最後の開始位置 <b>i</b> は <b>text_len - pat_len</b> となる。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="40" y="100" width="50" height="50" class="box" /><text x="65" y="125">A</text>
-                <rect x="90" y="100" width="50" height="50" class="box" /><text x="115" y="125">B</text>
-                <rect x="140" y="100" width="50" height="50" class="box" /><text x="165" y="125">C</text>
-                <rect x="190" y="100" width="50" height="50" class="box" /><text x="215" y="125">D</text>
-                
-                <rect x="140" y="170" width="50" height="50" class="box-match" /><text x="165" y="195">C</text>
-                <rect x="190" y="170" width="50" height="50" class="box-match" /><text x="215" y="195">D</text>
-                
-                <text x="200" y="260" font-size="22">これ以上右へ行くと</text>
-                <text x="200" y="300" font-size="22" fill="#ef4444">はみ出してしまう！</text>
-                
-                <path d="M 240,100 L 240,220" stroke="#ef4444" stroke-width="4" stroke-dasharray="5"/>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習75：解説（内側の照合）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">while文が止まる2つの理由を整理する。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>一致（発見）</b>：<b>j</b> が <b>pat_len</b> に達したなら、パターンの全文字が一致したことになる。</li>
-                <li><b>不一致</b>：<b>text[i+j] ≠ pat[j]</b> となった瞬間に whileループを抜け、次の <b>i</b> へ進む。</li>
-                <li><b>物理的イメージ</b>：窓を1つずつずらし、窓の中の文字を上から順に突き合わせている。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="100" y="100" width="80" height="80" class="box" /><text x="140" y="140">B</text>
-                <rect x="100" y="220" width="80" height="80" class="box-match" /><text x="140" y="260">B</text>
-                <text x="140" y="195" font-size="30" fill="#059669">＝</text>
-                
-                <rect x="220" y="100" width="80" height="80" class="box" /><text x="260" y="140">C</text>
-                <rect x="220" y="220" width="80" height="80" class="box-match" /><text x="260" y="260">X</text>
-                <text x="260" y="195" font-size="40" fill="#ef4444">×</text>
-                
-                <text x="200" y="340" font-size="22">違ったら即座に中断！</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習75：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">力まかせ法（文字列探索）完成プログラム</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-<b>text_len</b> ← テキストの長さ, <b>pat_len</b> ← パターンの長さ
-for ( <b>i</b> ← 0 to <b class="correct">text_len - pat_len</b> )
-　　<b>j</b> ← 0
-　　while ( <b>j</b> ＜ <b>pat_len</b> and <b>text[i + j]</b> ＝ <b>pat[j]</b> )
-　　　　<b>j</b> ← <b>j</b> + 1
-　　endwhile
-　　if ( <b>j</b> ＝ <b>pat_len</b> ) return <b>i</b>
-endfor
-return -1</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答</h2>
-                <div class="ans-text">
-                    【１】 ア．text_len - pat_len
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">練習75</span><h1>16進数文字列の加算アルゴリズム</h1></div>
+                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="width: 85%; background: #f0f9ff; border: 2px solid var(--primary); padding: 45px; border-radius: 20px;">
+                        <h2 style="color: var(--primary); font-size: 32px; margin-top: 0; text-align: center;">筆算と同じ論理で、文字としての数値を足し合わせる</h2>
+                        
+                        <div style="display: flex; justify-content: center; gap: 50px; margin: 30px 0; align-items: center;">
+                            <div style="font-size: 28px; font-family: monospace; background: #fff; padding: 20px 30px; border-radius: 10px; border: 1px solid #cbd5e1; display: inline-block; line-height: 1.5; text-align: right;">
+                                &nbsp;&nbsp;&nbsp;x = <span style="color:var(--color-x)">1 a 2 f</span><br>
+                                <span style="border-bottom: 2px solid #334155; padding-bottom: 5px;">+) y = <span style="color:var(--color-y)">0 5 3 4</span></span><br>
+                                &nbsp;&nbsp;&nbsp;z = <span style="color:var(--color-z)">1 f 6 3</span>
+                            </div>
+                            <div style="background: var(--bg-x); padding: 20px; border-radius: 10px; border: 2px dashed var(--color-x); font-size: 20px;">
+                                <strong style="color:var(--color-x)">💡 16進数の対応表 (配列 n)</strong><br>
+                                0〜9 → 数値の 0〜9<br>
+                                a〜f → 数値の 10〜15
+                            </div>
+                        </div>
+                        
+                        <ul style="font-size: 22px; line-height: 1.8; color: #334155; margin-bottom: 0;">
+                            <li>文字（"a"や"f"）のままでは計算できないため、一度<b>数値</b>に変換して計算する。</li>
+                            <li>私たちが筆算をする時と同じように、<b>「右端（下位桁）」</b>から計算を始める。</li>
+                            <li>各桁の和が16以上になった場合は、<b>桁上がり（キャリー c）</b>を次の桁へ渡す。</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">理論</span><h1>空欄を解くための思考トレース（下位桁からの筆算）</h1></div>
+                <div class="grid-2col">
+                    
+                    <div class="step-card" style="border-top: 8px solid var(--danger);">
+                        <div class="step-badge" style="background: #fee2e2; color: var(--danger);">CASE 1：繰り上がりのある桁（右端 i=3）</div>
+                        <div style="font-size: 16px; margin-bottom: 15px; line-height: 1.5;">
+                            ① <b>f(15)</b> と <b>4(4)</b> と桁上がり <b>c(0)</b> を足す。<br>
+                            ② <b>t = 19</b>。16を超えるため、16進数の文字と次の桁へのキャリー（c）を求める。
+                        </div>
+                        
+                        <svg width="100%" height="240" viewBox="0 0 550 240" style="margin: auto 0;">
+                            <defs><marker id="arr-c1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--danger)"/></marker></defs>
+                            <g transform="translate(30, 90)">
+                                <rect x="20" y="0" width="55" height="55" fill="var(--bg-x)" stroke="var(--color-x)" rx="6"/><text x="47" y="36" text-anchor="middle" font-size="24" font-weight="bold">f</text>
+                                <text x="95" y="36" text-anchor="middle" font-size="24" font-weight="bold">+</text>
+                                <rect x="115" y="0" width="55" height="55" fill="var(--bg-y)" stroke="var(--color-y)" rx="6"/><text x="142" y="36" text-anchor="middle" font-size="24" font-weight="bold">4</text>
+                                <text x="190" y="36" text-anchor="middle" font-size="24" font-weight="bold">=</text>
+                                <rect x="210" y="0" width="55" height="55" fill="#f1f5f9" stroke="#94a3b8" rx="6"/><text x="237" y="36" text-anchor="middle" font-size="24" font-weight="bold">19</text>
+                                
+                                <text x="47" y="-55" text-anchor="middle" font-size="16" fill="var(--color-x)" font-weight="bold">x[3]=15</text>
+                                <text x="142" y="-20" text-anchor="middle" font-size="16" fill="var(--color-y)" font-weight="bold">y[3]=4</text>
+                                <text x="237" y="-55" text-anchor="middle" font-size="16" fill="#64748b" font-weight="bold">和 t</text>
+
+                                <path d="M 237 60 Q 237 90 237 110" fill="none" stroke="var(--danger)" stroke-width="2" marker-end="url(#arr-c1)"/>
+                                
+                                <rect x="40" y="115" width="230" height="85" fill="#fff1f2" stroke="#fecdd3" rx="8"/>
+                                <text x="50" y="140" font-size="15" font-weight="bold" fill="var(--danger)">・19 ÷ 16 = 1 (余り 3)</text>
+                                <text x="50" y="165" font-size="14" fill="#334155">　余り3 → 文字 <b>"3" (z[3])</b></text>
+                                <text x="50" y="185" font-size="14" fill="#334155">　商 1 → 次の桁上がり <b>c=1</b></text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="step-card" style="border-top: 8px solid var(--primary);">
+                        <div class="step-badge" style="background: #e0f2fe; color: var(--primary);">CASE 2：次の桁の計算（i=2）</div>
+                        <div style="font-size: 16px; margin-bottom: 15px; line-height: 1.5;">
+                            ① <b>2(2)</b> と <b>3(3)</b> に、下位から受け取った桁上がり <b>c(1)</b> を足す。<br>
+                            ② <b>t = 6</b>。16未満なのでそのまま文字にする。
+                        </div>
+
+                        <svg width="100%" height="240" viewBox="0 0 550 240" style="margin: auto 0;">
+                            <defs><marker id="arr-c2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--primary)"/></marker></defs>
+                            <g transform="translate(15, 90)">
+                                <rect x="20" y="0" width="55" height="55" fill="var(--bg-x)" stroke="var(--color-x)" rx="6"/><text x="47" y="36" text-anchor="middle" font-size="24" font-weight="bold">2</text>
+                                <text x="85" y="36" text-anchor="middle" font-size="20" font-weight="bold">+</text>
+                                <rect x="95" y="0" width="55" height="55" fill="var(--bg-y)" stroke="var(--color-y)" rx="6"/><text x="122" y="36" text-anchor="middle" font-size="24" font-weight="bold">3</text>
+                                <text x="160" y="36" text-anchor="middle" font-size="20" font-weight="bold">+</text>
+                                <rect x="170" y="0" width="55" height="55" fill="#fef2f2" stroke="var(--danger)" rx="6" stroke-dasharray="4"/><text x="197" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="var(--danger)">1</text>
+                                <text x="235" y="36" text-anchor="middle" font-size="20" font-weight="bold">=</text>
+                                <rect x="245" y="0" width="55" height="55" fill="#f1f5f9" stroke="#94a3b8" rx="6"/><text x="272" y="36" text-anchor="middle" font-size="24" font-weight="bold">6</text>
+                                
+                                <text x="47" y="-55" text-anchor="middle" font-size="14" fill="var(--color-x)" font-weight="bold">x[2]</text>
+                                <text x="122" y="-20" text-anchor="middle" font-size="14" fill="var(--color-y)" font-weight="bold">y[2]</text>
+                                <text x="197" y="-55" text-anchor="middle" font-size="14" fill="var(--danger)" font-weight="bold">キャリーc</text>
+                                <text x="272" y="-20" text-anchor="middle" font-size="14" fill="#64748b" font-weight="bold">和 t</text>
+
+                                <path d="M 272 60 Q 272 90 272 110" fill="none" stroke="var(--primary)" stroke-width="2" marker-end="url(#arr-c2)"/>
+                                
+                                <rect x="60" y="115" width="230" height="85" fill="#f0f9ff" stroke="#bae6fd" rx="8"/>
+                                <text x="70" y="140" font-size="15" font-weight="bold" fill="var(--primary)">・6 ÷ 16 = 0 (余り 6)</text>
+                                <text x="70" y="165" font-size="14" fill="#334155">　余り6 → 文字 <b>"6" (z[2])</b></text>
+                                <text x="70" y="185" font-size="14" fill="#334155">　商 0 → 次の桁上がり <b>c=0</b></text>
+                            </g>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">実装</span><h1>疑似言語への当てはめ</h1></div>
+                <div class="grid-code-desc">
+                    
+                    <div class="code-block">
+○ addhex(文字配列: x, 文字配列: y, 文字配列: z)
+整数型: i, c, t
+c ← 0
+<span class="cmt">/* 右端(下位)から左端(上位)へループ */</span>
+for ( i を 3 から 0 まで 1 ずつ減らす )
+  t ← tonum(x[i]) + tonum(y[i]) + c
+  z[ i ] ← <span class="ans-hl"><b>n[ t mod 16 ]</b></span>  <span class="cmt">/* 【 １ 】 */</span>
+  c ← <span class="ans-hl"><b>t ÷ 16</b></span>            <span class="cmt">/* 【 ２ 】 */</span>
+endfor
+
+○ 整数型: tonum(文字型: a)
+整数型: i
+for ( i を 0 から 15 まで 1 ずつ増やす )
+  if ( a が n[ i ] と等しい )
+    return i  <span class="cmt">/* 文字に対応する数値を返す */</span>
+  endif
+endfor</div>
+
+                    <div class="col-flex">
+                        
+                        <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                            <h3 style="color:var(--primary); margin: 0 0 10px 0; font-size: 20px;">💡 【1】現在の桁の文字を決定</h3>
+                            <div style="font-size: 16px; line-height: 1.6; margin-bottom: 0;">
+                                和 `t` を 16 で割った<b>「余り (mod)」</b>が、その桁に残る数値です。<br>
+                                ただの数値ではなく<b>文字</b>として出力配列 `z` に格納するため、大域配列 `n` のインデックスとして指定し、対応する文字を取得します。<br>
+                                <span style="color:var(--danger); font-weight:bold;">解答：n[ t mod 16 ]</span>
+                            </div>
+                        </div>
+
+                        <div style="background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 25px;">
+                            <h3 style="color:var(--accent); margin: 0 0 10px 0; font-size: 20px;">💡 【2】桁上がり（キャリー）の算出</h3>
+                            <div style="font-size: 16px; line-height: 1.6; margin-bottom: 0;">
+                                次の桁へ送る繰り上がり分は、和 `t` の中に「16がいくつ含まれるか」で決まるため、16 で割った<b>「商 (÷)」</b>を求めます。<br>
+                                疑似言語の整数型同士の割り算は自動で小数点以下が切り捨てられ、商が求まります。<br>
+                                <span style="color:var(--danger); font-weight:bold;">解答：t ÷ 16</span>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f0fdf4; border: 2px solid #a7f3d0; border-radius: 12px; padding: 20px;">
+                            <h3 style="color:var(--success); margin: 0 0 5px 0; font-size: 18px;">💡 まとめ</h3>
+                            <div style="font-size: 15px; line-height: 1.5; color: #334155;">
+                                このアルゴリズムの核心は、<b>「法（16）を用いた剰余（余り）と商の計算」</b>に分解すれば、2進数や16進数など、あらゆる進法の計算が私たちが普段行う「10進数の筆算」と全く同じ論理でプログラム化できることを示しています。
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
