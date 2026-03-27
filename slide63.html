@@ -2,192 +2,136 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習63：クイックソート(quick_sort)</title>
+    <title>ヒープソート：makeheapのステップ解説</title>
     <style>
-        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        :root {
+            --primary: #2c3e50;
+            --accent: #8e44ad;
+            --bg: #f9f9f9;
         }
+        body { font-family: sans-serif; background: #eee; margin: 0; padding: 20px; }
         
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
+        /* スライド共通設定 */
+        .slide {
+            width: 1200px; height: 800px;
+            background: white; margin: 0 auto 40px;
+            padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative; overflow: hidden;
             display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        h1 { border-left: 10px solid var(--accent); padding-left: 20px; color: var(--primary); margin-bottom: 40px; }
+
+        /* ステップ図式エリア */
+        .step-container { display: flex; gap: 30px; justify-content: center; margin-top: 20px; }
+        .step-box {
+            border: 2px dashed #999; padding: 20px; position: relative;
+            background: #fff; width: 320px;
+        }
+        .step-num {
+            position: absolute; top: -15px; left: -15px;
+            width: 30px; height: 30px; background: #fff;
+            border: 1px solid #333; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
         }
 
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
-
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
-
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 65%; }
-        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
-
-        /* 文字装飾ルール */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
-
-        /* 疑似言語(pre) */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 20px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
+        /* 木の構造 */
+        .tree-viz { position: relative; height: 220px; margin: 20px 0; }
+        .node {
+            width: 45px; height: 45px; border: 2px solid #333;
+            display: flex; align-items: center; justify-content: center;
+            position: absolute; background: white; font-weight: bold;
         }
+        .line { position: absolute; background: #333; height: 2px; transform-origin: top left; z-index: 0; }
 
-        /* 説明文・箇条書き */
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* 説明文（被らないように配置） */
+        .description-panel {
+            margin-top: auto; padding: 25px;
+            background: #f3e5f5; border-radius: 10px;
+            border-left: 8px solid var(--accent);
+            font-size: 1.2rem; line-height: 1.8;
         }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
-
-        /* SVG図式 */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .pivot-box { fill: #fef3c7; stroke: #ea580c; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .marker-head { fill: #3b82f6; }
+        .highlight { color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習63：クイックソート（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">
-        <p>配列 <b>A</b> をクイックソートで整列させる。基準値を <b>pivot</b> としたとき、空欄を埋めよ。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ quick_sort(整数型: <b>left</b>, <b>right</b> )
-　　if ( <b>left</b> ＜ <b>right</b> )
-　　　　<b>p</b> ← partition( <b>left</b>, <b>right</b> ) // 分割位置を決定
-　　　　quick_sort( <span class="blank">【　　 1 　　】</span> ) // 左側を整列
-　　　　quick_sort( <span class="blank">【　　 2 　　】</span> ) // 右側を整列
-　　endif</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="150" y="50" width="100" height="50" class="pivot-box" />
-                <text x="200" y="75" font-size="20">pivot</text>
-                <path d="M 140,120 L 50,180" class="arrow-line" marker-end="url(#head)" />
-                <path d="M 260,120 L 350,180" class="arrow-line" marker-end="url(#head)" />
-                <text x="70" y="210" font-size="16">小さい方</text>
-                <text x="330" y="210" font-size="16">大きい方</text>
-                <text x="200" y="280" font-size="18">再帰的な分割</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習63：解説（分割統治法）</h1></div>
-        <div class="page-num">2/4</div>
-    </div>
-    <div class="problem-text">
-        <p>クイックソートは、「分割して統治せよ」という考え方に基づいている。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>基準値（pivot）の選定</b>：<br>配列の中から一つの値を選び、それを基準にデータを二分する。</li>
-                <li><b>partition 関数</b>：<br>基準値より小さいものを左に、大きいものを右に集め、最終的な基準値の場所（添字 <b>p</b>）を返す。</li>
-                <li><b>再帰呼び出し</b>：<br>分けられた左側の山と右側の山に対して、同じ手順をさらに適用していく。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="50" y="100" width="300" height="150" rx="10" fill="#e2e8f0" stroke="#334155" stroke-width="2" />
-                <line x1="200" y1="100" x2="200" y2="250" stroke="#334155" stroke-width="2" />
-                <text x="125" y="175" font-size="22">L</text>
-                <text x="275" y="175" font-size="22">R</text>
-                <text x="200" y="300" font-size="18">「p」を境に2つに分かれる</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習63：解説（再帰の引数）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">
-        <p>基準位置 <b>p</b> を使って、次に処理する範囲を指定しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>左側の範囲（空欄1）</b>：<br>全体の左端 <b>left</b> から、基準位置の一つ手前 <b>p - 1</b> までが対象。</li>
-                <li><b>右側の範囲（空欄2）</b>：<br>基準位置の次 <b>p + 1</b> から、全体の右端 <b>right</b> までが対象。</li>
-                <li><b>p の扱いに注意</b>：<br>基準位置にある要素は、この分割時点で既に「正しい場所」に配置されているため、次回の再帰に含める必要はない。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="30" y="150" width="340" height="50" fill="#ffffff" stroke="#334155" />
-                <rect x="180" y="150" width="40" height="50" fill="#fef3c7" />
-                <text x="200" y="175" font-size="16">p</text>
-                <text x="100" y="240" font-size="14" fill="#3b82f6">left 〜 p-1</text>
-                <text x="300" y="240" font-size="14" fill="#3b82f6">p+1 〜 right</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習63：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>クイックソート（quick_sort）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ quick_sort(整数型: <b>left</b>, <b>right</b> )
-　　if ( <b>left</b> ＜ <b>right</b> )
-　　　　<b>p</b> ← partition( <b>left</b>, <b>right</b> )
-　　　　quick_sort( <b class="important">left, p - 1</b> )
-　　　　quick_sort( <b class="important">p + 1, right</b> )
-　　endif</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 イ．left, p - 1</span>
-                    <span class="ans-item">【２】 ア．p + 1, right</span>
-                </div>
+<section class="slide">
+    <h1>Step 1: 親と子の大小関係を正す</h1>
+    <div class="step-container">
+        <div class="step-box">
+            <div class="step-num">①</div>
+            <div class="tree-viz">
+                <div class="node" style="top:0; left:135px; border-color:red;">3</div>
+                <div class="node" style="top:70px; left:60px;">6</div>
+                <div class="node" style="top:70px; left:210px;">4</div>
+                <div class="node" style="top:140px; left:20px;">1</div>
+                <div class="node" style="top:140px; left:100px;">5</div>
             </div>
+            <p style="text-align:center; font-size:0.9rem;">親(3)が子(6, 4)より小さい</p>
+        </div>
+
+        <div class="step-box">
+            <div class="step-num">②</div>
+            <div class="tree-viz">
+                <div class="node" style="top:0; left:135px; background:#e1f5fe;">6</div>
+                <div class="node" style="top:70px; left:60px; background:#e1f5fe;">3</div>
+                <div class="node" style="top:70px; left:210px;">4</div>
+                <div class="node" style="top:140px; left:20px;">1</div>
+                <div class="node" style="top:140px; left:100px;">5</div>
+            </div>
+            <p style="text-align:center; font-size:0.9rem;">最大の子(6)と親(3)を交換</p>
         </div>
     </div>
-</div>
+
+    <div class="description-panel">
+        <p>まず、親の値と左右の子の値を比較します。親よりも大きな子がいる場合、<span class="highlight">最も大きな値を持つ子と親を交換</span>します。</p>
+        <p>上図では、<strong>3</strong>と<strong>6</strong>が入れ替わりましたが、入れ替わった先で新たな大小関係の崩れが発生します。</p>
+    </div>
+</section>
+
+<section class="slide">
+    <h1>Step 2: 崩れた下の階層を直す（再帰）</h1>
+    <div class="step-container">
+        <div class="step-box" style="width:400px; border-style: solid; border-color: var(--accent);">
+            <div class="step-num">③</div>
+            <div class="tree-viz">
+                <div class="node" style="top:0; left:175px;">6</div>
+                <div class="node" style="top:70px; left:100px; border-color:red;">3</div>
+                <div class="node" style="top:70px; left:250px;">4</div>
+                <div class="node" style="top:140px; left:60px;">1</div>
+                <div class="node" style="top:140px; left:140px;">5</div>
+                <div style="position:absolute; top:60px; left:40px; width:160px; height:130px; border:2px solid var(--accent); border-radius:10px; pointer-events:none; opacity:0.3; background:var(--accent);"></div>
+            </div>
+            <p style="text-align:center; font-weight:bold; color:var(--accent);">ここでmakeheapを再帰呼出し</p>
+        </div>
+    </div>
+
+    <div class="description-panel">
+        <p>親と交換した方の「子の添字」を新しい親とみなして、<span class="highlight">makeheapを再帰的に呼び出します</span>。</p>
+        <p>これにより、交換によって移動した値（この場合は<strong>3</strong>）が、さらに下の子（<strong>1</strong>と<strong>5</strong>）と比較され、ヒープ構造が正しく保たれるまで処理が続きます。</p>
+    </div>
+</section>
+
+<section class="slide">
+    <h1>Step 3: ヒープ構造の完成</h1>
+    <div class="step-container">
+        <div class="step-box">
+            <div class="tree-viz">
+                <div class="node" style="top:0; left:135px;">6</div>
+                <div class="node" style="top:70px; left:60px; background:#e1f5fe;">5</div>
+                <div class="node" style="top:70px; left:210px;">4</div>
+                <div class="node" style="top:140px; left:20px;">1</div>
+                <div class="node" style="top:140px; left:100px; background:#e1f5fe;">3</div>
+            </div>
+            <p style="text-align:center; font-weight:bold;">すべての親子関係が適正に</p>
+        </div>
+    </div>
+
+    <div class="description-panel">
+        <p>再帰処理の結果、<strong>3</strong>と<strong>5</strong>が交換され、すべての親が子よりも大きい状態（最大ヒープ）が完成しました。</p>
+        <p>事例にある通り、「親と交換した方の親のデータと子のデータの大小関係を正す」ことがこの処理の目的です。</p>
+    </div>
+</section>
 
 </body>
 </html>

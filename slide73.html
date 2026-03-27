@@ -2,199 +2,220 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>練習73：線形探索教材</title>
+    <title>練習73：ランレングス圧縮（完全網羅・最適化版）</title>
     <style>
-        /* ■ 1. 画面構成 (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            font-weight: 900;
+        :root {
+            --canvas-width: 1400px; --canvas-height: 800px; --guard-rail: 20px;
+            --primary: #0284c7; --success: #059669; --accent: #f59e0b; --danger: #e11d48;
+            --bg-rail: #f1f5f9; --bg-content: #ffffff; --border: #cbd5e1; --code-bg: #1e293b;
+            --color-i: #7c3aed; --bg-i: #f5f3ff;
+            --color-k: #db2777; --bg-k: #fdf2f8;
         }
+        body { margin: 0; background-color: #cbd5e1; font-family: "Hiragino Sans", "Meiryo", sans-serif; overflow: hidden; }
+        .viewport { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .slide-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; scroll-snap-align: start; }
+        .slide { width: var(--canvas-width); height: var(--canvas-height); background: var(--bg-rail); padding: var(--guard-rail); box-sizing: border-box; display: flex; }
+        .slide-content { width: 100%; height: 100%; background: var(--bg-content); padding: 30px 50px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 12px; }
         
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        .header { border-bottom: 4px solid var(--primary); padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; }
+        .prob-num { background: var(--primary); color: white; padding: 5px 20px; border-radius: 4px; margin-right: 20px; font-weight: bold; font-size: 24px; }
+        h1 { font-size: 32px; margin: 0; color: #1e293b; }
+
+        /* Code Block */
+        .code-block { 
+            background: var(--code-bg); color: #f8fafc; padding: 25px; border-radius: 12px; 
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 19px; line-height: 1.55; 
+            white-space: pre; overflow: hidden; height: 100%; box-sizing: border-box;
         }
+        .ans-hl { color: #fde047; font-weight: bold; border-bottom: 2px solid #fde047; padding: 0 4px; }
+        .cmt { color: #94a3b8; font-style: italic; font-size: 17px; }
 
-        /* ヘッダー */
-        .header { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 25px; }
-        .title-group { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
-
-        /* コンテンツエリア */
-        .problem-text { font-size: 28px; line-height: 1.4; margin-bottom: 25px; color: #000000; }
-        .content-area { display: flex; flex: 1; width: 100%; gap: 30px; }
-        .left-content { flex: 0 0 62%; }
-        .right-content { flex: 0 0 38%; display: flex; flex-direction: column; }
-
-        /* 疑似言語表示 */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
-            line-height: 1.4; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-            font-weight: 900;
+        /* Step Cards for Page 2 */
+        .step-card { 
+            background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; 
+            padding: 20px 25px; display: flex; flex-direction: column; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: 100%; box-sizing: border-box;
         }
-        b { font-weight: 900; }
-        .blank { color: #a52a2a; font-weight: 900; }
-        .correct { color: #ef4444; font-weight: 900; }
-
-        /* 説明用リスト */
-        ul { list-style-type: disc; margin-left: 30px; padding: 0; }
-        li { font-size: 28px; margin-bottom: 30px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 4px solid #ea580c; 
-            border-radius: 15px; width: 100%; margin-top: auto;
-        }
-        .ans-box h2 { color: #ea580c; font-size: 34px; margin: 0 0 20px 0; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
-        .ans-text { font-size: 30px; line-height: 1.8; color: #000000; font-weight: normal; }
-
-        /* SVG共通設定 */
-        svg { 
-            width: 100%; height: auto; 
-            border: 2px solid #64748b; border-radius: 12px; 
-            background: #ffffff;
-        }
-        .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
-        .box-focus { fill: #fef9c3; stroke: #ca8a04; stroke-width: 3; }
-        .arrow-scan { stroke: #3b82f6; stroke-width: 4; fill: #3b82f6; }
-        .found-mark { fill: none; stroke: #ef4444; stroke-width: 5; }
-        svg text { font-size: 24px; font-weight: 900; text-anchor: middle; dominant-baseline: central; }
+        .step-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; margin-bottom: 15px; width: fit-content; }
+        
+        /* Highlight text colors */
+        .hl-p { color: var(--color-i); font-weight: bold; } 
+        .hl-k { color: var(--color-k); font-weight: bold; }
     </style>
 </head>
 <body>
+<div class="viewport">
 
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習73：線形探索（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">配列 <b>A</b> の先頭から順に目的の値 <b>key</b> を探すプログラムを完成させよ。</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-<b>i</b> ← 0
-while ( <b>i</b> ＜ <b>n</b> and <span class="blank">【　　 1 　　】</span> )
-　　<b>i</b> ← <b>i</b> + 1
-endwhile
-
-if ( <b>i</b> ＜ <b>n</b> )
-　　return <b>i</b>  // 見つかった（添字を返す）
-else
-　　return -1 // 見つからなかった
-endif</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <rect x="40" y="100" width="70" height="70" class="box" /><text x="75" y="135">12</text>
-                <rect x="125" y="100" width="70" height="70" class="box" /><text x="160" y="135">45</text>
-                <rect x="210" y="100" width="70" height="70" class="box-focus" /><text x="245" y="135">key</text>
-                <rect x="295" y="100" width="70" height="70" class="box" /><text x="330" y="135">23</text>
-                
-                <path d="M 40,210 L 190,210" class="arrow-scan" marker-end="url(#scan-head)"/>
-                <defs><marker id="scan-head" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker></defs>
-                <text x="200" y="260" font-size="22" fill="#3b82f6">左から順番に</text>
-                <text x="200" y="300" font-size="22" fill="#3b82f6">1つずつチェックする</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習73：解説（繰り返しの条件）</h1></div>
-        <div class="page-num">2/4</div>
-    </div>
-    <div class="problem-text">while文が「次の要素へ進む」のはどんな時か？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>進む条件</b>：今見ている要素 <b>A[i]</b> が、探している <b>key</b> と「一致しない」間は、次を探さなければならない。</li>
-                <li><b>論理の反転</b>：一致したらループを止めたいので、継続条件は「不一致（<b>≠</b>）」となる。</li>
-                <li><b>番兵なし</b>：このコードでは配列の範囲外（<b>i < n</b>）も同時にチェックし、安全に停止させる。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="150" y="80" width="100" height="100" class="box" /><text x="200" y="130" font-size="40">12</text>
-                <text x="200" y="220" font-size="40" fill="#a52a2a">≠</text>
-                <rect x="150" y="260" width="100" height="100" class="box-focus" /><text x="200" y="310" font-size="30">key(45)</text>
-                
-                <text x="330" y="200" font-size="20" fill="#3b82f6">次へ！</text>
-                <path d="M 260,130 Q 320,200 260,270" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="5"/>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習73：解説（結果の判断）</h1></div>
-        <div class="page-num">3/4</div>
-    </div>
-    <div class="problem-text">ループが終わった後、どうやって成功・失敗を見分けるか？</div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul>
-                <li><b>成功（発見）</b>：配列の最後まで行く前にループが止まったなら、<b>A[i] = key</b> になったということ。</li>
-                <li><b>失敗（未発見）</b>：最後まで見つからず <b>i</b> が <b>n</b>（配列のサイズ）に達してしまったなら、存在しない。</li>
-                <li><b>境界線</b>：<b>i ＜ n</b> かどうかで、発見したか否かを物理的に判定できる。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 400">
-                <rect x="40" y="100" width="70" height="70" class="box" /><text x="75" y="135">12</text>
-                <rect x="125" y="100" width="70" height="70" class="box-focus" /><text x="160" y="135">45</text>
-                <circle cx="160" cy="135" r="45" class="found-mark" />
-                <text x="160" y="210" font-size="22" fill="#ef4444">i = 1 で停止</text>
-                
-                <line x1="280" y1="50" x2="280" y2="350" stroke="#64748b" stroke-width="4" stroke-dasharray="8"/>
-                <text x="335" y="200" font-size="30" fill="#64748b" writing-mode="tb">末尾 n</text>
-                
-                <text x="160" y="310" font-size="24">i ＜ n なら発見！</text>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<div class="slide">
-    <div class="header">
-        <div class="title-group"><div class="title-bar"></div><h1>練習73：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">線形探索（リニアサーチ）完成プログラム</div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-<b>i</b> ← 0
-while ( <b>i</b> ＜ <b>n</b> and <b class="correct">A[i] ≠ key</b> )
-　　<b>i</b> ← <b>i</b> + 1
-endwhile
-
-if ( <b class="correct">i ＜ n</b> )
-　　return <b>i</b>
-else
-　　return -1
-endif</pre>
-        </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答</h2>
-                <div class="ans-text">
-                    【１】 ウ．A[i] ≠ key
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">練習73</span><h1>ランレングス圧縮（連長圧縮）の仕組み</h1></div>
+                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="width: 85%; background: #f0f9ff; border: 2px solid var(--primary); padding: 50px; border-radius: 20px;">
+                        <h2 style="color: var(--primary); font-size: 34px; margin-top: 0; text-align: center;">同一文字の連続を「文字＋数」で表現する</h2>
+                        <div style="font-size: 30px; margin: 30px 0; font-family: monospace; background: #fff; padding: 25px; border-radius: 10px; border: 1px solid #cbd5e1; text-align: center;">
+                            元データ：<span style="color:var(--danger)">aaa</span> b <span style="color:var(--success)">cccc</span> <span style="color:var(--primary)">ddd</span> e<br>
+                            圧縮後　：<span style="color:var(--danger)">a3</span> b <span style="color:var(--success)">c4</span> <span style="color:var(--primary)">d3</span> e
+                        </div>
+                        <ul style="font-size: 24px; line-height: 1.8; color: #334155;">
+                            <li>画像やテキストなどのデータサイズを減らす定番アルゴリズム。</li>
+                            <li><b>3文字以上</b>連続する場合のみ、数字に置き換えて圧縮する。</li>
+                            <li>2文字以下の場合は、圧縮せずにそのまま文字を並べるルール。</li>
+                            <li>実装には「起点となる変数 <span class="hl-p">i</span>」と「調査を進める変数 <span class="hl-k">k</span>」を使う。</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">理論</span><h1>空欄を解くための思考トレース</h1></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 85%;">
+                    
+                    <div class="step-card" style="border-top: 8px solid var(--color-k);">
+                        <div class="step-badge" style="background: var(--bg-k); color: var(--color-k);">CASE 1：3文字以上連続する場合 (aaa)</div>
+                        <div style="font-size: 17px; margin-bottom: 10px; line-height: 1.5;">
+                            ① <span class="hl-p">i</span> を起点に固定。まず1文字目 <b>"a"</b> を出力する。<br>
+                            ② <span class="hl-k">k</span> を <b>i+1</b> から順に進めて、同じ文字を数える。
+                        </div>
+                        
+                        <svg width="100%" height="220" viewBox="0 0 550 220" style="margin: 10px 0;">
+                            <defs><marker id="arr-k" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--color-k)"/></marker></defs>
+                            <g transform="translate(30, 80)">
+                                <rect x="30" y="0" width="55" height="55" fill="var(--bg-i)" stroke="var(--color-i)" rx="6"/><text x="57" y="36" text-anchor="middle" font-size="26" font-weight="bold">a</text>
+                                <rect x="95" y="0" width="55" height="55" fill="white" stroke="#ccc" rx="6"/><text x="122" y="36" text-anchor="middle" font-size="26">a</text>
+                                <rect x="160" y="0" width="55" height="55" fill="white" stroke="#ccc" rx="6"/><text x="187" y="36" text-anchor="middle" font-size="26">a</text>
+                                <rect x="225" y="0" width="55" height="55" fill="white" stroke="#ccc" rx="6"/><text x="252" y="36" text-anchor="middle" font-size="26">b</text>
+                                
+                                <text x="57" y="-50" text-anchor="middle" font-size="16" fill="var(--color-i)" font-weight="bold">起点 i</text>
+                                <text x="252" y="-20" text-anchor="middle" font-size="16" fill="var(--color-k)" font-weight="bold">停止 k=4</text>
+                                <path d="M 122 70 Q 187 110 252 75" fill="none" stroke="var(--color-k)" stroke-width="2" marker-end="url(#arr-k)" stroke-dasharray="4"/>
+                                <text x="187" y="115" text-anchor="middle" font-size="14" fill="var(--color-k)" font-weight="bold">同じ文字の間 k を進める</text>
+
+                                <rect x="330" y="-30" width="160" height="80" fill="#fff" stroke="#cbd5e1" rx="8"/>
+                                <text x="345" y="-5" font-size="14" fill="#64748b">カウント結果：</text>
+                                <text x="345" y="30" font-size="24" font-weight="bold" fill="var(--danger)">n = 3</text>
+                            </g>
+                        </svg>
+
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: auto;">
+                            <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">【出力結果 b】</div>
+                            <div style="font-family: monospace; font-size: 19px;">[ a ] [ 3 ] <span style="color:#94a3b8; font-size: 15px;">... 圧縮成功！</span></div>
+                        </div>
+                    </div>
+
+                    <div class="step-card" style="border-top: 8px solid var(--success);">
+                        <div class="step-badge" style="background: #ecfdf5; color: var(--success);">CASE 2：2文字の場合 (dd)</div>
+                        <div style="font-size: 17px; margin-bottom: 10px; line-height: 1.5;">
+                            ① 1文字目 <b>"d"</b> は既に出力済み。<br>
+                            ② <b>n=2</b> なので圧縮ルール対象外。そのまま出す必要がある。
+                        </div>
+
+                        <svg width="100%" height="220" viewBox="0 0 550 220" style="margin: 10px 0;">
+                            <defs><marker id="arr-g" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--success)"/></marker></defs>
+                            <g transform="translate(30, 80)">
+                                <rect x="30" y="0" width="55" height="55" fill="var(--bg-i)" stroke="var(--color-i)" rx="6"/><text x="57" y="36" text-anchor="middle" font-size="26" font-weight="bold">d</text>
+                                <rect x="95" y="0" width="55" height="55" fill="white" stroke="var(--success)" stroke-width="2" rx="6"/><text x="122" y="36" text-anchor="middle" font-size="26" font-weight="bold">d</text>
+                                <rect x="160" y="0" width="55" height="55" fill="white" stroke="#ccc" rx="6"/><text x="187" y="36" text-anchor="middle" font-size="26">e</text>
+                                
+                                <text x="57" y="-50" text-anchor="middle" font-size="16" fill="var(--color-i)" font-weight="bold">起点 i</text>
+                                <text x="122" y="-20" text-anchor="middle" font-size="16" fill="var(--success)" font-weight="bold">2文字目 i+1</text>
+                                <path d="M 57 70 Q 89 100 122 75" fill="none" stroke="var(--success)" stroke-width="3" stroke-dasharray="4" marker-end="url(#arr-g)"/>
+                                <text x="89" y="115" text-anchor="middle" font-size="14" fill="var(--success)" font-weight="bold">2文字目を追加で転記</text>
+
+                                <rect x="290" y="-30" width="230" height="110" fill="#fffbeb" stroke="#fde68a" rx="8"/>
+                                <text x="305" y="-5" font-size="15" font-weight="bold" fill="#92400e">なぜ a[i+1] を足すのか？</text>
+                                <text x="305" y="20" font-size="14" fill="#92400e">圧縮しない時は「d」を2つ並べる。</text>
+                                <text x="305" y="40" font-size="14" fill="#92400e">1個目は処理済みなので、</text>
+                                <text x="305" y="65" font-size="16" font-weight="bold" fill="var(--danger)">b[j] ← a[i+1] </text>
+                                <text x="420" y="65" font-size="14" fill="#92400e">を手動追加！</text>
+                            </g>
+                        </svg>
+
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: auto;">
+                            <div style="font-weight: bold; color: var(--success); margin-bottom: 5px;">【出力結果 b】</div>
+                            <div style="font-family: monospace; font-size: 19px;">[ d ] [ d ] <span style="color:#94a3b8; font-size: 15px;">... そのまま並べる</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-wrapper">
+        <div class="slide">
+            <div class="slide-content">
+                <div class="header"><span class="prob-num">実装</span><h1>疑似言語への当てはめ</h1></div>
+                <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 35px; height: 85%;">
+                    
+                    <div class="code-block">
+while ( i ≦ m )
+  j ← j + 1
+  b[ j ] ← a[ i ]  <span class="cmt">/* ★まず1文字確保 */</span>
+  n ← 1
+  <span class="ans-hl"><b>k ← i + 1</b></span>    <span class="cmt">/* 【 １ 】調査開始位置 */</span>
+  
+  while ( ( k ≦ m ) and ( <span class="ans-hl"><b>a[k] = a[i]</b></span> ) )
+    n ← n + 1    <span class="cmt">/* 【 ２ 】同じなら数える */</span>
+    k ← k + 1
+  endwhile
+
+  if ( n ≧ 3 )
+    j ← j + 1
+    b[ j ] ← c[ n ] <span class="cmt">/* 圧縮：数字に置き換え */</span>
+  elseif ( n = 2 )
+    j ← j + 1
+    <span class="ans-hl"><b>b[ j ] ← a[ i + 1 ]</b></span> <span class="cmt">/* 【 ３ 】2文字目転記 */</span>
+  endif
+  i ← k <span class="cmt">/* 次の未処理文字へ一気にジャンプ */</span>
+endwhile</div>
+
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        
+                        <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                            <h3 style="color:var(--primary); margin: 0 0 10px 0; font-size: 20px;">💡 【1】【2】調査の開始と継続</h3>
+                            <div style="font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
+                                <span style="color:var(--danger); font-weight:bold;">【1】k ← i + 1</span><br>
+                                $k$ は起点 $i$ の「次の文字」から調査を始めます。
+                            </div>
+                            
+                            <div style="background: white; border-radius: 8px; padding: 15px; text-align: center;">
+                                <svg width="340" height="150" viewBox="0 0 340 150">
+                                    <defs><marker id="arr-r-fix" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--danger)"/></marker></defs>
+                                    <g transform="translate(40, 45)">
+                                        <rect x="0" y="0" width="55" height="55" fill="var(--bg-i)" stroke="var(--color-i)" rx="4"/>
+                                        <text x="27" y="35" text-anchor="middle" font-size="24">a</text>
+                                        <text x="27" y="-12" text-anchor="middle" font-size="14" fill="var(--color-i)" font-weight="bold">a[i]</text>
+                                        
+                                        <rect x="75" y="0" width="55" height="55" fill="var(--bg-k)" stroke="var(--color-k)" rx="4"/>
+                                        <text x="102" y="35" text-anchor="middle" font-size="24">a</text>
+                                        <text x="102" y="-12" text-anchor="middle" font-size="14" fill="var(--color-k)" font-weight="bold">a[k]</text>
+
+                                        <path d="M 27 65 Q 65 110 102 65" fill="none" stroke="var(--danger)" stroke-width="2" stroke-dasharray="4" marker-end="url(#arr-r-fix)"/>
+                                        <text x="150" y="35" font-size="15" fill="var(--danger)" font-weight="bold">←【2】中身が同じ間</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div style="background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 20px;">
+                            <h3 style="color:var(--accent); margin: 0 0 10px 0; font-size: 20px;">💡 【3】2文字の場合の例外処理</h3>
+                            <p style="font-size: 16px; line-height: 1.6; margin: 0;">
+                                圧縮ルールから外れるため、文字を2つ並べます。<br>
+                                1文字目（<code>a[i]</code>）は既に転記されているため、2文字目である <b><code>a[i+1]</code></b> を手動で転記します。
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
