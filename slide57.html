@@ -1,201 +1,225 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>練習57：線形探索(linearsearch)</title>
-    <style>
-        /* ■ 1. 画面構成と基本レイアウト (1280x720px固定) */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #4b5563; 
-            display: flex; flex-direction: column; align-items: center; 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-        }
-        
-        .slide { 
-            width: 1280px; height: 720px; background-color: #ffffff; 
-            margin-bottom: 40px; position: relative; 
-            padding: 40px 80px; overflow: hidden; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>練習57 解説スライド（1300x800 ワイド版）</title>
+<style>
+  /* 基本設定 */
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e9ecef;
+  }
 
-        /* タイトル領域 */
-        .title-container { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-bottom: 20px; }
-        .title-left { display: flex; align-items: center; }
-        .title-bar { width: 20px; height: 50px; background-color: #3b82f6; margin-right: 15px; flex-shrink: 0; }
-        h1 { font-size: 38px; margin: 0; color: #000000; font-weight: 900; }
-        .page-num { font-size: 24px; font-weight: 900; color: #64748b; }
+  /* スクロールスナップのコンテナ */
+  .presentation-container {
+    height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .presentation-container::-webkit-scrollbar { display: none; }
 
-        /* 問題文領域 */
-        .problem-text { width: 100%; margin-bottom: 25px; }
-        .problem-text p { font-size: 28px; line-height: 1.4; margin: 0; color: #000000; }
+  /* スライド外枠と内容 */
+  .slide-wrapper {
+    height: 100vh; scroll-snap-align: start;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .slide-content {
+    width: 1300px; height: 800px; /* ← ご指定のサイズに変更 */
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 16px;
+    padding: 70px; box-sizing: border-box; /* パディングも少し広めに */
+    display: flex; flex-direction: column; position: relative;
+  }
 
-        /* コンテンツ領域 */
-        .content-area { display: flex; flex: 1; width: 100%; gap: 25px; }
-        .left-content { flex: 0 0 65%; }
-        .right-content { flex: 0 0 35%; display: flex; flex-direction: column; justify-content: flex-start; }
+  /* タイポグラフィ（大画面に合わせてサイズアップ） */
+  h1 { color: #343a40; font-size: 3em; text-align: center; margin-bottom: 25px; }
+  h2 { color: #fd7e14; font-size: 2.2em; border-bottom: 4px solid #fd7e14; padding-bottom: 15px; margin-top: 0; }
+  p, li { font-size: 1.5em; line-height: 1.6; color: #495057; }
+  
+  .badge { display: inline-block; padding: 8px 15px; background: #fd7e14; color: white; border-radius: 8px; font-size: 1.1em; margin-bottom: 20px; }
+  .center-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .page-number { position: absolute; bottom: 30px; right: 40px; font-size: 1.5em; color: #adb5bd; font-weight: bold; }
 
-        /* 文字装飾 */
-        .blank { color: #a52a2a; font-weight: 900; } 
-        .important { color: #ef4444; font-weight: 900; } 
-        b { font-weight: 900; }
+  /* --- ソート図解用のCSS（箱も大きく） --- */
+  .sort-step { margin-bottom: 30px; padding: 20px 30px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6; }
+  .step-title { font-weight: bold; color: #343a40; font-size: 1.5em; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;}
+  .array-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
+  
+  /* 配列の箱（60px → 80px に拡大） */
+  .box {
+    width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;
+    font-size: 2em; font-weight: bold; color: #343a40; background: white;
+    border: 3px solid #adb5bd; border-radius: 8px;
+  }
+  
+  /* 状態別の色 */
+  .box.comparing { border-color: #ffc107; background: #fff8e1; color: #d32f2f; }
+  .box.swapping { border-color: #dc3545; background: #ffebee; color: #c62828; }
+  .box.fixed { border-color: #28a745; background: #e8f5e9; color: #2e7d32; }
+  .box.semi-fixed { border-color: #17a2b8; background: #e0f7fa; color: #00838f; }
+  
+  .flg-status { padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 1.1em; }
+  .flg-0 { background: #e2e3e5; color: #383d41; }
+  .flg-1 { background: #ffebee; color: #c62828; border: 2px solid #dc3545; }
 
-        /* 疑似言語(pre)：全角スペース2個インデント */
-        pre { 
-            background-color: #e2e8f0; padding: 25px; border-radius: 12px; 
-            font-family: 'Consolas', 'Courier New', monospace; font-size: 22px; 
-            line-height: 1.3; border: 1px solid #cbd5e1; color: #000000; margin: 0;
-        }
-
-        /* 説明文・箇条書き */
-        .desc-list { list-style-type: disc; margin-left: 30px; padding: 0; }
-        .desc-list li { font-size: 24px; margin-bottom: 25px; line-height: 1.5; color: #000000; }
-
-        /* 解答ボックス */
-        .ans-box { 
-            background-color: #fffaf4; padding: 30px; border: 3px solid #ea580c; 
-            border-radius: 15px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .ans-box h2 { color: #ea580c; font-size: 28px; margin-top: 0; margin-bottom: 25px; font-weight: 900; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
-        .ans-list { font-size: 22px; line-height: 2.0; font-weight: normal; color: #000000; }
-        .ans-item { margin-bottom: 20px; display: block; }
-
-        /* SVG図式 */
-        svg { width: 100%; height: auto; border: 3px solid #64748b; border-radius: 12px; background: #f9fafb; }
-        svg text { font-family: sans-serif; font-weight: 900; fill: #000000; text-anchor: middle; dominant-baseline: central; }
-        .array-box { fill: #ffffff; stroke: #334155; stroke-width: 3; }
-        .arrow-line { stroke: #3b82f6; stroke-width: 5; fill: none; }
-        .marker-head { fill: #3b82f6; }
-    </style>
+  /* --- 疑似言語コード用のCSS（第6スライド用） --- */
+  pre.pseudo-code {
+    background: #f8f9fa; 
+    padding: 30px 40px; 
+    border-radius: 10px; 
+    font-size: 1.6em; /* フォントサイズをさらに大きく */
+    line-height: 1.8;
+    border-left: 8px solid #fd7e14; 
+    overflow-x: auto; 
+    margin-top: 20px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #343a40;
+  }
+  .code-keyword { color: #0056b3; font-weight: bold; }
+  .code-comment { color: #28a745; font-style: italic; }
+  .code-highlight-line { 
+    background-color: #fff3cd; 
+    display: block; 
+    border-radius: 6px; 
+    padding: 4px 10px;
+    border: 2px dashed #ffc107;
+  }
+</style>
 </head>
 <body>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習57：線形探索（問題）</h1></div>
-        <div class="page-num">1/4</div>
-    </div>
-    <div class="problem-text">
-        <p>要素数 <b>n</b> の配列 <b>A</b> から値 <b>num</b> を探す関数 <b>linearsearch</b> である。空欄を埋めて完成させよ。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ linearsearch(整数型: <b>num</b> )
-　　for ( <b>i</b> を 0 から <span class="blank">【　　 1 　　】</span> まで 1 ずつ増やす )
-　　　　if ( <span class="blank">【　　 2 　　】</span> == <b>num</b> )
-　　　　　　return <b>i</b>
-　　　　endif
-　　endfor
-　　return -1</pre>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <defs>
-                    <marker id="head" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="18" refX="24" refY="9" orient="auto">
-                        <path d="M0,0 L24,9 L0,18 Z" class="marker-head" />
-                    </marker>
-                </defs>
-                <rect x="30" y="150" width="60" height="60" class="array-box" />
-                <rect x="90" y="150" width="60" height="60" class="array-box" />
-                <rect x="150" y="150" width="60" height="60" class="array-box" />
-                <rect x="210" y="150" width="60" height="60" class="array-box" />
-                <rect x="270" y="150" width="100" height="60" class="array-box" stroke-dasharray="5,5" />
-                <text x="60" y="180" font-size="16">A[0]</text>
-                <text x="120" y="180" font-size="16">A[1]</text>
-                <text x="320" y="180" font-size="16">A[n-1]</text>
-                <path d="M 60,260 L 60,220" class="arrow-line" marker-end="url(#head)" />
-                <text x="60" y="290" font-size="20" fill="#3b82f6">i</text>
-            </svg>
-        </div>
-    </div>
-</div>
+<div class="presentation-container">
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習57：解説（線形探索の基本）</h1></div>
-        <div class="page-num">2/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <div class="center-content">
+        <span class="badge" style="align-self: center;">アルゴリズム図解</span>
+        <h1>練習５７：最適化バブルソート</h1>
+        <p style="text-align: center; font-size: 1.8em;">配列が整列していく過程と「打ち切り」のタイミング</p>
+      </div>
+      <div class="page-number">1 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>線形探索（逐次探索）は、データの並びに頼らず端から順番に比較する手法である。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>探索の範囲</b>：<br>配列の最初の要素（添字0）から最後の要素（添字 n-1）までをもれなくチェックする。</li>
-                <li><b>一致の判定</b>：<br>現在注目している要素 <b>A[i]</b> が、探している値 <b>num</b> と等しいかどうかを <b>if</b> 文で判定する。</li>
-                <li><b>見つかった場合</b>：<br>その時点の添字 <b>i</b> を返して即座に終了する。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <path d="M 50,150 L 350,150" class="arrow-line" marker-end="url(#head)" />
-                <text x="200" y="100" font-size="22">先頭から順に調べる</text>
-                <rect x="150" y="200" width="100" height="60" rx="10" fill="#fef3c7" stroke="#ea580c" stroke-width="3" />
-                <text x="200" y="235" font-size="20">A[i] == num?</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習57：解説（ループと戻り値）</h1></div>
-        <div class="page-num">3/4</div>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>1. ポイント：無駄をどう省くか？</h2>
+      <ul style="margin-top: 40px; gap: 30px; display: flex; flex-direction: column;">
+        <li><strong>基本の動き：</strong> 隣り合うデータを比較し、逆順なら交換する。<br>➔ 1周するごとに、一番大きいデータが右端に確定（沈む）していく。</li>
+        <li><strong>課題：</strong> 全て並び終えていても、最後まで無駄な比較を続けてしまう。</li>
+        <li><strong>解決：</strong> 1周して <span style="color:#dc3545; font-weight:bold;">一度も交換が発生しなかったら</span> 既に整列済みとみなして即終了させる。</li>
+      </ul>
+      <div class="page-number">2 / 6</div>
     </div>
-    <div class="problem-text">
-        <p>繰り返し条件の境界と、見つからなかった場合の処理に注意しよう。</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <ul class="desc-list">
-                <li><b>ループの終点（空欄1）</b>：<br>要素数が <b>n</b> のとき、添字は 0 から <b>n-1</b> までとなる。したがって、繰り返しは <b>n-1</b> まで。</li>
-                <li><b>比較対象（空欄2）</b>：<br>変数 <b>i</b> は添字を表す。中身を調べるには <b>A[i]</b> と記述する。</li>
-                <li><b>return -1 の意味</b>：<br>ループを最後まで回しても <b>return i</b> されなかった＝存在しない場合に、失敗を示す値を返す。</li>
-            </ul>
-        </div>
-        <div class="right-content">
-            <svg viewBox="0 0 400 350">
-                <circle cx="200" cy="120" r="50" fill="#dcfce7" stroke="#16a34a" stroke-width="3" />
-                <text x="200" y="120" font-size="20">0 〜 n-1</text>
-                <text x="200" y="200" font-size="18">ループの範囲</text>
-                <rect x="100" y="250" width="200" height="50" rx="5" fill="#e2e8f0" stroke="#334155" />
-                <text x="200" y="280" font-size="18">NotFound → -1</text>
-            </svg>
-        </div>
-    </div>
-</div>
+  </div>
 
-<div class="slide">
-    <div class="title-container">
-        <div class="title-left"><div class="title-bar"></div><h1>練習57：最終解答</h1></div>
-        <div class="page-num">4/4</div>
-    </div>
-    <div class="problem-text">
-        <p>線形探索（linearsearch）完成コード</p>
-    </div>
-    <div class="content-area">
-        <div class="left-content">
-            <pre>
-○ linearsearch(整数型: <b>num</b> )
-　　for ( <b>i</b> を 0 から <b class="important">n - 1</b> まで 1 ずつ増やす )
-　　　　if ( <b class="important">A[i]</b> == <b>num</b> )
-　　　　　　return <b>i</b>
-　　　　endif
-　　endfor
-　　return -1</pre>
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>2. 図解：1周目（最大の値を右端へ）</h2>
+      <p style="margin-top: 0;">開始時：<span class="flg-status flg-0">flg = 0</span></p>
+
+      <div class="sort-step">
+        <div class="step-title">
+          <span>最初の比較：「52」と「18」は逆順なので交換！</span>
+          <span class="flg-status flg-1">flg ← 1 に更新</span>
         </div>
-        <div class="right-content">
-            <div class="ans-box">
-                <h2>最終解答（選択肢）</h2>
-                <div class="ans-list">
-                    <span class="ans-item">【１】 イ．n - 1</span>
-                    <span class="ans-item">【２】 ア．A[i]</span>
-                </div>
-            </div>
+        <div class="array-row">
+          <div class="box swapping">52</div><div class="box swapping">18</div>
+          <div class="box">93</div><div class="box">14</div><div class="box">47</div>
+          <div class="box">68</div><div class="box">25</div><div class="box">81</div><div class="box">39</div>
         </div>
+      </div>
+      
+      <div class="sort-step">
+        <div class="step-title" style="margin-bottom: 10px;">
+          <span>1周目の終了時：最大値「93」が右端に確定</span>
+        </div>
+        <p style="margin: 0 0 15px 0; font-size: 1.1em; color: #6c757d;">（flg=1 なので、まだ整列が必要とみなして次の周へ）</p>
+        <div class="array-row">
+          <div class="box">18</div><div class="box">52</div><div class="box">14</div>
+          <div class="box">47</div><div class="box">68</div><div class="box">25</div>
+          <div class="box">81</div><div class="box">39</div><div class="box semi-fixed">93</div>
+        </div>
+      </div>
+      <div class="page-number">3 / 6</div>
     </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>3. 図解：途中の周（右側から順に確定していく）</h2>
+      <p style="margin-top: 0;">数周経過し、右側の大きい数字がいくつか確定した状態です。<br>新しい周の開始時：<span class="flg-status flg-0">flg = 0</span></p>
+
+      <div class="sort-step">
+        <div class="step-title">
+          <span>残る逆順「68」と「52」を発見して交換！</span>
+          <span class="flg-status flg-1">flg ← 1 に更新</span>
+        </div>
+        <div class="array-row">
+          <div class="box">14</div><div class="box">18</div><div class="box">25</div>
+          <div class="box">39</div><div class="box">47</div>
+          <div class="box swapping">68</div><div class="box swapping">52</div>
+          <div class="box semi-fixed">81</div><div class="box semi-fixed">93</div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; font-weight: bold; color: #d32f2f; margin-top: 25px;">
+        ➔ 実はこの交換で「配列は完璧に整列された」のですが、<br>
+        コンピュータはまだ気づいていません（flg=1なので次へ進む）。
+      </p>
+      <div class="page-number">4 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>4. 図解：最終パス（早期終了発動！）</h2>
+      <p style="margin-top: 0;">最後の確認の周です。開始時：<span class="flg-status flg-0">flg = 0</span></p>
+
+      <div class="sort-step" style="border-color: #28a745; background: #e8f5e9;">
+        <div class="step-title" style="color: #2e7d32; margin-bottom: 10px;">
+          <span>未確定部分を全て比較したが、逆順なし（交換ゼロ）</span>
+          <span class="flg-status flg-0" style="background: white;">flg は 0 のまま</span>
+        </div>
+        <p style="margin: 0 0 15px 0; font-size: 1.1em; color: #2e7d32;">（交換が起きなかったので、これ以上ループを回す必要なし！）</p>
+        <div class="array-row">
+          <div class="box fixed">14</div><div class="box fixed">18</div><div class="box fixed">25</div>
+          <div class="box fixed">39</div><div class="box fixed">47</div><div class="box fixed">52</div>
+          <div class="box fixed">68</div><div class="box fixed">81</div><div class="box fixed">93</div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; font-weight: bold; color: #2e7d32; font-size: 1.4em; margin-top: 30px;">
+        ➔ プログラム終了！無駄なループを大幅にカットできました。
+      </p>
+      <div class="page-number">5 / 6</div>
+    </div>
+  </div>
+
+  <div class="slide-wrapper">
+    <div class="slide-content">
+      <h2>5. 空欄の導出とまとめ</h2>
+      
+      <pre class="pseudo-code">
+<span class="code-keyword">while</span> ( ( i が 1 より大きい ) <span class="code-keyword">and</span> ( flg が 1 と等しい ) )
+　　flg ← 0                       <span class="code-comment">/* 開始時にリセット */</span>
+　　<span class="code-keyword">for</span> ( j を 1 から i - 1 まで 1 ずつ増やす )
+　　　　<span class="code-keyword">if</span> ( tbl[ j ] が tbl[ j + 1 ] より大きい )
+　　　　　　tbl[ j ] と tbl[ j + 1 ] を交換
+<span class="code-highlight-line">　　　　　　<b>flg ← 1</b>              <span class="code-comment">/* 【 １ 】交換ありを記録 */</span></span>
+　　　　<span class="code-keyword">endif</span>
+　　<span class="code-keyword">endfor</span>
+<span class="code-keyword">endwhile</span></pre>
+      
+      <div style="margin-top: 30px; text-align: center;">
+        <h3 style="color: #fd7e14; margin-bottom: 10px; font-size: 1.6em;">正解</h3>
+        <p style="font-size: 2.5em; font-weight: bold; margin: 0; color: #343a40;">ウ （ flg ← 1 ）</p>
+      </div>
+      <div class="page-number">6 / 6</div>
+    </div>
+  </div>
+
 </div>
 
 </body>
